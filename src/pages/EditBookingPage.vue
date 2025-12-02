@@ -126,6 +126,8 @@ const resetAll = () => {
 }
 const bookingId = route.params.id; // /edit-booking/:id
 
+const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000';
+
 const selectedGym = ref("");
 const selectedDate = ref(null);
 const selectedSchedule = ref(null);
@@ -146,7 +148,7 @@ const onSelectSchedule = (payload) => {
 /* ✅ โหลด booking เดิม */
 const fetchBookingDetail = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/v1/bookings?classes_booking_id=${bookingId}`);
+    const res = await axios.get(`http://${STING_HIVE_API_URL}/api/v1/bookings?classes_booking_id=${bookingId}`);
 
     // ✅ กันกรณี data เป็น array
     const b = Array.isArray(res.data.data)
@@ -207,7 +209,7 @@ const updateBooking = async () => {
     isSubmitting.value = true;
 
     await axios.put(
-      `http://localhost:3000/api/v1/bookings/${bookingId}`,
+      `http://${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );

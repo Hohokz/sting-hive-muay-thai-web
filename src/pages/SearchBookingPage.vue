@@ -99,6 +99,7 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
+const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000';
 const email = ref("");
 const bookings = ref([]);
 const isLoading = ref(false);
@@ -135,7 +136,7 @@ const searchBooking = async () => {
     bookings.value = [];
 
     const res = await axios.get(
-      `http://localhost:3000/api/v1/bookings?client_email=${email.value}`
+      `http://${STING_HIVE_API_URL}/api/v1/bookings?client_email=${email.value}`
     );
 
     console.log(res.data.data);
@@ -165,7 +166,7 @@ const cancelBooking = (bookingId) => {
         isLoading.value = true;
 
         await axios.patch(
-          `http://localhost:3000/api/v1/bookings/${bookingId}/cancel`
+          `http://${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}/cancel`
         );
 
         bookings.value = bookings.value.filter(b => b.id !== bookingId);

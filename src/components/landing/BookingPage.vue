@@ -218,6 +218,7 @@ import BookingTimeSlots from "@/components/ฺbooking/BookingTimeSlots.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 
+const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000';
 const router = useRouter();
 
 const goToFindBooking = () => {
@@ -323,7 +324,7 @@ const submitBooking = async () => {
   try {
     isSubmitting.value = true;
     const res = await axios.post(
-      "http://localhost:3000/api/v1/bookings",
+      `http://${STING_HIVE_API_URL}/api/v1/bookings`,
       payload,
       {
         headers: {
