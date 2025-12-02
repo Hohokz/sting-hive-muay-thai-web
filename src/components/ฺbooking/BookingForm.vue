@@ -10,7 +10,7 @@
 
 <script setup>
 import { reactive } from 'vue';
-import { createBooking } from '../api/bookingApi';
+import { createBooking } from '../../api/bookingApi';
 
 const props = defineProps({
     scheduleId: Number

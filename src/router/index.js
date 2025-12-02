@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', name: 'booking', component: () => import('../pages/BookingPage.vue') },
+  { path: '/', name: 'booking', component: () => import('../pages/LandingPage.vue') },
   {
     path: '/edit-booking/:id',
     name: 'editBooking',

@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full min-h-screen bg-[#f7f9fc] p-6">
+  <div class="w-full min-h-screen p-6">
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <!-- LEFT CONTENT -->
@@ -43,7 +43,7 @@
               <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" @select="onSelectSchedule" />
 
               <p v-if="!selectedGym" class="text-sm text-red-500">
-                กรุณาเลือกสถานที่ก่อน
+                Please select a Place first.
               </p>
             </div>
 
@@ -182,7 +182,30 @@
         </div>
       </div>
     </div>
+    <!-- WARNING MODAL -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-2xl w-[340px] text-center shadow-xl animate-fadeIn">
+        <h3 class="text-lg font-semibold mb-2" :class="{
+          'text-yellow-500': modalType === 'warning',
+          'text-red-500': modalType === 'error',
+          'text-green-500': modalType === 'success',
+        }">
+          {{ modalTitle }}
+        </h3>
 
+        <p class="text-gray-600">
+          {{ modalMessage }}
+        </p>
+
+        <button class="mt-5 px-5 py-2 rounded-lg transition" :class="{
+          'bg-yellow-500 text-white hover:bg-yellow-600': modalType === 'warning',
+          'bg-red-500 text-white hover:bg-red-600': modalType === 'error',
+          'bg-green-500 text-white hover:bg-green-600': modalType === 'success',
+        }" @click="showModal = false">
+          OK
+        </button>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -190,8 +213,8 @@
 
 <script setup>
 import { ref, watch, computed } from "vue";
-import BookingCalender from "@/components/BookingCalender.vue";
-import BookingTimeSlots from "@/components/BookingTimeSlots.vue";
+import BookingCalender from "@/components/ฺbooking/BookingCalender.vue";
+import BookingTimeSlots from "@/components/ฺbooking/BookingTimeSlots.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 
@@ -200,7 +223,17 @@ const router = useRouter();
 const goToFindBooking = () => {
   router.push("/search-booking"); // ✅ path ของหน้าค้นหา booking
 };
+const showModal = ref(false);
+const modalTitle = ref("");
+const modalMessage = ref("");
+const modalType = ref("warning")
 
+const openModal = (title, message, type = "warning") => {
+  modalTitle.value = title;
+  modalMessage.value = message;
+  modalType.value = type;
+  showModal.value = true;
+};
 
 const gymLabel = computed(() => {
   if (selectedGym.value === "STING_CLUB") return "Sting Club";
@@ -247,17 +280,29 @@ const isSubmitting = ref(false);
 
 const submitBooking = async () => {
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
-    alert("กรุณาเลือก ยิม / วันที่ / เวลา ให้ครบ");
+    openModal(
+      "Incomplete Information",
+      "Please select Place / Date / Time before continuing.",
+      "warning"
+    );
     return;
   }
 
   if (!mobile.value || mobile.value.length < 9) {
-    alert("เบอร์โทรไม่ถูกต้อง");
+    openModal(
+      "Incomplete Information",
+      "Please enter a valid mobile number before continuing.",
+      "warning"
+    );
     return;
   }
 
   if (!participants.value || participants.value < 1) {
-    alert("จำนวนผู้เข้าเรียนไม่ถูกต้อง");
+    openModal(
+      "Incomplete Information",
+      "Please enter a valid number of participants.",
+      "warning"
+    );
     return;
   }
 
@@ -288,11 +333,19 @@ const submitBooking = async () => {
     );
 
     console.log("✅ Booking success:", res.data);
-    alert("Booking สำเร็จแล้ว ✅");
+    openModal(
+      "Booking Success",
+      "Your booking has been successfully created.",
+      "success"
+    );
 
   } catch (err) {
     console.error("❌ Booking failed:", err);
-    alert("Booking ไม่สำเร็จ");
+    openModal(
+      "Booking Failed",
+      "There was an error creating your booking. Please try again later.",
+      "error"
+    );
   } finally {
     isSubmitting.value = false;
     goToFindBooking();
@@ -304,3 +357,20 @@ watch(selectedSchedule, () => {
   selectedTime.value = null;
 });
 </script>
+<style>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+</style>

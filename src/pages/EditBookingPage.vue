@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full min-h-screen bg-[#f7f9fc] p-6">
+  <div class="w-full min-h-screen p-6">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 space-y-6">
 
       <h1 class="text-2xl font-semibold">Edit Booking</h1>
@@ -113,8 +113,8 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 
-import BookingCalender from "@/components/BookingCalender.vue";
-import BookingTimeSlots from "@/components/BookingTimeSlots.vue";
+import BookingCalender from "@/components/ฺbooking/BookingCalender.vue";
+import BookingTimeSlots from "@/components/ฺbooking/BookingTimeSlots.vue";
 
 const route = useRoute();
 const router = useRouter();
