@@ -1,0 +1,306 @@
+<template>
+  <div class="w-full min-h-screen bg-[#f7f9fc] p-6">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- LEFT CONTENT -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <!-- ✅ SELECT GYM -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-xl font-semibold mb-4">Select Place</h2>
+
+          <div class="flex justify-around items-center gap-6">
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="STING_CLUB" v-model="selectedGym" class="accent-blue-600" />
+              <span>Sting Club</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="STING_HIVE" v-model="selectedGym" class="accent-blue-600" />
+              <span>Sting Hive</span>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- ✅ SELECT A SLOT -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <h2 class="text-xl font-semibold mb-4">Select a Slot</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+            <!-- DATE -->
+            <div class="calendar-wrapper">
+              <p class="text-gray-600 text-sm mb-2">Select Date</p>
+              <BookingCalender v-model="selectedDate" />
+            </div>
+
+            <!-- TIME -->
+            <div>
+              <p class="text-gray-600 text-sm mb-5">Select Time</p>
+
+              <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" @select="onSelectSchedule" />
+
+              <p v-if="!selectedGym" class="text-sm text-red-500">
+                กรุณาเลือกสถานที่ก่อน
+              </p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ✅ PRIVATE CLASS -->
+        <div class="bg-white rounded-xl shadow p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-semibold mb-1">Private Class</h3>
+            </div>
+
+            <label class="relative inline-flex items-center cursor-pointer">
+              <!-- ✅ INPUT -->
+              <input type="checkbox" v-model="selectPrivate" class="sr-only peer" />
+
+              <!-- ✅ TRACK -->
+              <div class="w-11 h-6 bg-gray-300 rounded-full
+               transition-colors duration-300
+               peer-checked:bg-blue-600
+               relative">
+                <!-- ✅ DOT -->
+                <div class="absolute top-[2px] left-[2px]
+                 w-5 h-5 bg-white rounded-full
+                 transition-transform duration-300
+                 peer-checked:translate-x-[20px]"></div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <!-- ✅ CONTACT INFO -->
+        <div class="bg-white rounded-xl shadow p-6 space-y-4">
+          <h2 class="text-xl font-semibold mb-4">Contact Information</h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- NAME  -->
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Name</p>
+              <input v-model="clientName" type="text" class="w-full p-3 border rounded-md"
+                placeholder="Enter Your Name" />
+            </div>
+            <!-- ✅ MOBILE -->
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Mobile Number</p>
+              <input v-model="mobile" inputmode="numeric" pattern="[0-9]*" class="w-full p-3 border rounded-md"
+                placeholder="Enter mobile number" maxlength="10" @input="mobile = mobile.replace(/\D/g, '')" />
+            </div>
+
+            <!-- ✅ EMAIL -->
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Email</p>
+              <input v-model="email" type="email" class="w-full p-3 border rounded-md"
+                placeholder="Enter email address" />
+              <p v-if="email && !email.includes('@')" class="text-red-500 text-xs mt-1">
+                Email format ไม่ถูกต้อง
+              </p>
+            </div>
+            <!-- ✅ Person -->
+            <div>
+              <p class="text-gray-600 text-sm mb-1">Participants</p>
+              <input v-model.number="participants" type="number" class="w-full p-3 border rounded-md"
+                placeholder="Enter Participants Amount" min="1" />
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ RIGHT SUMMARY -->
+      <div>
+        <div class="bg-white rounded-xl shadow p-6 h-fit">
+          <h2 class="text-lg font-semibold mb-4">Booking Details</h2>
+
+          <!-- ✅ PLACE -->
+          <div class="border-b pb-4 mb-4">
+            <p class="text-gray-700 font-medium">Place</p>
+            <p class="text-sm">{{ gymLabel }}</p>
+          </div>
+
+          <!-- ✅ DATE & TIME -->
+          <div class="border-b pb-4 mb-4">
+            <p class="text-gray-700 font-medium">Date & Time</p>
+            <p v-if="!selectedDate || !selectedSchedule" class="text-sm mt-1">
+              -
+            </p>
+            <p v-else class="text-sm mt-1">
+              {{ displayDate }} - {{ displayTime }}
+            </p>
+          </div>
+
+          <!-- ✅ CONTACT INFO SUMMARY -->
+          <div class="border-b pb-4">
+            <p class="text-gray-700 font-medium mb-2">Contact Information</p>
+
+            <div class="text-sm space-y-1">
+              <p>
+                <span class="text-gray-500">Name:</span>
+                <span class="ml-1">{{ clientName || "-" }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Mobile:</span>
+                <span class="ml-1">{{ mobile || "-" }}</span>
+              </p>
+
+              <p>
+                <span class="text-gray-500">Email:</span>
+                <span class="ml-1">{{ email || "-" }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Participants:</span>
+                <span class="ml-1">{{ participants || "-" }}</span>
+              </p>
+            </div>
+
+          </div>
+
+          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+            :disabled="isSubmitting" @click="submitBooking">
+            <span v-if="!isSubmitting">Proceed to Booking</span>
+            <span v-else>Loading...</span>
+          </button>
+        </div>
+
+        <div v-if="isSubmitting" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
+            Creating Booking...
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6 h-fit mt-6">
+          <h2 class="text-lg font-semibold mb-4">Find Your Booking</h2>
+          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+            @click="goToFindBooking">
+            <span>Find Booking</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</template>
+
+
+<script setup>
+import { ref, watch, computed } from "vue";
+import BookingCalender from "@/components/BookingCalender.vue";
+import BookingTimeSlots from "@/components/BookingTimeSlots.vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goToFindBooking = () => {
+  router.push("/search-booking"); // ✅ path ของหน้าค้นหา booking
+};
+
+
+const gymLabel = computed(() => {
+  if (selectedGym.value === "STING_CLUB") return "Sting Club";
+  if (selectedGym.value === "STING_HIVE") return "Sting Hive";
+  return "-";
+});
+
+const displayDate = computed(() => {
+  if (!selectedDate.value) return "-";
+
+  const d = new Date(selectedDate.value);
+  return d.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+});
+
+const displayTime = computed(() => {
+  if (!selectedSchedule.value) return "-";
+
+  const start = selectedSchedule.value.start_time.slice(0, 5);
+  const end = selectedSchedule.value.end_time.slice(0, 5);
+
+  return `${start} - ${end}`;
+});
+
+const selectedSchedule = ref(null)
+const selectedDate = ref(null);
+const selectedTime = ref(null);
+
+const selectedGym = ref(null);
+const selectPrivate = ref(false);
+const mobile = ref("");
+const email = ref("");
+const clientName = ref("");
+const participants = ref(1);
+
+const onSelectSchedule = (payload) => {
+  selectedSchedule.value = payload;
+};
+
+const isSubmitting = ref(false);
+
+const submitBooking = async () => {
+  if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
+    alert("กรุณาเลือก ยิม / วันที่ / เวลา ให้ครบ");
+    return;
+  }
+
+  if (!mobile.value || mobile.value.length < 9) {
+    alert("เบอร์โทรไม่ถูกต้อง");
+    return;
+  }
+
+  if (!participants.value || participants.value < 1) {
+    alert("จำนวนผู้เข้าเรียนไม่ถูกต้อง");
+    return;
+  }
+
+  const payload = {
+    gym_enum: selectedGym.value,
+    client_name: clientName.value,
+    client_phone: mobile.value,
+    client_email: email.value,
+    participants: participants.value,
+    is_private: selectPrivate.value,
+    classes_schedule_id: selectedSchedule.value.id,
+    date_booking: selectedDate.value,
+    capacity: participants.value,
+  };
+
+  console.log("Submitting booking with payload:", payload);
+
+  try {
+    isSubmitting.value = true;
+    const res = await axios.post(
+      "http://localhost:3000/api/v1/bookings",
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    console.log("✅ Booking success:", res.data);
+    alert("Booking สำเร็จแล้ว ✅");
+
+  } catch (err) {
+    console.error("❌ Booking failed:", err);
+    alert("Booking ไม่สำเร็จ");
+  } finally {
+    isSubmitting.value = false;
+    goToFindBooking();
+  }
+};
+
+/* ✅ เมื่อเปลี่ยนวัน → reset เวลา */
+watch(selectedSchedule, () => {
+  selectedTime.value = null;
+});
+</script>
