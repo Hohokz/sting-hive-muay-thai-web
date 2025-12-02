@@ -1,6 +1,6 @@
 <template>
   <section class="relative h-screen bg-black text-white">
-    <img src="../assets/hero.jpg" class="absolute inset-0 w-full h-full object-cover opacity-50" />
+    <!-- <img src="../assets/hero.jpg" class="absolute inset-0 w-full h-full object-cover opacity-50" /> -->
 
     <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
       <h1 class="text-4xl md:text-6xl font-extrabold mb-4">
