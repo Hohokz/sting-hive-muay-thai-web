@@ -148,7 +148,7 @@ const onSelectSchedule = (payload) => {
 /* ✅ โหลด booking เดิม */
 const fetchBookingDetail = async () => {
   try {
-    const res = await axios.get(`http://${STING_HIVE_API_URL}/api/v1/bookings?classes_booking_id=${bookingId}`);
+    const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/bookings?classes_booking_id=${bookingId}`);
 
     // ✅ กันกรณี data เป็น array
     const b = Array.isArray(res.data.data)
@@ -209,7 +209,7 @@ const updateBooking = async () => {
     isSubmitting.value = true;
 
     await axios.put(
-      `http://${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}`,
+      `${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}`,
       payload,
       { headers: { "Content-Type": "application/json" } }
     );

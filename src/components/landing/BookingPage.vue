@@ -324,7 +324,7 @@ const submitBooking = async () => {
   try {
     isSubmitting.value = true;
     const res = await axios.post(
-      `http://${STING_HIVE_API_URL}/api/v1/bookings`,
+      `${STING_HIVE_API_URL}/api/v1/bookings`,
       payload,
       {
         headers: {

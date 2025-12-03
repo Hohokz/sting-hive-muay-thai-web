@@ -136,7 +136,7 @@ const searchBooking = async () => {
     bookings.value = [];
 
     const res = await axios.get(
-      `http://${STING_HIVE_API_URL}/api/v1/bookings?client_email=${email.value}`
+      `${STING_HIVE_API_URL}/api/v1/bookings?client_email=${email.value}`
     );
 
     console.log(res.data.data);
@@ -166,7 +166,7 @@ const cancelBooking = (bookingId) => {
         isLoading.value = true;
 
         await axios.patch(
-          `http://${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}/cancel`
+          `${STING_HIVE_API_URL}/api/v1/bookings/${bookingId}/cancel`
         );
 
         bookings.value = bookings.value.filter(b => b.id !== bookingId);

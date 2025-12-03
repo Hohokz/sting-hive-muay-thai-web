@@ -16,6 +16,8 @@
 import { ref, onMounted, watch } from "vue";
 import axios from "axios";
 
+const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL;
+
 /* ✅ รับค่าจาก Parent */
 const props = defineProps({
   date: {
@@ -50,7 +52,7 @@ const fetchSchedules = async () => {
     if (!props.date || !props.gym_enum) return;
 
     const res = await axios.get(
-      "http://localhost:3000/api/v1/schedules/available",
+      `${STING_HIVE_API_URL}/api/v1/schedules/available`,
       { params }
     );
     schedules.value = res.data.data || [];
