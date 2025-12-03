@@ -58,9 +58,17 @@
               <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" :is_private_class="selectPrivate"
                 @select="onSelectSchedule" />
 
-              <p v-if="!selectedGym" class="text-sm text-red-500">
+              <span v-if="!selectedGym && !selectedDate" class="text-sm text-red-500">
+                Please select a Place and Date first.
+              </span>
+
+              <span v-else-if="!selectedGym" class="text-sm text-red-500">
                 Please select a Place first.
-              </p>
+              </span>
+
+              <span v-else-if="!selectedDate" class="text-sm text-red-500">
+                Please select a Date first.
+              </span>
             </div>
 
           </div>
@@ -207,6 +215,7 @@ import BookingCalender from "@/components/ฺbooking/BookingCalender.vue";
 import BookingTimeSlots from "@/components/ฺbooking/BookingTimeSlots.vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+import { useSchedules } from "@/composables/useSchedules";
 
 const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000';
 const router = useRouter();
@@ -268,6 +277,8 @@ const onSelectSchedule = (payload) => {
 };
 
 const isSubmitting = ref(false);
+
+const { fetchSchedules } = useSchedules();
 
 const submitBooking = async () => {
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
@@ -345,7 +356,19 @@ const submitBooking = async () => {
 
 /* ✅ เมื่อเปลี่ยนวัน → reset เวลา */
 watch([selectedSchedule, selectPrivate, selectedGym], () => {
-  selectedTime.value = null;
+  // ถ้าค่ายังไม่ครบ → ไม่ต้องยิง API
+  if (!selectedDate.value || !selectedGym.value || selectPrivate.value === null) {
+    console.log("🔸 Waiting for full input...");
+    return;
+  }
+
+  console.log("🔹 Fetch schedules now!");
+
+  fetchSchedules({
+    date: selectedDate.value,
+    gym_enum: selectedGym.value,
+    is_private_class: selectPrivate.value,
+  });
 });
 </script>
 <style>

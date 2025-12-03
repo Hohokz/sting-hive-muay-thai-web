@@ -8,98 +8,63 @@
 
     <!-- ✅ แสดงค่าที่เลือก -->
     <p v-if="loading">Loading...</p>
-    <p v-if="!loading && schedules.length === 0 && props == null">ไม่มีรอบให้จอง</p>
+    <p v-if="!loading && schedules.length === 0 && props == null">Not found class</p>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import axios from "axios";
+import { ref, watch, onMounted } from "vue";
+import { useSchedules } from "@/composables/useSchedules";
 
-const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL;
-
-/* ✅ รับค่าจาก Parent */
 const props = defineProps({
-  date: {
-    type: [Date, String, null],
-    required: true,
-    default: null
-  },
-  gym_enum: {
-    type: String,
-    default: null
-  },
-  is_private_class: {
-    type: Boolean,
-    default: false
-  }
+  date: [String, Date, null],
+  gym_enum: String,
+  is_private_class: Boolean
 });
 
-/* ✅ ส่งค่ากลับไปให้ Parent */
 const emit = defineEmits(["select"]);
 
-const schedules = ref([]);
-const loading = ref(false);
-
+const { schedules, loading, fetchSchedules } = useSchedules();
 const selectedId = ref(null);
-const selectedSchedule = ref(null);
 
-/* ✅ Call API */
-const fetchSchedules = async () => {
-  try {
-    loading.value = true;
-
-    const params = {
-      date: props.date,
-      gym_enum: props.gym_enum,
-      is_private_class: props.is_private_class
-    };
-    console.log("Fetching schedules with params:", params);
-    if (!props.date || !props.gym_enum) return;
-
-    const res = await axios.get(
-      `${STING_HIVE_API_URL}/api/v1/schedules/available`,
-      { params }
-    );
-    schedules.value = res.data.data || [];
-
-    // ✅ reset ค่าเมื่อเปลี่ยนวัน
-    selectedId.value = null;
-    selectedSchedule.value = null;
-
-
-  } catch (err) {
-    console.error("Failed to load schedules:", err);
-  } finally {
-    loading.value = false;
-  }
-};
-
-
-/* ✅ เมื่อคลิกเลือก */
-const selectSchedule = (schedule) => {
-  selectedId.value = schedule.id;
-  selectedSchedule.value = schedule;
-
-  // ✅ ส่งข้อมูลกลับไปหา Parent
-  emit("select", {
-    id: schedule.id,
-    start_time: schedule.start_time,
-    end_time: schedule.end_time
+onMounted(() => {
+  fetchSchedules({
+    date: props.date,
+    gym_enum: props.gym_enum,
+    is_private_class: props.is_private_class
   });
+});
+
+watch(
+  () => [props.date, props.gym_enum, props.is_private_class],
+  ([date, gym, isPrivate]) => {
+
+    // ถ้าค่ายังไม่ครบ → หยุดเลย ไม่ fetch
+    if (!date || !gym || isPrivate === null) {
+      schedules.value = [];  // เคลียร์เก่า
+      return;
+    }
+
+    fetchSchedules({
+      date,
+      gym_enum: gym,
+      is_private_class: isPrivate
+    });
+  },
+  { immediate: true }
+);
+
+const selectSchedule = (s) => {
+  selectedId.value = s.id;
+  emit("select", s);
 };
 
-/* ✅ โหลดครั้งแรก */
-onMounted(fetchSchedules);
-
-/* ✅ เปลี่ยนวัน → โหลดใหม่ */
-watch(() => props.date, fetchSchedules);
-
-/* ✅ format เวลา */
 const formatTime = (time) => {
-  return time.slice(0, 5); // "07:00:00" → "07:00"
+  if (!time) return "-";
+  return time.slice(0, 5);
 };
 </script>
+
 
 <style scoped>
 .slot {
