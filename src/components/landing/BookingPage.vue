@@ -40,7 +40,8 @@
             <div>
               <p class="text-gray-600 text-sm mb-5">Select Time</p>
 
-              <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" @select="onSelectSchedule" />
+              <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" :is_private_class="selectPrivate"
+                @select="onSelectSchedule" />
 
               <p v-if="!selectedGym" class="text-sm text-red-500">
                 Please select a Place first.
@@ -354,7 +355,7 @@ const submitBooking = async () => {
 };
 
 /* ✅ เมื่อเปลี่ยนวัน → reset เวลา */
-watch(selectedSchedule, () => {
+watch([selectedSchedule, selectPrivate, selectedGym], () => {
   selectedTime.value = null;
 });
 </script>

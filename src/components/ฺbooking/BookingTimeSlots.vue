@@ -29,6 +29,10 @@ const props = defineProps({
     type: String,
     default: null
   },
+  is_private_class: {
+    type: Boolean,
+    default: false
+  }
 });
 
 /* ✅ ส่งค่ากลับไปให้ Parent */
@@ -47,8 +51,10 @@ const fetchSchedules = async () => {
 
     const params = {
       date: props.date,
-      gym_enum: props.gym_enum // ✅ ส่งไปตรง ๆ แม้จะเป็น null
+      gym_enum: props.gym_enum,
+      is_private_class: props.is_private_class
     };
+    console.log("Fetching schedules with params:", params);
     if (!props.date || !props.gym_enum) return;
 
     const res = await axios.get(
