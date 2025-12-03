@@ -22,10 +22,25 @@
             </label>
 
           </div>
+
         </div>
 
         <!-- ✅ SELECT A SLOT -->
-        <div class="bg-white rounded-xl shadow p-6">
+        <div class="bg-white rounded-xl shadow p-6 pb-8 space-y-6">
+          <div>
+            <h3 class="text-xl font-semibold mb-4">Private Class</h3>
+          </div>
+          <div class="flex justify-around items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="false" v-model="selectPrivate" class="accent-blue-600" />
+              <span>Group Class</span>
+            </label>
+
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" value="true" v-model="selectPrivate" class="accent-blue-600" />
+              <span>Private Class</span>
+            </label>
+          </div>
           <h2 class="text-xl font-semibold mb-4">Select a Slot</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -48,32 +63,6 @@
               </p>
             </div>
 
-          </div>
-        </div>
-
-        <!-- ✅ PRIVATE CLASS -->
-        <div class="bg-white rounded-xl shadow p-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h3 class="font-semibold mb-1">Private Class</h3>
-            </div>
-
-            <label class="relative inline-flex items-center cursor-pointer">
-              <!-- ✅ INPUT -->
-              <input type="checkbox" v-model="selectPrivate" class="sr-only peer" />
-
-              <!-- ✅ TRACK -->
-              <div class="w-11 h-6 bg-gray-300 rounded-full
-               transition-colors duration-300
-               peer-checked:bg-blue-600
-               relative">
-                <!-- ✅ DOT -->
-                <div class="absolute top-[2px] left-[2px]
-                 w-5 h-5 bg-white rounded-full
-                 transition-transform duration-300
-                 peer-checked:translate-x-[20px]"></div>
-              </div>
-            </label>
           </div>
         </div>
         <!-- ✅ CONTACT INFO -->
@@ -247,7 +236,7 @@ const displayDate = computed(() => {
   if (!selectedDate.value) return "-";
 
   const d = new Date(selectedDate.value);
-  return d.toLocaleDateString("th-TH", {
+  return d.toLocaleDateString("en-EN", {
     year: "numeric",
     month: "long",
     day: "numeric",
