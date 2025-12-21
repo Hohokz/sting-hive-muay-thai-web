@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import axios from 'axios'
+import { api } from '@/api/bookingApi'
 
 export function useSchedules() {
   const schedules = ref([])
@@ -14,9 +14,7 @@ export function useSchedules() {
       loading.value = true
 
       const params = { date, gym_enum, is_private_class }
-      const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL
-
-      const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/schedules/available`, { params })
+      const res = await api.schedules.getAvailable({ date, gym_enum, is_private_class })
 
       schedules.value = res.data.data || []
     } catch (err) {

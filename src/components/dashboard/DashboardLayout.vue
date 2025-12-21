@@ -1,0 +1,70 @@
+<template>
+  <div class="min-h-screen bg-gray-100">
+
+    <!-- ✅ FIXED SIDEBAR -->
+    <aside @mouseenter="hover = true" @mouseleave="hover = false" class="fixed top-0 left-0 h-screen z-40 bg-black text-white p-4
+             transition-all duration-300 flex flex-col justify-between" :class="open || hover ? 'w-64' : 'w-16'">
+      <!-- ✅ LOGO -->
+      <div>
+        <h1 class="text-xl font-bold text-red-500 mb-8 whitespace-nowrap overflow-hidden transition-all"
+          :class="open || hover ? 'opacity-100' : 'opacity-0'">
+          STING ADMIN
+        </h1>
+
+        <!-- ✅ MENU -->
+        <nav class="space-y-3 text-sm">
+          <RouterLink to="/admin/dashboard" class="flex items-center gap-3 hover:text-red-400">
+            📊 <span v-if="open || hover">Dashboard</span>
+          </RouterLink>
+
+          <RouterLink to="/admin/bookings" class="flex items-center gap-3 hover:text-red-400">
+            📖 <span v-if="open || hover">Bookings</span>
+          </RouterLink>
+
+          <RouterLink to="/admin/schedules" class="flex items-center gap-3 hover:text-red-400">
+            🗓 <span v-if="open || hover">Schedules</span>
+          </RouterLink>
+
+          <RouterLink v-if="auth.isAdmin" to="/admin/users" class="flex items-center gap-3 hover:text-red-400">
+            👤 <span v-if="open || hover">Users</span>
+          </RouterLink>
+        </nav>
+      </div>
+
+      <!-- ✅ LOGOUT -->
+      <button @click="logout" class="flex items-center gap-3 text-red-400 hover:text-white">
+        🚪 <span v-if="open || hover">Logout</span>
+      </button>
+    </aside>
+
+    <!-- ✅ BACKDROP (เฉพาะ Mobile) -->
+    <div v-if="open" @click="open = false" class="fixed inset-0 bg-black/40 z-30 md:hidden"></div>
+
+    <!-- ✅ CONTENT WRAPPER (ดันตาม sidebar) -->
+    <div class="min-h-screen transition-all duration-300" :class="open || hover ? 'ml-64' : 'ml-16'">
+
+      <!-- ✅ PAGE CONTENT -->
+      <main class="p-8">
+        <slot />
+      </main>
+    </div>
+
+  </div>
+</template>
+
+<script setup>
+import { ref } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import { useRouter } from "vue-router";
+
+const auth = useAuthStore();
+const router = useRouter();
+
+const open = ref(false);   // mobile toggle
+const hover = ref(false);  // desktop hover expand
+
+const logout = () => {
+  auth.logout();
+  router.push("/admin");
+};
+</script>
