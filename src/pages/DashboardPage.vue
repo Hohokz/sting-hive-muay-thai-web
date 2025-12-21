@@ -5,7 +5,7 @@
       <DashboardStats />
 
       <!-- ✅ BOOKING -->
-      <BookingTable :bookings="bookings" />
+      <BookingTable :bookings="bookings" :loading="isLoading" @refresh="fetchBookings" />
 
       <!-- ✅ SCHEDULE -->
       <ScheduleTable />
@@ -23,13 +23,17 @@ import { api } from '@/api/bookingApi'
 
 const selectedDate = ref(new Date().toISOString().split('T')[0])
 const bookings = ref([])
+const isLoading = ref(false)
 
 const fetchBookings = async () => {
+  isLoading.value = true
   try {
     const res = await api.dashboard.getDailyBookings(selectedDate.value)
     bookings.value = res.data.data
   } catch (err) {
     console.error('Failed to fetch dashboard bookings', err)
+  } finally {
+    isLoading.value = false
   }
 }
 
