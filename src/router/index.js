@@ -24,6 +24,18 @@ const routes = [
     meta: { requiresAuth: true, adminOnly: false }, // Accessible by both admin and user
   },
   {
+    path: '/admin/bookings',
+    name: 'AdminBookings',
+    component: () => import('@/pages/AdminBookingView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: () => import('@/pages/AdminUsersPage.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/admin',
     name: 'login',
     component: () => import('@/pages/AdminPage.vue'),

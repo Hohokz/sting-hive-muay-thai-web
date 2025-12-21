@@ -25,7 +25,7 @@
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Date</label>
           <input
             type="date"
-            :value="modelValue.date"
+            :value="filters.date"
             @input="update('date', $event.target.value)"
             class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none"
           />
@@ -34,32 +34,36 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
-              >From Time</label
+              >From Hour</label
             >
-            <input
-              type="time"
-              :value="modelValue.startTime"
-              @input="update('startTime', $event.target.value)"
-              class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none"
-            />
+            <select
+              :value="filters.startTime"
+              @change="update('startTime', $event.target.value)"
+              class="w-full border rounded-md px-2 py-1.5 text-sm bg-white"
+            >
+              <option value="">Any</option>
+              <option v-for="h in hours" :key="h" :value="h">{{ h }}</option>
+            </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">To Time</label>
-            <input
-              type="time"
-              :value="modelValue.endTime"
-              @input="update('endTime', $event.target.value)"
-              class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none"
-            />
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">To Hour</label>
+            <select
+              :value="filters.endTime"
+              @change="update('endTime', $event.target.value)"
+              class="w-full border rounded-md px-2 py-1.5 text-sm bg-white"
+            >
+              <option value="">Any</option>
+              <option v-for="h in hours" :key="h" :value="h">{{ h }}</option>
+            </select>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Class Type</label>
           <select
-            :value="modelValue.classType"
+            :value="filters.classType"
             @change="update('classType', $event.target.value)"
-            class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none bg-white"
+            class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
           >
             <option value="ALL">All Classes</option>
             <option value="PRIVATE">Private Only</option>
@@ -69,7 +73,7 @@
 
         <button
           @click="isOpen = false"
-          class="w-full bg-black text-white text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-gray-800 transition-colors"
+          class="w-full bg-black text-white text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-gray-800"
         >
           Apply Filters
         </button>
@@ -81,17 +85,31 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-const props = defineProps(['modelValue'])
-const emit = defineEmits(['update:modelValue'])
+// ✅ ใช้ defineModel เพื่อเชื่อมกับ v-model ของตัวลูก (BookingTable)
+const filters = defineModel({
+  default: () => ({
+    date: '',
+    startTime: '',
+    endTime: '',
+    classType: 'ALL',
+    gym: 'ALL',
+  }),
+})
 
 const isOpen = ref(false)
 
 const hasActiveFilters = computed(() => {
-  const f = props.modelValue
-  return f.date || f.startTime || f.endTime || f.classType !== 'ALL'
+  if (!filters.value) return false
+  const f = filters.value
+  return f.date !== '' || f.startTime !== '' || f.endTime !== '' || f.classType !== 'ALL'
 })
 
 const update = (key, value) => {
-  emit('update:modelValue', { ...props.modelValue, [key]: value })
+  filters.value = { ...filters.value, [key]: value }
 }
+
+const hours = Array.from({ length: 24 }, (_, i) => {
+  const h = i.toString().padStart(2, '0')
+  return `${h}:00`
+})
 </script>

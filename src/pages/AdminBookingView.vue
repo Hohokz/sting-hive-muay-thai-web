@@ -1,8 +1,7 @@
 <template>
   <DashboardLayout>
-    <div class="space-y-10">
-      <DashboardStats />
-
+    <div class="space-y-6">
+      <h2 class="text-2xl font-bold text-gray-800">{{ currentGymName }} Bookings</h2>
       <BookingTable
         :bookings="bookings"
         :loading="isLoading"
@@ -10,8 +9,6 @@
         @refresh="fetchBookings"
         @cancel="cancelBooking"
       />
-
-      <ScheduleTable />
     </div>
 
     <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -43,31 +40,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { api } from '@/api/bookingApi'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
-import DashboardStats from '@/components/dashboard/DashboardStats.vue'
 import BookingTable from '@/components/dashboard/BookingTable.vue'
-import ScheduleTable from '@/components/dashboard/ScheduleTable.vue'
 
+const route = useRoute()
 const bookings = ref([])
 const isLoading = ref(false)
 
-// ✅ แก้ไข: รวม selectedDate เข้ามาใน filters ตัวเดียวเลย
 const filters = ref({
   date: new Date().toISOString().split('T')[0],
   startTime: '',
   endTime: '',
   classType: 'ALL',
-  gym: 'ALL', // หน้า Dashboard หลักให้โชว์ ALL เป็นค่าเริ่มต้น
+  gym: route.query.gym || 'ALL',
 })
 
-/* ================= MODAL SYSTEM ================= */
-const showModal = ref(false)
-const modalTitle = ref('')
-const modalMessage = ref('')
-const modalType = ref('warning')
-const modalAction = ref(null)
+const showModal = ref(false),
+  modalTitle = ref(''),
+  modalMessage = ref(''),
+  modalType = ref('warning'),
+  modalAction = ref(null)
 
 const openModal = (t, m, ty, a) => {
   modalTitle.value = t
@@ -76,56 +71,55 @@ const openModal = (t, m, ty, a) => {
   modalAction.value = a
   showModal.value = true
 }
-
 const handleConfirm = async () => {
   if (modalAction.value) {
-    const action = modalAction.value
+    const a = modalAction.value
     showModal.value = false
-    await action()
+    await a()
   }
 }
 
-/* ================= API LOGIC ================= */
+const currentGymName = computed(() =>
+  filters.value.gym === 'STING_HIVE'
+    ? 'Sting Hive'
+    : filters.value.gym === 'STING_CLUB'
+      ? 'Sting Club'
+      : 'All',
+)
+
 const fetchBookings = async () => {
   isLoading.value = true
   try {
-    // ✅ ดึงวันที่จาก filters.value.date
     const res = await api.dashboard.getDailyBookings(filters.value.date)
     bookings.value = res.data.data
   } catch (err) {
-    console.error('Fetch error:', err)
+    console.error(err)
   } finally {
     isLoading.value = false
   }
 }
 
-// ✅ Watcher: ถ้าวันที่เปลี่ยน ให้โหลดข้อมูลใหม่
 watch(
-  () => filters.value.date,
-  (newDate) => {
-    if (newDate) fetchBookings()
+  () => route.query.gym,
+  (n) => {
+    filters.value.gym = n || 'ALL'
   },
 )
+watch(() => filters.value.date, fetchBookings)
 
-/* ================= CANCEL LOGIC ================= */
 const cancelBooking = (id) => {
-  openModal(
-    'Confirm Cancel',
-    'Are you sure you want to cancel this booking?',
-    'warning',
-    async () => {
-      try {
-        isLoading.value = true
-        await api.bookings.cancel(id)
-        bookings.value = bookings.value.filter((b) => b.id !== id)
-        openModal('Success', '✅ Booking has been canceled.', 'success', null)
-      } catch (err) {
-        openModal('Error', '❌ Failed to cancel booking.', 'error', null)
-      } finally {
-        isLoading.value = false
-      }
-    },
-  )
+  openModal('Confirm Cancel', 'Are you sure?', 'warning', async () => {
+    try {
+      isLoading.value = true
+      await api.bookings.cancel(id)
+      bookings.value = bookings.value.filter((b) => b.id !== id)
+      openModal('Success', 'Canceled!', 'success', null)
+    } catch (e) {
+      openModal('Error', 'Failed', 'error', null)
+    } finally {
+      isLoading.value = false
+    }
+  })
 }
 
 onMounted(fetchBookings)

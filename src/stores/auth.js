@@ -25,7 +25,11 @@ export const useAuthStore = defineStore('auth', {
   },
   getters: {
     isAuthenticated: (state) => !!state.token,
-    isAdmin: (state) => state.user?.role === 'admin' || state.user?.roles?.includes('admin'),
+    // ✅ ปรับให้เช็กเป็นตัวใหญ่ หรือใช้ .toUpperCase() เพื่อความชัวร์
+    isAdmin: (state) => {
+      const role = state.user?.role?.toUpperCase()
+      return role === 'ADMIN' || state.user?.roles?.includes('admin')
+    },
   },
   actions: {
     login(token, refreshToken) {
