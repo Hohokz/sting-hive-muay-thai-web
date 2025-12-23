@@ -28,6 +28,7 @@ const schedules = {
   get: () => axios.get('/schedules'),
   getAvailable: (params) => axios.get('/api/v1/schedules/available', { params }),
   getCapacity: (scheduleId, date) => axios.get(`/capacity?schedule_id=${scheduleId}&date=${date}`),
+  create: (data) => axios.post('/api/v1/schedules', data),
 }
 
 export default {

@@ -1,6 +1,16 @@
 <template>
   <div class="w-full min-h-screen p-6">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 space-y-6">
+    <div
+      v-if="isInitialLoading"
+      class="max-w-4xl mx-auto bg-white rounded-xl shadow p-12 text-center"
+    >
+      <div
+        class="inline-block w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-4"
+      ></div>
+      <p class="text-gray-500 font-medium">Loading booking details...</p>
+    </div>
+
+    <div v-else class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 space-y-6">
       <h1 class="text-2xl font-semibold">Edit Booking</h1>
 
       <!-- ✅ SELECT GYM -->
@@ -118,6 +128,27 @@
       Updating Booking...
     </div>
   </div>
+
+  <!-- ✅ STATUS MODAL -->
+  <div v-if="showStatusModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div
+      class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      @click="showStatusModal = false"
+    ></div>
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeIn"
+    >
+      <div class="text-3xl mb-4">{{ modalType === 'success' ? '✅' : '⚠️' }}</div>
+      <h3 class="text-xl font-bold mb-2">{{ modalTitle }}</h3>
+      <p class="text-gray-500 mb-6">{{ modalMessage }}</p>
+      <button
+        @click="handleModalClose"
+        class="w-full py-2 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+      >
+        OK
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -148,6 +179,29 @@ const email = ref('')
 const participants = ref(1)
 
 const isSubmitting = ref(false)
+const isInitialLoading = ref(true)
+
+// ✅ STATUS MODAL STATE
+const showStatusModal = ref(false)
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalType = ref('success')
+const modalRedirect = ref(false)
+
+const openStatusModal = (title, message, type = 'success', redirect = false) => {
+  modalTitle.value = title
+  modalMessage.value = message
+  modalType.value = type
+  modalRedirect.value = redirect
+  showStatusModal.value = true
+}
+
+const handleModalClose = () => {
+  showStatusModal.value = false
+  if (modalRedirect.value) {
+    router.push('/search-booking')
+  }
+}
 
 /* ✅ เมื่อเลือก slot ใหม่ */
 const onSelectSchedule = (payload) => {
@@ -157,13 +211,14 @@ const onSelectSchedule = (payload) => {
 /* ✅ โหลด booking เดิม */
 const fetchBookingDetail = async () => {
   try {
+    isInitialLoading.value = true
     const res = await api.bookings.get({ classes_booking_id: bookingId })
 
     // ✅ กันกรณี data เป็น array
     const b = Array.isArray(res.data.data) ? res.data.data[0] : res.data.data
 
     if (!b) {
-      alert('ไม่พบข้อมูล booking')
+      openStatusModal('Error', 'ไม่พบข้อมูล booking', 'error')
       return
     }
 
@@ -185,7 +240,9 @@ const fetchBookingDetail = async () => {
     }
   } catch (err) {
     console.error(err)
-    alert('โหลดข้อมูล booking ไม่สำเร็จ')
+    openStatusModal('Error', 'โหลดข้อมูล booking ไม่สำเร็จ', 'error')
+  } finally {
+    isInitialLoading.value = false
   }
 }
 
@@ -194,7 +251,7 @@ onMounted(fetchBookingDetail)
 /* ✅ UPDATE */
 const updateBooking = async () => {
   if (!selectedSchedule.value) {
-    alert('กรุณาเลือกเวลาใหม่')
+    openStatusModal('Warning', 'กรุณาเลือกเวลาใหม่', 'warning')
     return
   }
 
@@ -216,11 +273,10 @@ const updateBooking = async () => {
 
     await api.bookings.update(bookingId, payload)
 
-    alert('✅ อัปเดต Booking สำเร็จแล้ว')
-    router.push('/search-booking')
+    openStatusModal('Success', '✅ อัปเดต Booking สำเร็จแล้ว', 'success', true)
   } catch (err) {
     console.error(err)
-    alert('❌ อัปเดตไม่สำเร็จ')
+    openStatusModal('Error', '❌ อัปเดตไม่สำเร็จ', 'error')
   } finally {
     isSubmitting.value = false
   }
