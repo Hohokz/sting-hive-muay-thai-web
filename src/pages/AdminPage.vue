@@ -3,16 +3,59 @@
     <div class="bg-white p-8 rounded-xl shadow w-full max-w-md">
       <h2 class="text-2xl font-bold mb-6 text-center">Admin Login</h2>
 
-      <input v-model="email" placeholder="Username" class="w-full border p-3 rounded mb-4" />
+      <form @submit.prevent="login">
+        <input
+          v-model="email"
+          type="text"
+          placeholder="Username"
+          class="w-full border p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-black/5"
+          required
+        />
 
-      <input
-        v-model="password"
-        type="password"
-        placeholder="Password"
-        class="w-full border p-3 rounded mb-6"
-      />
+        <input
+          v-model="password"
+          type="password"
+          placeholder="Password"
+          class="w-full border p-3 rounded mb-6 focus:outline-none focus:ring-2 focus:ring-black/5"
+          required
+        />
 
-      <button class="w-full bg-black text-white py-3 rounded" @click="login">Login</button>
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-3 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:bg-gray-800"
+          :disabled="isLoading"
+        >
+          <span v-if="!isLoading">Login</span>
+          <span v-else>Logging in...</span>
+        </button>
+      </form>
+    </div>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-2xl w-[340px] text-center shadow-xl animate-fadeIn">
+        <h3
+          class="text-lg font-semibold mb-2"
+          :class="{
+            'text-yellow-500': modalType === 'warning',
+            'text-red-500': modalType === 'error',
+            'text-green-500': modalType === 'success',
+          }"
+        >
+          {{ modalTitle }}
+        </h3>
+        <p class="text-gray-600 mb-5">{{ modalMessage }}</p>
+        <button
+          class="px-8 py-2 rounded-lg text-white font-semibold transition"
+          :class="{
+            'bg-yellow-500 hover:bg-yellow-600': modalType === 'warning',
+            'bg-red-500 hover:bg-red-600': modalType === 'error',
+            'bg-green-500 hover:bg-green-600': modalType === 'success',
+          }"
+          @click="showModal = false"
+        >
+          OK
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -21,36 +64,72 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
-import { api } from '@/api/bookingApi' // Updated import
-// const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000' // Removed unused
+import { api } from '@/api/bookingApi'
 
 const auth = useAuthStore()
 const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const isLoading = ref(false)
+
+// ✅ MODAL STATE
+const showModal = ref(false)
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalType = ref('error')
+
+const openModal = (title, message, type = 'error') => {
+  modalTitle.value = title
+  modalMessage.value = message
+  modalType.value = type
+  showModal.value = true
+}
 
 const login = async () => {
+  if (isLoading.value) return // ป้องกันการกดซ้ำขณะโหลด
+
   try {
+    isLoading.value = true
     const res = await api.auth.login({
       username: email.value,
       password: password.value,
     })
 
     const data = res.data
-    // Handle structure variety (accessToken vs token vs direct) based on previous code usage
     const token = data.accessToken || data.token || data
-    const refreshToken = data.refreshToken || null // Assume API returns it
+    const refreshToken = data.refreshToken || null
 
     const success = auth.login(token, refreshToken)
+
     if (success) {
       router.push('/admin/dashboard')
     } else {
-      alert('Login failed: Invalid token received')
+      openModal('Login Failed', 'เซสชั่นไม่ถูกต้อง กรุณาลองใหม่', 'error')
     }
   } catch (error) {
-    console.error(error)
-    alert('Login failed: ' + (error.response?.data?.message || error.message))
+    console.error('Login Error:', error)
+    // ดักจับ error message จาก Backend
+    const errMsg = error.response?.data?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'
+    openModal('เข้าสู่ระบบไม่สำเร็จ', errMsg, 'error')
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
+
+<style scoped>
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+</style>

@@ -94,6 +94,7 @@ const fetchBookings = async () => {
     bookings.value = res.data.data
   } catch (err) {
     console.error(err)
+    openModal('Error', 'ไม่สามารถโหลดข้อมูลการจองได้', 'error', null)
   } finally {
     isLoading.value = false
   }
@@ -114,7 +115,7 @@ const cancelBooking = (id) => {
       await api.bookings.cancel(id)
       bookings.value = bookings.value.filter((b) => b.id !== id)
       openModal('Success', 'Canceled!', 'success', null)
-    } catch (e) {
+    } catch {
       openModal('Error', 'Failed', 'error', null)
     } finally {
       isLoading.value = false

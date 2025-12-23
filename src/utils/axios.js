@@ -42,7 +42,16 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
+    // 1. ตรวจสอบว่าเป็น Request จากหน้า Login หรือไม่
+    const isLoginRequest = originalRequest.url.includes('/api/v1/auth/login')
+
+    // 2. ถ้าเป็น 401 และ "ไม่ใช่" การ Login ให้ทำ Logic Refresh Token/Redirect ตามปกติ
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // ✅ เพิ่มเงื่อนไข: ถ้าเป็นหน้า Login ให้พ่น Error กลับไปที่ Component เลย ห้ามเด้งหน้า
+      if (isLoginRequest) {
+        return Promise.reject(error)
+      }
+
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject })
@@ -59,18 +68,16 @@ axios.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      // const refreshToken = getLocalRefreshToken(); // If I were using a separate var
-      // But actually I need to send the refresh token to the server
-
       const refreshToken = getLocalRefreshToken()
 
       if (!refreshToken) {
-        // No refresh token? Logout directly.
-        // Avoid using store directly if possible to prevent circular dep, or use it carefully.
-        // For now, consistent with previous code:
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
-        window.location.href = '/admin'
+
+        // สั่งเด้งหน้าเฉพาะเมื่อไม่ใช่หน้า Login
+        if (!isLoginRequest) {
+          window.location.href = '/admin'
+        }
         return Promise.reject(error)
       }
 
@@ -78,7 +85,7 @@ axios.interceptors.response.use(
         axios
           .post('/api/v1/auth/refresh-token', { refreshToken })
           .then(({ data }) => {
-            const { accessToken, refreshToken: newRefreshToken } = data.data || data // Adapt based on API response structure
+            const { accessToken, refreshToken: newRefreshToken } = data.data || data
 
             localStorage.setItem('token', accessToken)
             if (newRefreshToken) {
@@ -95,7 +102,11 @@ axios.interceptors.response.use(
             processQueue(err, null)
             localStorage.removeItem('token')
             localStorage.removeItem('refreshToken')
-            window.location.href = '/admin'
+
+            // ✅ เช็คอีกครั้งเพื่อความชัวร์
+            if (!isLoginRequest) {
+              window.location.href = '/admin'
+            }
             reject(err)
           })
           .finally(() => {

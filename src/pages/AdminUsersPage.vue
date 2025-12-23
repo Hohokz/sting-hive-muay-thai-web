@@ -239,11 +239,38 @@
             </button>
             <button
               @click="handleDelete"
-              class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200"
+              :disabled="isDeleting"
+              class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50"
             >
-              Delete
+              {{ isDeleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ✅ STATUS MODAL -->
+    <Teleport to="body">
+      <div
+        v-if="showStatusModal"
+        class="fixed inset-0 z-[11000] flex items-center justify-center p-4"
+      >
+        <div
+          class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          @click="showStatusModal = false"
+        ></div>
+        <div
+          class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeIn"
+        >
+          <div class="text-3xl mb-4">{{ modalType === 'success' ? '✅' : '⚠️' }}</div>
+          <h3 class="text-xl font-bold mb-2">{{ modalTitle }}</h3>
+          <p class="text-gray-500 mb-6">{{ modalMessage }}</p>
+          <button
+            @click="showStatusModal = false"
+            class="w-full py-2 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+          >
+            OK
+          </button>
         </div>
       </div>
     </Teleport>
@@ -273,6 +300,20 @@ const form = ref({ username: '', password: '', name: '', email: '', phone: '', r
 
 const showConfirmModal = ref(false)
 const userToDelete = ref(null)
+const isDeleting = ref(false)
+
+// ✅ STATUS MODAL STATE
+const showStatusModal = ref(false)
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalType = ref('success')
+
+const openStatusModal = (title, message, type = 'success') => {
+  modalTitle.value = title
+  modalMessage.value = message
+  modalType.value = type
+  showStatusModal.value = true
+}
 
 // ✅ ACTIONS
 const fetchUsers = async () => {
@@ -282,6 +323,7 @@ const fetchUsers = async () => {
     users.value = res.data.data
   } catch (err) {
     console.error('Fetch error:', err)
+    openStatusModal('Error', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้', 'error')
   } finally {
     isLoading.value = false
   }
@@ -330,8 +372,13 @@ const handleSubmit = async () => {
     }
     await fetchUsers()
     showFormModal.value = false
+    openStatusModal(
+      'Success',
+      isEditMode.value ? 'User updated successfully' : 'User created successfully',
+      'success',
+    )
   } catch (err) {
-    alert(err.response?.data?.message || 'Error processing request')
+    openStatusModal('Error', err.response?.data?.message || 'Error processing request', 'error')
   } finally {
     isSubmitting.value = false
   }
@@ -344,11 +391,15 @@ const confirmDelete = (user) => {
 
 const handleDelete = async () => {
   try {
+    isDeleting.value = true
     await axios.delete(`${API_URL}/${userToDelete.value.id}`, { headers })
     users.value = users.value.filter((u) => u.id !== userToDelete.value.id)
     showConfirmModal.value = false
-  } catch (err) {
-    alert('Delete failed')
+    openStatusModal('Success', 'User deleted successfully', 'success')
+  } catch {
+    openStatusModal('Error', 'Delete failed', 'error')
+  } finally {
+    isDeleting.value = false
   }
 }
 

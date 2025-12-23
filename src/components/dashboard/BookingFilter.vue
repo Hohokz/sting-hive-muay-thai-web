@@ -11,7 +11,7 @@
 
     <div
       v-if="isOpen"
-      class="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4"
+      class="fixed inset-x-0 mx-auto mt-2 w-[calc(100vw-2rem)] sm:absolute sm:right-0 sm:left-auto sm:inset-x-auto max-w-sm bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4"
     >
       <div class="flex justify-between items-center mb-4 border-b pb-2">
         <h3 class="font-bold text-gray-700">Filter Bookings</h3>
@@ -31,33 +31,6 @@
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
-              >From Hour</label
-            >
-            <select
-              :value="filters.startTime"
-              @change="update('startTime', $event.target.value)"
-              class="w-full border rounded-md px-2 py-1.5 text-sm bg-white"
-            >
-              <option value="">Any</option>
-              <option v-for="h in hours" :key="h" :value="h">{{ h }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">To Hour</label>
-            <select
-              :value="filters.endTime"
-              @change="update('endTime', $event.target.value)"
-              class="w-full border rounded-md px-2 py-1.5 text-sm bg-white"
-            >
-              <option value="">Any</option>
-              <option v-for="h in hours" :key="h" :value="h">{{ h }}</option>
-            </select>
-          </div>
-        </div>
-
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Class Type</label>
           <select
@@ -65,10 +38,38 @@
             @change="update('classType', $event.target.value)"
             class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
           >
-            <option value="ALL">All Classes</option>
+            <option value="ALL">All Types</option>
             <option value="PRIVATE">Private Only</option>
             <option value="GROUP">Group Only</option>
           </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >Select Schedule Slot</label
+          >
+          <select
+            :value="filters.scheduleId"
+            @change="update('scheduleId', $event.target.value)"
+            :disabled="!filters.date || isLoadingSchedules"
+            class="w-full border rounded-md px-2 py-1.5 text-sm bg-white disabled:bg-gray-50"
+          >
+            <option value="">{{ isLoadingSchedules ? 'Loading...' : 'Any Slot' }}</option>
+            <option v-for="sch in availableSchedules" :key="sch.id" :value="sch.id">
+              {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }} [{{
+                sch.gym_enum === 'STING_HIVE' ? 'Hive' : 'Club'
+              }}]
+            </option>
+          </select>
+          <p v-if="!filters.date" class="text-[10px] text-red-400 mt-1">
+            * Please select date first
+          </p>
+          <p
+            v-if="filters.date && availableSchedules.length === 0 && !isLoadingSchedules"
+            class="text-[10px] text-orange-500 mt-1"
+          >
+            No slots found for this date.
+          </p>
         </div>
 
         <button
@@ -83,33 +84,89 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
+import axios from 'axios'
 
-// ✅ ใช้ defineModel เพื่อเชื่อมกับ v-model ของตัวลูก (BookingTable)
 const filters = defineModel({
   default: () => ({
     date: '',
-    startTime: '',
-    endTime: '',
+    scheduleId: '',
     classType: 'ALL',
     gym: 'ALL',
   }),
 })
-
 const isOpen = ref(false)
+const availableSchedules = ref([])
+const isLoadingSchedules = ref(false)
+
+const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
+
+// 📡 ฟังก์ชันดึง Schedules ตามวันที่และยิม
+const fetchAvailableSchedules = async () => {
+  const date = filters.value.date
+  if (!date) {
+    availableSchedules.value = []
+    return
+  }
+
+  try {
+    isLoadingSchedules.value = true
+
+    // ✅ ส่งทั้ง start_date และ gym ไปกรองที่ Backend (ถ้า API รองรับ)
+    const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/schedules`)
+
+    const rawData = res.data.data || []
+
+    // ✅ ทำการ Filter และต่อด้วย Sort ทันที
+    availableSchedules.value = rawData
+      .filter((s) => {
+        const isActive = s.is_active === true || s.is_active === 1
+        const isCorrectGym = filters.value.gym === 'ALL' || s.gym_enum === filters.value.gym
+        return isActive && isCorrectGym
+      })
+      .sort((a, b) => {
+        // ✅ เรียงตามเวลาเริ่ม (start_time)
+        // เนื่องจากเป็น String "08:00", "09:00" สามารถใช้การเทียบ String ได้เลย
+        if (a.start_time < b.start_time) return -1
+        if (a.start_time > b.start_time) return 1
+
+        // ถ้าเวลาเท่ากัน ให้เรียงตามชื่อยิมต่อ (Hive ก่อน Club หรือตามตัวอักษร)
+        return a.gym_enum.localeCompare(b.gym_enum)
+      })
+  } catch (err) {
+    console.error('Failed to fetch schedules for filter:', err)
+    availableSchedules.value = []
+  } finally {
+    isLoadingSchedules.value = false
+  }
+}
+
+// 👀 เฝ้าดูวันที่ และ ยิม (ถ้าเปลี่ยนยิม รายการเวลาก็ต้องเปลี่ยน)
+watch(
+  [() => filters.value.date, () => filters.value.gym],
+  ([newDate, newGym]) => {
+    // ✅ จุดสำคัญ: เมื่อวันที่หรือยิมเปลี่ยน ต้องล้าง ID เก่าทิ้งทันที!
+    filters.value = { ...filters.value, scheduleId: '' }
+
+    if (newDate) {
+      fetchAvailableSchedules()
+    }
+  },
+  { immediate: true },
+)
 
 const hasActiveFilters = computed(() => {
   if (!filters.value) return false
   const f = filters.value
-  return f.date !== '' || f.startTime !== '' || f.endTime !== '' || f.classType !== 'ALL'
+  return f.date !== '' || f.scheduleId !== '' || f.classType !== 'ALL'
 })
 
 const update = (key, value) => {
-  filters.value = { ...filters.value, [key]: value }
+  const newFilters = { ...filters.value, [key]: value }
+  // ✅ ถ้าเปลี่ยนวันที่ ให้ล้าง scheduleId ในก้อนใหม่ด้วย
+  if (key === 'date') newFilters.scheduleId = ''
+  filters.value = newFilters
 }
 
-const hours = Array.from({ length: 24 }, (_, i) => {
-  const h = i.toString().padStart(2, '0')
-  return `${h}:00`
-})
+const formatTime = (time) => time?.slice(0, 5) || '--:--'
 </script>
