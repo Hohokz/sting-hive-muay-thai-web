@@ -8,7 +8,6 @@ export function useSchedules() {
   const fetchSchedules = async ({ date, gym_enum, is_private_class }) => {
     try {
       if (!date || !gym_enum || is_private_class === null || is_private_class === undefined) {
-        console.log('⛔ fetchSchedules skipped — params not ready')
         return
       }
       loading.value = true

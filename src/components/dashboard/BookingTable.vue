@@ -39,7 +39,8 @@
             <th class="px-2 cursor-pointer hover:text-black" @click="setSort('gym')">
               Gym {{ sortIcon('gym') }}
             </th>
-            <th class="px-2">Class</th>
+            <th class="px-2">Date</th>
+            <th class="px-2">Time</th>
             <th class="px-2">Name</th>
             <th class="px-2 text-center font-bold">Pax</th>
             <th class="px-2">Trainer</th>
@@ -56,6 +57,8 @@
           >
             <td class="py-4 px-2">
               <div class="font-bold text-gray-900">{{ formatDate(item.date_booking) }}</div>
+            </td>
+            <td class="px-2">
               <div class="text-xs text-gray-500 font-mono">
                 {{ formatTime(item.schedule?.start_time) }} -
                 {{ formatTime(item.schedule?.end_time) }}

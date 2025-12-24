@@ -83,7 +83,6 @@ const fetchSummary = async () => {
     const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/dashboard/summary`)
 
     summary.value = res.data.data
-    console.log('✅ dashboard summary:', res.data.data)
   } catch (err) {
     console.error('❌ โหลด dashboard summary ไม่สำเร็จ:', err)
     openModal('Error', 'โหลดข้อมูลสรุปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')

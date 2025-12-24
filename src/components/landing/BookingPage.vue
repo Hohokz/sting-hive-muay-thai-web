@@ -344,8 +344,6 @@ const submitBooking = async () => {
     capacity: participants.value,
   }
 
-  console.log('Submitting booking with payload:', payload)
-
   try {
     isSubmitting.value = true
     const res = await api.bookings.create(payload)
@@ -369,7 +367,6 @@ const submitBooking = async () => {
 watch([selectedSchedule, selectPrivate, selectedGym], () => {
   // ถ้าค่ายังไม่ครบ → ไม่ต้องยิง API
   if (!selectedDate.value || !selectedGym.value || selectPrivate.value === null) {
-    console.log('🔸 Waiting for full input...')
     return
   }
 

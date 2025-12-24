@@ -341,7 +341,6 @@ const filteredUsers = computed(() => {
 })
 
 const openAddModal = () => {
-  console.log('Opening Add Modal...')
   isEditMode.value = false
   form.value = { username: '', password: '', name: '', email: '', phone: '', role: 'USER' }
   showFormModal.value = true

@@ -521,8 +521,6 @@ const submitSchedule = async () => {
       is_active: !!form.value.is_active,
     }
 
-    console.log('Sending Schedule Payload:', payload)
-
     if (isEditMode.value) {
       await api.schedules.update(editingId.value, payload)
       openStatusModal('Success', 'Schedule updated successfully!')

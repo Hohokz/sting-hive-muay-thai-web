@@ -32,6 +32,19 @@
         </div>
 
         <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Place</label>
+          <select
+            :value="filters.gym"
+            @change="update('gym', $event.target.value)"
+            class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
+          >
+            <option value="ALL">All Places</option>
+            <option value="STING_HIVE">Sting Hive</option>
+            <option value="STING_CLUB">Sting Club</option>
+          </select>
+        </div>
+
+        <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Class Type</label>
           <select
             :value="filters.classType"
@@ -85,7 +98,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import axios from 'axios'
+import bookingApi from '@/api/bookingApi'
+const schedules = bookingApi.schedules
 
 const filters = defineModel({
   default: () => ({
@@ -95,11 +109,10 @@ const filters = defineModel({
     gym: 'ALL',
   }),
 })
+
 const isOpen = ref(false)
 const availableSchedules = ref([])
 const isLoadingSchedules = ref(false)
-
-const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
 
 // 📡 ฟังก์ชันดึง Schedules ตามวันที่และยิม
 const fetchAvailableSchedules = async () => {
@@ -112,8 +125,11 @@ const fetchAvailableSchedules = async () => {
   try {
     isLoadingSchedules.value = true
 
-    // ✅ ส่งทั้ง start_date และ gym ไปกรองที่ Backend (ถ้า API รองรับ)
-    const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/schedules`)
+    // ✅ ส่งทั้ง date และ gym_enum ไปกรองที่ Backend
+    const res = await schedules.get({
+      date,
+      gym_enum: filters.value.gym === 'ALL' ? undefined : filters.value.gym,
+    })
 
     const rawData = res.data.data || []
 
@@ -122,7 +138,15 @@ const fetchAvailableSchedules = async () => {
       .filter((s) => {
         const isActive = s.is_active === true || s.is_active === 1
         const isCorrectGym = filters.value.gym === 'ALL' || s.gym_enum === filters.value.gym
-        return isActive && isCorrectGym
+
+        // ✅ เพิ่มการกรองตาม Class Type (Private/Group)
+        let isCorrectType = true
+        if (filters.value.classType !== 'ALL') {
+          const isPrivate = s.is_private_class === true || s.is_private_class === 1
+          isCorrectType = filters.value.classType === 'PRIVATE' ? isPrivate : !isPrivate
+        }
+
+        return isActive && isCorrectGym && isCorrectType
       })
       .sort((a, b) => {
         // ✅ เรียงตามเวลาเริ่ม (start_time)
@@ -143,11 +167,10 @@ const fetchAvailableSchedules = async () => {
 
 // 👀 เฝ้าดูวันที่ และ ยิม (ถ้าเปลี่ยนยิม รายการเวลาก็ต้องเปลี่ยน)
 watch(
-  [() => filters.value.date, () => filters.value.gym],
-  ([newDate, newGym]) => {
+  [() => filters.value.date, () => filters.value.gym, () => filters.value.classType],
+  ([newDate]) => {
     // ✅ จุดสำคัญ: เมื่อวันที่หรือยิมเปลี่ยน ต้องล้าง ID เก่าทิ้งทันที!
     filters.value = { ...filters.value, scheduleId: '' }
-
     if (newDate) {
       fetchAvailableSchedules()
     }
