@@ -43,7 +43,7 @@
             <th class="px-2">Time</th>
             <th class="px-2">Name</th>
             <th class="px-2 text-center font-bold">Pax</th>
-            <th class="px-2">Trainer</th>
+            <th class="px-2">Trainer Name</th>
             <th class="px-2 text-center">Status</th>
             <th class="px-2">Note</th>
             <th v-if="auth.isAdmin" class="px-2 text-center">Actions</th>
@@ -77,7 +77,18 @@
             </td>
             <td class="px-2 font-semibold text-gray-800">{{ item.client_name }}</td>
             <td class="px-2 text-center font-bold">{{ item.capacity }}</td>
-            <td class="px-2 text-gray-500">{{ item.trainer_name || '-' }}</td>
+            <td class="px-2">
+              <div class="flex items-center gap-2 group relative">
+                <span class="text-gray-500">{{ item.trainer || '-' }}</span>
+                <button
+                  v-if="auth.isAdmin"
+                  @click="openTrainerModal(item)"
+                  class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold hover:underline"
+                >
+                  ✎ Edit
+                </button>
+              </div>
+            </td>
             <td class="px-2 text-center">
               <span
                 class="text-[10px] font-bold px-2 py-1 rounded uppercase"
@@ -88,8 +99,8 @@
             </td>
             <td class="px-2 max-w-[180px]">
               <div class="flex items-center gap-2 group relative">
-                <span class="truncate text-gray-500 italic text-xs" :title="item.note">
-                  {{ item.note || '-' }}
+                <span class="truncate text-gray-500 italic text-xs" :title="item.admin_note">
+                  {{ item.admin_note || '-' }}
                 </span>
                 <button
                   @click="openNoteModal(item)"
@@ -163,10 +174,19 @@
           <div class="text-gray-400 font-bold uppercase text-[9px]">Name</div>
           <div class="font-bold text-gray-800">{{ item.client_name }}</div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Pax / Trainer</div>
-          <div class="text-gray-700">{{ item.capacity }} pax / {{ item.trainer_name || '-' }}</div>
+          <div class="text-gray-700 flex items-center gap-2">
+            <span>{{ item.capacity }} pax / {{ item.trainer_name || '-' }}</span>
+            <button
+              v-if="auth.isAdmin"
+              @click="openTrainerModal(item)"
+              class="text-blue-500 font-black text-[9px]"
+            >
+              EDIT
+            </button>
+          </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
           <div class="flex items-center gap-2 italic text-gray-500">
-            <span class="flex-1 truncate">{{ item.note || '-' }}</span>
+            <span class="flex-1 truncate">{{ item.admin_note || '-' }}</span>
             <button @click="openNoteModal(item)" class="text-blue-500 font-black text-[9px]">
               EDIT
             </button>
@@ -192,6 +212,7 @@
     </div>
 
     <Teleport to="body">
+      <!-- NOTE MODAL -->
       <div v-if="showNoteModal" class="fixed inset-0 z-[999] flex items-center justify-center p-4">
         <div
           class="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -228,6 +249,84 @@
           </div>
         </div>
       </div>
+
+      <!-- TRAINER MODAL -->
+      <div
+        v-if="showTrainerModal"
+        class="fixed inset-0 z-[999] flex items-center justify-center p-4"
+      >
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="showTrainerModal = false"
+        ></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
+          <h3 class="text-xl font-black text-gray-900 mb-1">Assign Trainer</h3>
+          <p class="text-xs text-gray-400 mb-4 font-medium uppercase tracking-widest">
+            Update trainer for this booking
+          </p>
+
+          <div class="mb-6">
+            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
+              >Trainer Name</label
+            >
+            <input
+              v-model="trainerForm.trainer_name"
+              type="text"
+              class="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
+              placeholder="Enter trainer name..."
+            />
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              @click="showTrainerModal = false"
+              class="flex-1 py-3 bg-gray-100 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              @click="handleSaveTrainer"
+              :disabled="isSavingTrainer"
+              class="flex-1 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 disabled:opacity-50"
+            >
+              {{ isSavingTrainer ? 'Saving...' : 'Save' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        v-if="errorState.show"
+        class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
+      >
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="errorState.show = false"
+        ></div>
+        <div
+          class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden text-center"
+        >
+          <div class="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
+
+          <div class="mb-4 flex justify-center">
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
+              <span class="text-3xl">⚠️</span>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-black text-gray-900 mb-2">{{ errorState.title }}</h3>
+          <p class="text-sm text-gray-500 mb-8 leading-relaxed">
+            {{ errorState.message }}
+          </p>
+
+          <button
+            @click="errorState.show = false"
+            class="w-full py-3 bg-gray-900 text-white rounded-2xl text-sm font-bold hover:bg-black transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
     </Teleport>
 
     <!-- EDIT BOOKING MODAL -->
@@ -242,7 +341,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import axios from 'axios'
+import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
 import BookingFilter from './BookingFilter.vue'
 import EditBookingModal from './EditBookingModal.vue'
@@ -254,9 +353,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
 const filters = defineModel('filters')
-const isFiltering = ref(false)
 
 /* ================= EDIT MODAL LOGIC ================= */
 const showEditModal = ref(false)
@@ -277,22 +374,31 @@ const isSavingNote = ref(false)
 const noteForm = ref({ id: '', note: '' })
 
 const openNoteModal = (item) => {
-  noteForm.value = { id: item.id, note: item.note || '' }
+  noteForm.value = { id: item.id, note: item.admin_note || '' }
   showNoteModal.value = true
+}
+
+const errorState = ref({
+  show: false,
+  title: 'Something went wrong',
+  message: '',
+})
+
+const showError = (message, title = 'Error') => {
+  errorState.value = {
+    show: true,
+    title: title,
+    message: message,
+  }
 }
 
 const handleSaveNote = async () => {
   if (!noteForm.value.id) return
   try {
     isSavingNote.value = true
-    const token = localStorage.getItem('token')
 
     // 1. ส่งข้อมูลไปเซฟใน Database
-    await axios.patch(
-      `${STING_HIVE_API_URL}/api/v1/bookings/${noteForm.value.id}/note`,
-      { note: noteForm.value.note },
-      { headers: { Authorization: `Bearer ${token}` } },
-    )
+    await api.bookings.updateNote(noteForm.value.id, { note: noteForm.value.note })
 
     // 2. ✅ สำคัญมาก: สั่งให้ Component แม่ไปดึงข้อมูลใหม่จาก DB
     // เพื่อให้มั่นใจว่า Note ที่เพิ่งเซฟไป ถูกดึงมาแสดงผลจริงๆ
@@ -305,9 +411,40 @@ const handleSaveNote = async () => {
     // alert('Note saved successfully!')
   } catch (err) {
     console.error('❌ Save Note Error:', err)
-    alert('Failed to save note. Please check if the API route /note exists.')
+    showError(
+      'Failed to save note. Please check your connection or if the API route exists.',
+      'Save Failed',
+    )
   } finally {
     isSavingNote.value = false
+  }
+}
+
+/* ================= TRAINER MODAL LOGIC ================= */
+const showTrainerModal = ref(false)
+const isSavingTrainer = ref(false)
+const trainerForm = ref({ id: '', trainer_name: '' })
+
+const openTrainerModal = (item) => {
+  trainerForm.value = { id: item.id, trainer_name: item.trainer_name || '' }
+  showTrainerModal.value = true
+}
+
+const handleSaveTrainer = async () => {
+  if (!trainerForm.value.id) return
+  try {
+    isSavingTrainer.value = true
+    await api.bookings.updateTrainer(trainerForm.value.id, {
+      trainer_name: trainerForm.value.trainer_name,
+    })
+
+    emit('refresh')
+    showTrainerModal.value = false
+  } catch (err) {
+    console.error('❌ Save Trainer Error:', err)
+    showError('Could not update trainer information. Please try again.', 'Update Failed')
+  } finally {
+    isSavingTrainer.value = false
   }
 }
 
@@ -329,15 +466,6 @@ const handleRefresh = () => {
   }
   emit('refresh')
 }
-
-watch(
-  filters,
-  () => {
-    isFiltering.value = true
-    setTimeout(() => (isFiltering.value = false), 300)
-  },
-  { deep: true },
-)
 
 const filteredBookings = computed(() => {
   if (!props.bookings) return []

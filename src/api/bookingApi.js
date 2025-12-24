@@ -12,6 +12,7 @@ const auth = {
 // DASHBOARD
 const dashboard = {
   getDailyBookings: (date) => axios.get('/api/v1/dashboard/daily', { params: { date } }),
+  getSummary: (date) => axios.get('/api/v1/dashboard/summary', { params: { date } }),
 }
 
 // BOOKINGS
@@ -21,6 +22,8 @@ const bookings = {
   create: (data) => axios.post('/api/v1/bookings', data),
   update: (id, data) => axios.put(`/api/v1/bookings/${id}`, data),
   cancel: (id) => axios.patch(`/api/v1/bookings/${id}/cancel`),
+  updateTrainer: (id, data) => axios.put(`/api/v1/bookings/updateBookingTrainer/${id}`, data),
+  updateNote: (id, data) => axios.put(`/api/v1/bookings/updateBookingNote/${id}`, data),
 }
 
 // SCHEDULES

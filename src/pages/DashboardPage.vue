@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
     <div class="space-y-10">
-      <DashboardStats />
+      <DashboardStats :filters="filters" />
 
       <BookingTable
         :bookings="bookings"

@@ -52,10 +52,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, onMounted, watch } from 'vue'
+import { api } from '@/api/bookingApi'
 
-const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'
+const props = defineProps({
+  filters: {
+    type: Object,
+    default: () => ({ date: '' }), // รูปแบบ YYYY-MM-DD
+  },
+})
 
 const summary = ref({
   todayBooking: null,
@@ -77,10 +82,10 @@ const openModal = (title, message) => {
   showModal.value = true
 }
 
-const fetchSummary = async () => {
+const fetchSummary = async (dateValue) => {
   try {
     isLoading.value = true
-    const res = await axios.get(`${STING_HIVE_API_URL}/api/v1/dashboard/summary`)
+    const res = await api.dashboard.getSummary(dateValue)
 
     summary.value = res.data.data
   } catch (err) {
@@ -91,7 +96,11 @@ const fetchSummary = async () => {
   }
 }
 
-onMounted(fetchSummary)
+watch(
+  () => props.filters.date,
+  () => fetchSummary(props.filters.date),
+)
+onMounted(() => fetchSummary(props.filters.date))
 </script>
 
 <style scoped>
