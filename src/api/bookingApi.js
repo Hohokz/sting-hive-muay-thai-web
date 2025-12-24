@@ -25,10 +25,12 @@ const bookings = {
 
 // SCHEDULES
 const schedules = {
-  get: () => axios.get('/schedules'),
+  get: () => axios.get('/api/v1/schedules'),
   getAvailable: (params) => axios.get('/api/v1/schedules/available', { params }),
   getCapacity: (scheduleId, date) => axios.get(`/capacity?schedule_id=${scheduleId}&date=${date}`),
   create: (data) => axios.post('/api/v1/schedules', data),
+  update: (id, data) => axios.put(`/api/v1/schedules/${id}`, data),
+  delete: (id) => axios.delete(`/api/v1/schedules/${id}`),
 }
 
 export default {

@@ -157,11 +157,15 @@ const searchBooking = async () => {
     searched.value = false
     bookings.value = []
 
-    const res = await api.bookings.get({ client_email: email.value })
+    const res = await api.bookings.get({
+      client_email: email.value,
+      exclude_canceled: true,
+    })
 
-    console.log(res.data.data)
-
-    bookings.value = res.data.data || []
+    const allBookings = res.data.data || []
+    bookings.value = allBookings.filter(
+      (b) => b.booking_status !== 'CANCELLED' && b.booking_status !== 'CANCELED',
+    )
     searched.value = true
   } catch (err) {
     console.error(err)
@@ -182,7 +186,7 @@ const cancelBooking = (bookingId) => {
 
         await api.bookings.cancel(bookingId)
 
-        bookings.value = bookings.value.filter((b) => b.id !== bookingId)
+        await searchBooking()
 
         openModal('Canceled Successfully', '✅ Booking has been canceled.', 'success')
       } catch (err) {

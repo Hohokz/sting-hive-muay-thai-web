@@ -64,7 +64,7 @@
             <td class="px-2">{{ formatGym(item.schedule?.gym_enum) }}</td>
             <td class="px-2">
               <span
-                class="px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter"
+                class="px-2 py-1 rounded text-[10px] font-bold uppercase"
                 :class="
                   item.is_private ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                 "
@@ -77,7 +77,7 @@
             <td class="px-2 text-gray-500">{{ item.trainer_name || '-' }}</td>
             <td class="px-2 text-center">
               <span
-                class="text-[10px] px-2 py-1 rounded font-black uppercase inline-block min-w-[85px]"
+                class="text-[10px] font-bold px-2 py-1 rounded uppercase"
                 :class="statusClass(item.booking_status)"
               >
                 {{ item.booking_status }}
@@ -98,13 +98,15 @@
             </td>
             <td v-if="auth.isAdmin" class="px-2 text-center">
               <div class="flex items-center justify-center gap-4">
-                <RouterLink
-                  :to="`/edit-booking/${item.id}`"
-                  class="text-blue-500 hover:text-blue-700 text-lg transition-transform hover:scale-125"
-                  >✎</RouterLink
-                >
                 <button
-                  v-if="item.booking_status !== 'CANCELLED' && item.booking_status !== 'CANCELED'"
+                  v-if="item.booking_status !== 'CANCELED'"
+                  @click="openEditModal(item.id)"
+                  class="text-blue-500 hover:text-blue-700 text-lg transition-transform hover:scale-125"
+                >
+                  ✎
+                </button>
+                <button
+                  v-if="item.booking_status !== 'CANCELED'"
                   @click="confirmCancel(item)"
                   class="text-red-400 hover:text-red-600 text-lg transition-transform hover:scale-125"
                 >
@@ -169,11 +171,12 @@
         </div>
 
         <div v-if="auth.isAdmin" class="flex gap-2 pt-3 mt-3 border-t border-dashed">
-          <RouterLink
-            :to="`/edit-booking/${item.id}`"
+          <button
+            @click="openEditModal(item.id)"
             class="flex-1 text-center py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black uppercase"
-            >Edit Info</RouterLink
           >
+            Edit Info
+          </button>
           <button
             v-if="item.booking_status !== 'CANCELLED'"
             @click="confirmCancel(item)"
@@ -223,6 +226,14 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- EDIT BOOKING MODAL -->
+    <EditBookingModal
+      :show="showEditModal"
+      :bookingId="editingBookingId"
+      @close="showEditModal = false"
+      @updated="handleEditSuccess"
+    />
   </div>
 </template>
 
@@ -231,6 +242,7 @@ import { ref, computed, watch } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import BookingFilter from './BookingFilter.vue'
+import EditBookingModal from './EditBookingModal.vue'
 
 const auth = useAuthStore()
 const emit = defineEmits(['refresh', 'cancel'])
@@ -242,6 +254,19 @@ const props = defineProps({
 const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
 const filters = defineModel('filters')
 const isFiltering = ref(false)
+
+/* ================= EDIT MODAL LOGIC ================= */
+const showEditModal = ref(false)
+const editingBookingId = ref(null)
+
+const openEditModal = (id) => {
+  editingBookingId.value = id
+  showEditModal.value = true
+}
+
+const handleEditSuccess = () => {
+  emit('refresh')
+}
 
 /* ================= QUICK NOTE LOGIC ================= */
 const showNoteModal = ref(false)
@@ -258,23 +283,23 @@ const handleSaveNote = async () => {
   try {
     isSavingNote.value = true
     const token = localStorage.getItem('token')
-    
+
     // 1. ส่งข้อมูลไปเซฟใน Database
-    await axios.patch(`${STING_HIVE_API_URL}/api/v1/bookings/${noteForm.value.id}/note`, 
+    await axios.patch(
+      `${STING_HIVE_API_URL}/api/v1/bookings/${noteForm.value.id}/note`,
       { note: noteForm.value.note },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { headers: { Authorization: `Bearer ${token}` } },
     )
-    
+
     // 2. ✅ สำคัญมาก: สั่งให้ Component แม่ไปดึงข้อมูลใหม่จาก DB
     // เพื่อให้มั่นใจว่า Note ที่เพิ่งเซฟไป ถูกดึงมาแสดงผลจริงๆ
-    emit('refresh') 
+    emit('refresh')
 
     // 3. ปิด Modal
     showNoteModal.value = false
-    
+
     // (ทางเลือก) แจ้งเตือนว่าเซฟแล้ว
-    // alert('Note saved successfully!') 
-    
+    // alert('Note saved successfully!')
   } catch (err) {
     console.error('❌ Save Note Error:', err)
     alert('Failed to save note. Please check if the API route /note exists.')
