@@ -2,7 +2,15 @@
   <div class="bg-white rounded-xl shadow p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h2 class="text-lg font-semibold text-gray-800">Bookings Management</h2>
+
       <div class="flex items-center gap-2">
+        <button
+          v-if="auth.isAdmin"
+          @click="openAddModal"
+          class="text-sm px-4 py-2 bg-white border border-gray-300 text-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+        >
+          <span>➕</span> Add Booking
+        </button>
         <BookingFilter v-model="filters" />
         <button
           @click="handleRefresh"
@@ -378,17 +386,27 @@ const props = defineProps({
 
 const filters = defineModel('filters')
 
-/* ================= EDIT MODAL LOGIC ================= */
+/* ================= ADD/EDIT MODAL LOGIC ================= */
 const showEditModal = ref(false)
 const editingBookingId = ref(null)
 
+// ฟังก์ชันสำหรับเปิดเพื่อแก้ไข (มีอยู่แล้ว)
 const openEditModal = (id) => {
   editingBookingId.value = id
   showEditModal.value = true
 }
 
+// ฟังก์ชันสำหรับเปิดเพื่อเพิ่มใหม่ (แก้ไขใหม่)
+const openAddModal = () => {
+  if (!auth.isAdmin) return
+  editingBookingId.value = null // สำคัญ: เซตเป็น null เพื่อบอก Modal ว่าคือการสร้างใหม่
+  showEditModal.value = true
+}
+
+// ฟังก์ชันเมื่อบันทึกสำเร็จ (ใช้ร่วมกัน)
 const handleEditSuccess = () => {
-  emit('refresh')
+  showEditModal.value = false // ปิด modal
+  emit('refresh') // รีเฟรชรายการ
 }
 
 /* ================= QUICK NOTE LOGIC ================= */

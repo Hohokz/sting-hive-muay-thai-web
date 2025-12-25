@@ -6,17 +6,23 @@
       <div
         class="relative bg-gray-50 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col animate-fadeIn"
       >
-        <!-- Header -->
         <div class="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-4">
             <div
-              class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl"
+              :class="[
+                'w-10 h-10 rounded-full flex items-center justify-center text-white text-xl',
+                isEditMode ? 'bg-blue-600' : 'bg-green-600',
+              ]"
             >
-              ✎
+              {{ isEditMode ? '✎' : '➕' }}
             </div>
             <div>
-              <h3 class="text-xl font-bold text-gray-900 leading-tight">Edit Booking</h3>
-              <p class="text-sm text-gray-400 font-medium">Modify your reservation details</p>
+              <h3 class="text-xl font-bold text-gray-900 leading-tight">
+                {{ isEditMode ? 'Edit Booking' : 'Add New Booking' }}
+              </h3>
+              <p class="text-sm text-gray-400 font-medium">
+                {{ isEditMode ? 'Modify reservation details' : 'Create a new client reservation' }}
+              </p>
             </div>
           </div>
           <button
@@ -27,7 +33,6 @@
           </button>
         </div>
 
-        <!-- Body -->
         <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
           <div
             v-if="isInitialLoading"
@@ -36,15 +41,11 @@
             <div
               class="w-12 h-12 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-4"
             ></div>
-            <p class="text-gray-400 font-bold uppercase text-xs tracking-widest">
-              Loading Booking Details...
-            </p>
+            <p class="text-gray-400 font-bold uppercase text-xs tracking-widest">Processing...</p>
           </div>
 
           <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left Side: Form (2/3) -->
             <div class="lg:col-span-2 space-y-6">
-              <!-- Select Place Card -->
               <div class="bg-white rounded-xl shadow-sm p-6">
                 <h2 class="text-xl font-semibold mb-6">Select Place</h2>
                 <div class="flex justify-around items-center gap-6">
@@ -55,8 +56,7 @@
                       v-model="selectedGym"
                       class="w-5 h-5 accent-blue-600"
                     />
-                    <span
-                      class="text-gray-700 font-medium group-hover:text-blue-600 transition-colors"
+                    <span class="text-gray-700 font-medium group-hover:text-blue-600"
                       >Sting Club</span
                     >
                   </label>
@@ -67,18 +67,16 @@
                       v-model="selectedGym"
                       class="w-5 h-5 accent-blue-600"
                     />
-                    <span
-                      class="text-gray-700 font-medium group-hover:text-blue-600 transition-colors"
+                    <span class="text-gray-700 font-medium group-hover:text-blue-600"
                       >Sting Hive</span
                     >
                   </label>
                 </div>
               </div>
 
-              <!-- Class Type & Slot Card -->
               <div class="bg-white rounded-xl shadow-sm p-6 space-y-8">
                 <div>
-                  <h3 class="text-xl font-semibold mb-6">Private Class</h3>
+                  <h3 class="text-xl font-semibold mb-6">Class Type</h3>
                   <div class="flex justify-around items-center gap-6">
                     <label class="flex items-center gap-3 cursor-pointer group">
                       <input
@@ -87,10 +85,7 @@
                         v-model="selectPrivate"
                         class="w-5 h-5 accent-blue-600"
                       />
-                      <span
-                        class="text-gray-700 font-medium group-hover:text-blue-600 transition-colors"
-                        >Group Class</span
-                      >
+                      <span class="text-gray-700 font-medium">Group Class</span>
                     </label>
                     <label class="flex items-center gap-3 cursor-pointer group">
                       <input
@@ -99,16 +94,12 @@
                         v-model="selectPrivate"
                         class="w-5 h-5 accent-blue-600"
                       />
-                      <span
-                        class="text-gray-700 font-medium group-hover:text-blue-600 transition-colors"
-                        >Private Class</span
-                      >
+                      <span class="text-gray-700 font-medium">Private Class</span>
                     </label>
                   </div>
                 </div>
 
                 <div class="pt-6 border-t border-gray-50">
-                  <h2 class="text-xl font-semibold mb-6">Select a Slot</h2>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                     <div class="calendar-wrapper">
                       <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
@@ -118,7 +109,6 @@
                         <BookingCalender v-model="selectedDate" />
                       </div>
                     </div>
-
                     <div>
                       <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
                         Select Time
@@ -133,15 +123,11 @@
                           @select="onSelectSchedule"
                         />
                       </div>
-                      <span v-if="!selectedGym" class="text-sm text-red-500 mt-4 block">
-                        Please select a Place first.
-                      </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Contact Info Card -->
               <div class="bg-white rounded-xl shadow-sm p-6 space-y-6">
                 <h2 class="text-xl font-semibold">Contact Information</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -151,21 +137,25 @@
                     </p>
                     <input
                       v-model="clientName"
-                      disabled
-                      class="w-full p-4 border border-gray-100 rounded-xl bg-gray-50 text-gray-400 font-medium cursor-not-allowed"
+                      :disabled="isEditMode"
+                      :class="[
+                        'w-full p-4 border rounded-xl font-medium outline-none',
+                        isEditMode
+                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
+                      ]"
+                      placeholder="Full Name"
                     />
                   </div>
                   <div class="space-y-2">
                     <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                      Mobile Number
+                      Mobile
                     </p>
                     <input
                       v-model="mobile"
-                      inputmode="numeric"
-                      pattern="[0-9]*"
-                      class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-                      placeholder="Enter mobile number"
                       maxlength="10"
+                      class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none"
+                      placeholder="0XXXXXXXXX"
                       @input="mobile = mobile.replace(/\D/g, '')"
                     />
                   </div>
@@ -175,8 +165,14 @@
                     </p>
                     <input
                       v-model="email"
-                      disabled
-                      class="w-full p-4 border border-gray-100 rounded-xl bg-gray-50 text-gray-400 font-medium cursor-not-allowed"
+                      :disabled="isEditMode"
+                      :class="[
+                        'w-full p-4 border rounded-xl font-medium outline-none',
+                        isEditMode
+                          ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                          : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
+                      ]"
+                      placeholder="example@email.com"
                     />
                   </div>
                   <div class="space-y-2">
@@ -187,94 +183,63 @@
                       v-model.number="participants"
                       type="number"
                       min="1"
-                      class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                      class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Right Side: Summary (1/3) -->
             <div class="space-y-6">
               <div class="bg-white rounded-xl shadow-sm p-6 sticky top-0 overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+                <div
+                  :class="[
+                    'absolute top-0 left-0 w-full h-1',
+                    isEditMode ? 'bg-blue-600' : 'bg-green-600',
+                  ]"
+                ></div>
                 <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
-                  <span class="text-blue-600">ℹ️</span> Edit Summary
+                  <span>ℹ️</span> {{ isEditMode ? 'Edit Summary' : 'New Summary' }}
                 </h2>
 
                 <div class="space-y-6">
                   <div class="border-b border-gray-50 pb-4">
-                    <p
-                      class="text-gray-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1"
-                    >
-                      Place
-                    </p>
+                    <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Place</p>
                     <p class="text-gray-900 font-bold">{{ gymLabel }}</p>
                   </div>
-
                   <div class="border-b border-gray-50 pb-4">
-                    <p
-                      class="text-gray-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1"
-                    >
-                      Date & Time
-                    </p>
-                    <p v-if="!selectedDate || !selectedSchedule" class="text-gray-900 font-bold">
-                      -
-                    </p>
-                    <p v-else class="text-gray-900 font-bold">{{ displayDate }}</p>
-                    <p
-                      v-if="selectedDate && selectedSchedule"
-                      class="text-blue-600 text-sm font-black mt-1"
-                    >
+                    <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Date & Time</p>
+                    <p class="text-gray-900 font-bold">{{ displayDate }}</p>
+                    <p v-if="selectedSchedule" class="text-blue-600 text-sm font-black mt-1">
                       {{ displayTime }}
                     </p>
                   </div>
 
-                  <div class="pb-6">
-                    <p
-                      class="text-gray-400 text-[10px] font-black uppercase tracking-[0.15em] mb-3"
-                    >
-                      Booking info
-                    </p>
-                    <div class="space-y-2">
-                      <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 font-medium">Name:</span>
-                        <span class="text-gray-900 font-bold">{{ clientName }}</span>
-                      </div>
-                      <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 font-medium">Participants:</span>
-                        <span class="text-gray-900 font-bold">{{ participants }}</span>
-                      </div>
-                      <div class="flex justify-between items-center text-sm">
-                        <span class="text-gray-500 font-medium">Type:</span>
-                        <span
-                          class="px-2 py-0.5 rounded-full text-[10px] font-black"
-                          :class="
-                            selectPrivate
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-blue-100 text-blue-700'
-                          "
-                        >
-                          {{ selectPrivate ? 'PRIVATE' : 'GROUP' }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
                   <div class="flex flex-col gap-3 pt-4 border-t border-gray-50">
                     <button
-                      class="w-full bg-blue-600 text-white py-4 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      class="w-full text-white py-4 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      :class="
+                        isEditMode
+                          ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                          : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
+                      "
                       :disabled="isSubmitting || !selectedSchedule"
-                      @click="handleUpdate"
+                      @click="handleSubmit"
                     >
                       <span
                         v-if="isSubmitting"
                         class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
                       ></span>
-                      {{ isSubmitting ? 'Updating...' : 'Update Booking' }}
+                      {{
+                        isSubmitting
+                          ? 'Processing...'
+                          : isEditMode
+                            ? 'Update Booking'
+                            : 'Create Booking'
+                      }}
                     </button>
                     <button
-                      class="w-full bg-gray-100 text-gray-500 py-3 rounded-xl text-xs font-bold hover:bg-gray-200 transition-all"
+                      class="w-full bg-gray-100 text-gray-500 py-3 rounded-xl text-xs font-bold hover:bg-gray-200"
                       @click="$emit('close')"
                     >
                       Cancel
@@ -289,7 +254,6 @@
     </div>
   </Teleport>
 
-  <!-- Status Modal -->
   <Teleport to="body">
     <div v-if="showStatus" class="fixed inset-0 z-[1100] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showStatus = false"></div>
@@ -319,16 +283,15 @@ import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 
 const props = defineProps({
   show: Boolean,
-  bookingId: [String, Number],
+  bookingId: [String, Number], // null = Add Mode, has ID = Edit Mode
 })
 
 const emit = defineEmits(['close', 'updated'])
-
 const { fetchSchedules } = useSchedules()
 
 // Form State
-const selectedGym = ref('')
-const selectedDate = ref(null)
+const selectedGym = ref('STING_HIVE')
+const selectedDate = ref(new Date().toISOString().split('T')[0])
 const selectedSchedule = ref(null)
 const selectPrivate = ref(false)
 const clientName = ref('')
@@ -339,49 +302,48 @@ const participants = ref(1)
 const isInitialLoading = ref(false)
 const isSubmitting = ref(false)
 
+// Mode Indicator
+const isEditMode = computed(() => !!props.bookingId)
+
 // Status Modal State
 const showStatus = ref(false)
 const statusTitle = ref('')
 const statusMessage = ref('')
 const statusType = ref('success')
 
-const gymLabel = computed(() => {
-  if (selectedGym.value === 'STING_CLUB') return 'Sting Club'
-  if (selectedGym.value === 'STING_HIVE') return 'Sting Hive'
-  return '-'
-})
-
-const displayDate = computed(() => {
-  if (!selectedDate.value) return '-'
-  return new Date(selectedDate.value).toLocaleDateString('en-EN', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  })
-})
-
+// Helper Computeds
+const gymLabel = computed(() => (selectedGym.value === 'STING_CLUB' ? 'Sting Club' : 'Sting Hive'))
+const displayDate = computed(() =>
+  selectedDate.value
+    ? new Date(selectedDate.value).toLocaleDateString('en-EN', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : '-',
+)
 const displayTime = computed(() => {
   if (!selectedSchedule.value) return '-'
-  const start = selectedSchedule.value.start_time?.slice(0, 5)
-  const end = selectedSchedule.value.end_time?.slice(0, 5)
-  return `${start} - ${end}`
+  return `${selectedSchedule.value.start_time?.slice(0, 5)} - ${selectedSchedule.value.end_time?.slice(0, 5)}`
 })
 
-const onSelectSchedule = (payload) => {
-  selectedSchedule.value = payload
+const resetForm = () => {
+  selectedGym.value = 'STING_HIVE'
+  selectedDate.value = new Date().toISOString().split('T')[0]
+  selectedSchedule.value = null
+  selectPrivate.value = false
+  clientName.value = ''
+  mobile.value = ''
+  email.value = ''
+  participants.value = 1
 }
 
 const fetchBookingDetail = async (id) => {
-  if (!id) return
   try {
     isInitialLoading.value = true
     const res = await api.bookings.get({ classes_booking_id: id })
     const b = Array.isArray(res.data.data) ? res.data.data[0] : res.data.data
-
-    if (!b) {
-      openStatus('Error', 'Booking not found', 'error')
-      return
-    }
+    if (!b) return openStatus('Error', 'Booking not found', 'error')
 
     selectedGym.value = b.schedule.gym_enum
     selectedDate.value = b.date_booking
@@ -396,27 +358,13 @@ const fetchBookingDetail = async (id) => {
       end_time: b.schedule.end_time,
     }
   } catch (err) {
-    console.error('Fetch error:', err)
     openStatus('Error', 'Failed to load booking details', 'error')
   } finally {
     isInitialLoading.value = false
   }
 }
 
-const openStatus = (title, message, type = 'success') => {
-  statusTitle.value = title
-  statusMessage.value = message
-  statusType.value = type
-  showStatus.value = true
-}
-
-const handleSuccessDone = () => {
-  showStatus.value = false
-  emit('updated')
-  emit('close')
-}
-
-const handleUpdate = async () => {
+const handleSubmit = async () => {
   if (!selectedSchedule.value) return
 
   const payload = {
@@ -432,25 +380,44 @@ const handleUpdate = async () => {
 
   try {
     isSubmitting.value = true
-    await api.bookings.update(props.bookingId, payload)
-    openStatus('Success', 'Booking updated successfully!', 'success')
+    if (isEditMode.value) {
+      await api.bookings.update(props.bookingId, payload)
+      openStatus('Success', 'Booking updated successfully!', 'success')
+    } else {
+      await api.bookings.create(payload) // axios.post('/api/v1/bookings', payload)
+      openStatus('Success', 'New booking created successfully!', 'success')
+    }
   } catch (err) {
-    console.error('Update error:', err)
-    openStatus('Error', err.response?.data?.message || 'Failed to update booking', 'error')
+    openStatus('Error', err.response?.data?.message || 'Operation failed', 'error')
   } finally {
     isSubmitting.value = false
   }
 }
 
+const onSelectSchedule = (payload) => {
+  selectedSchedule.value = payload
+}
+const openStatus = (title, message, type = 'success') => {
+  statusTitle.value = title
+  statusMessage.value = message
+  statusType.value = type
+  showStatus.value = true
+}
+const handleSuccessDone = () => {
+  showStatus.value = false
+  emit('updated')
+  emit('close')
+}
+
 // Watchers
 watch(
-  () => props.bookingId,
-  (newId) => {
-    if (newId && props.show) {
-      fetchBookingDetail(newId)
+  () => props.show,
+  (isOpen) => {
+    if (isOpen) {
+      if (isEditMode.value) fetchBookingDetail(props.bookingId)
+      else resetForm()
     }
   },
-  { immediate: true },
 )
 
 watch([selectedDate, selectPrivate, selectedGym], () => {
@@ -478,7 +445,6 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out;
 }
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
 }
@@ -490,10 +456,6 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
   background: #e0e0e0;
   border-radius: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #d0d0d0;
-}
-
 .calendar-wrapper :deep(.vc-container) {
   border: none !important;
   background-color: transparent !important;
