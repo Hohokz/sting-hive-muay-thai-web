@@ -515,6 +515,8 @@ const handleRefresh = () => {
 const filteredBookings = computed(() => {
   if (!props.bookings) return []
   return props.bookings.filter((item) => {
+    // 0. Canceled Booking
+    if(item.booking_status === 'CANCELED') return false
     // 1. Gym
     if (filters.value.gym && filters.value.gym !== 'ALL') {
       if (item.schedule?.gym_enum !== filters.value.gym) return false
