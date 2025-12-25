@@ -159,6 +159,13 @@
               <span v-else>Updating...</span>
             </button>
             <button
+              class="w-full bg-red-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+              :disabled="isSubmitting"
+              @click="confirmCancel"
+            >
+              Cancel Booking
+            </button>
+            <button
               class="w-full bg-gray-100 text-gray-600 py-3 rounded-lg font-semibold"
               @click="resetAll"
             >
@@ -195,6 +202,37 @@
       </button>
     </div>
   </div>
+
+  <div v-if="showCancelConfirm" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div
+      class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      @click="showCancelConfirm = false"
+    ></div>
+    <div
+      class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeIn"
+    >
+      <div class="text-3xl mb-4">🗑️</div>
+      <h3 class="text-xl font-bold mb-2">Cancel Booking?</h3>
+      <p class="text-gray-500 mb-6">
+        Are you sure you want to cancel this booking? This action cannot be undone.
+      </p>
+
+      <div class="flex gap-3">
+        <button
+          @click="showCancelConfirm = false"
+          class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl font-semibold"
+        >
+          No, Keep it
+        </button>
+        <button
+          @click="handleConfirmCancel"
+          class="flex-1 py-2 bg-red-600 text-white rounded-xl font-semibold"
+        >
+          Yes, Cancel
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -208,6 +246,7 @@ import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 const route = useRoute()
 const router = useRouter()
 const { fetchSchedules } = useSchedules()
+const emit = defineEmits(['cancel'])
 
 const bookingId = route.params.id
 const isSubmitting = ref(false)
@@ -229,6 +268,12 @@ const modalTitle = ref('')
 const modalMessage = ref('')
 const modalType = ref('success')
 const modalRedirect = ref(false)
+
+const showCancelConfirm = ref(false)
+
+const confirmCancel = () => {
+  showCancelConfirm.value = true
+}
 
 // Computed (เหมือนไฟล์ที่ 1)
 const gymLabel = computed(() => {
@@ -272,7 +317,7 @@ const handleModalClose = () => {
 
 const resetAll = () => {
   sessionStorage.clear()
-  router.back()
+  router.push('/')
 }
 
 // Fetch Initial Data
@@ -345,6 +390,10 @@ const updateBooking = async () => {
   } finally {
     isSubmitting.value = false
   }
+}
+const handleConfirmCancel = () => {
+  showCancelConfirm.value = false
+  emit('cancel', bookingId) // ส่ง bookingId ที่ได้จาก route.params ไป
 }
 </script>
 

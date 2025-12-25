@@ -43,7 +43,7 @@
             <th class="px-2">Time</th>
             <th class="px-2">Name</th>
             <th class="px-2 text-center font-bold">Pax</th>
-            <th class="px-2">Trainer Name</th>
+            <th class="px-2 text-center">Trainer Name</th>
             <th class="px-2 text-center">Status</th>
             <th class="px-2 text-center">Payment</th>
             <th class="px-2">Note</th>
@@ -79,7 +79,7 @@
             <td class="px-2 font-semibold text-gray-800">{{ item.client_name }}</td>
             <td class="px-2 text-center font-bold">{{ item.capacity }}</td>
             <td class="px-2">
-              <div class="flex items-center gap-2 group relative">
+              <div class="flex justify-center items-center gap-2 group relative">
                 <span class="text-gray-500">{{ item.trainer || '-' }}</span>
                 <button
                   v-if="auth.isAdmin"
@@ -473,6 +473,7 @@ const handleSaveTrainer = async () => {
 
 const handlePaymentChange = async (item, event) => {
   const isChecked = event.target.checked
+  console.log(isChecked)
 
   // สร้างตัวแปรเก็บสถานะเดิมไว้เผื่อ Error จะได้ Rollback (UI Optimistic Update)
   const originalStatus = item.booking_status
@@ -516,7 +517,7 @@ const filteredBookings = computed(() => {
   if (!props.bookings) return []
   return props.bookings.filter((item) => {
     // 0. Canceled Booking
-    if(item.booking_status === 'CANCELED') return false
+    if (item.booking_status === 'CANCELED') return false
     // 1. Gym
     if (filters.value.gym && filters.value.gym !== 'ALL') {
       if (item.schedule?.gym_enum !== filters.value.gym) return false
@@ -576,6 +577,7 @@ const formatGym = (g) =>
   g === 'STING_HIVE' ? 'Sting Hive' : g === 'STING_CLUB' ? 'Sting Club' : '-'
 
 const statusClass = (s) => {
+  if (s === 'PAYMENTED') return 'bg-blue-100 text-blue-700'
   if (s === 'SUCCEED') return 'bg-green-100 text-green-700'
   if (s === 'CANCELLED' || s === 'CANCELED') return 'bg-red-100 text-red-700'
   return 'bg-yellow-100 text-yellow-700'

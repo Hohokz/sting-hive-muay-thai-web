@@ -359,7 +359,6 @@ const submitBooking = async () => {
     )
   } finally {
     isSubmitting.value = false
-    // goToFindBooking()
   }
 }
 

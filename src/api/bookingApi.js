@@ -24,7 +24,7 @@ const bookings = {
   cancel: (id) => axios.patch(`/api/v1/bookings/${id}/cancel`),
   updateTrainer: (id, data) => axios.put(`/api/v1/bookings/updateBookingTrainer/${id}`, data),
   updateNote: (id, data) => axios.put(`/api/v1/bookings/updateBookingNote/${id}`, data),
-  updatePayment: (id, data) => axios.put(`/api/v1/bookings/payment/${id}`, data),
+  updatePayment: (id, data) => axios.put(`/api/v1/bookings/${id}/payment`, data),
 }
 
 // SCHEDULES
