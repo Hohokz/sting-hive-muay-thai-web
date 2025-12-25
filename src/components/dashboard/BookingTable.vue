@@ -45,6 +45,7 @@
             <th class="px-2 text-center font-bold">Pax</th>
             <th class="px-2">Trainer Name</th>
             <th class="px-2 text-center">Status</th>
+            <th class="px-2 text-center">Payment</th>
             <th class="px-2">Note</th>
             <th v-if="auth.isAdmin" class="px-2 text-center">Actions</th>
           </tr>
@@ -97,6 +98,14 @@
                 {{ item.booking_status }}
               </span>
             </td>
+            <td class="px-2 text-center">
+              <input
+                type="checkbox"
+                :checked="item.booking_status === 'PAYMENTED'"
+                @change="handlePaymentChange(item, $event)"
+                class="w-4 h-4 accent-black cursor-pointer"
+              />
+            </td>
             <td class="px-2 max-w-[180px]">
               <div class="flex items-center gap-2 group relative">
                 <span class="truncate text-gray-500 italic text-xs" :title="item.admin_note">
@@ -133,6 +142,7 @@
       </table>
     </div>
 
+    <!-- Mobile View -->
     <div class="md:hidden space-y-4">
       <div
         v-for="item in sortedBookings"
@@ -173,6 +183,19 @@
         <div class="grid grid-cols-2 gap-y-2 text-xs border-t border-gray-200 pt-3">
           <div class="text-gray-400 font-bold uppercase text-[9px]">Name</div>
           <div class="font-bold text-gray-800">{{ item.client_name }}</div>
+          <div class="text-gray-400 font-bold uppercase text-[9px]">Payment Status</div>
+          <div class="flex items-center gap-2">
+            <input
+              type="checkbox"
+              :id="'pay-mob-' + item.id"
+              :checked="item.booking_status === 'PAYMENTED'"
+              @change="handlePaymentChange(item, $event)"
+              class="w-4 h-4 accent-black"
+            />
+            <label :for="'pay-mob-' + item.id" class="text-[10px] font-bold text-gray-700">
+              {{ item.booking_status === 'PAYMENTED' ? 'PAID' : 'PENDING' }}
+            </label>
+          </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Pax / Trainer</div>
           <div class="text-gray-700 flex items-center gap-2">
             <span>{{ item.capacity }} pax / {{ item.trainer_name || '-' }}</span>
@@ -340,7 +363,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
 import BookingFilter from './BookingFilter.vue'
@@ -445,6 +468,28 @@ const handleSaveTrainer = async () => {
     showError('Could not update trainer information. Please try again.', 'Update Failed')
   } finally {
     isSavingTrainer.value = false
+  }
+}
+
+const handlePaymentChange = async (item, event) => {
+  const isChecked = event.target.checked
+
+  // สร้างตัวแปรเก็บสถานะเดิมไว้เผื่อ Error จะได้ Rollback (UI Optimistic Update)
+  const originalStatus = item.booking_status
+
+  try {
+    // เรียก API ตามที่คุณระบุ (ส่ง Boolean true/false)
+    await api.bookings.updatePayment(item.id, {
+      is_paid: isChecked,
+    })
+
+    // ถ้าสำเร็จ ให้รีเฟรชข้อมูลเพื่อให้ UI สอดคล้องกับ DB
+    emit('refresh')
+  } catch (err) {
+    console.error('❌ Update Payment Error:', err)
+    // ถ้าพลาด ให้คืนค่า Checkbox กลับไปสถานะเดิม
+    event.target.checked = !isChecked
+    showError('Could not update payment status.', 'Update Failed')
   }
 }
 
