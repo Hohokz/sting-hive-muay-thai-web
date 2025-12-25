@@ -391,9 +391,22 @@ const updateBooking = async () => {
     isSubmitting.value = false
   }
 }
-const handleConfirmCancel = () => {
-  showCancelConfirm.value = false
-  emit('cancel', bookingId) // ส่ง bookingId ที่ได้จาก route.params ไป
+
+const handleConfirmCancel = async () => {
+  showCancelConfirm.value = false // ปิด Modal ยืนยัน
+
+  try {
+    isSubmitting.value = true // แสดง loading overlay
+    await api.bookings.cancel(bookingId)
+
+    // เมื่อลบสำเร็จ แสดง Modal แจ้งผล และตั้ง redirect เป็น true เพื่อกลับไปหน้าค้นหา
+    openStatusModal('Success', '✅ ยกเลิกการจองเรียบร้อยแล้ว', 'success', true)
+  } catch (err) {
+    console.error(err)
+    openStatusModal('Error', '❌ ไม่สามารถยกเลิกการจองได้ กรุณาลองใหม่', 'error')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
