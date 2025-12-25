@@ -5,7 +5,9 @@ const auth = {
   // Login expects { username, password } per user instructions, but frontend might currently send email.
   // I will leave the argument as 'credentials' so it's flexible, but I'll update the endpoint if it was wrong (it was correct).
   login: (credentials) => axios.post('/api/v1/auth/login', credentials),
-  refreshToken: (refreshToken) => axios.post('/api/v1/auth/refresh-token', { refreshToken }),
+  refreshToken: (refreshToken) =>
+    axios.post('/api/v1/middlewares/authMiddleware', { refreshToken }),
+  getUser: () => axios.get('/api/v1/users'),
   logout: () => axios.post('/api/v1/auth/logout'),
 }
 

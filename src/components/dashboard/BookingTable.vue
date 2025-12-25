@@ -293,20 +293,76 @@
         <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
           <h3 class="text-xl font-black text-gray-900 mb-1">Assign Trainer</h3>
-          <p class="text-xs text-gray-400 mb-4 font-medium uppercase tracking-widest">
-            Update trainer for this booking
+          <p class="text-xs text-gray-400 mb-6 font-medium uppercase tracking-widest">
+            Select trainer from system
           </p>
 
-          <div class="mb-6">
+          <div class="mb-6 relative">
             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
-              >Trainer Name</label
+              >Trainer Lookup</label
             >
-            <input
-              v-model="trainerForm.trainer_name"
-              type="text"
-              class="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-blue-600 outline-none"
-              placeholder="Enter trainer name..."
-            />
+
+            <div class="relative group">
+              <input
+                v-model="userSearchQuery"
+                type="text"
+                class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 pr-12 text-sm focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                placeholder="Search name or phone..."
+                @focus="isDropdownOpen = true"
+              />
+              <button
+                @click="isDropdownOpen = !isDropdownOpen"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-transform"
+                :class="{ 'rotate-180': isDropdownOpen }"
+              >
+                ▼
+              </button>
+            </div>
+
+            <div
+              v-if="isDropdownOpen"
+              class="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-48 overflow-y-auto overflow-x-hidden"
+            >
+              <div
+                v-for="user in searchedUsers"
+                :key="user.id"
+                @click="selectTrainer(user)"
+                class="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center transition-colors"
+              >
+                <div>
+                  <div class="font-bold text-sm text-gray-800">{{ user.name }}</div>
+                  <div class="text-[10px] text-gray-500 font-mono">{{ user.phone }}</div>
+                </div>
+                <span class="text-blue-500 text-xs font-bold">Select</span>
+              </div>
+
+              <div
+                v-if="searchedUsers.length === 0"
+                class="p-4 text-center text-xs text-gray-400 italic"
+              >
+                No matches found.
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="mb-8 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center justify-between"
+          >
+            <div>
+              <span class="text-[9px] font-black text-blue-400 uppercase block"
+                >Selected Trainer</span
+              >
+              <div class="font-bold text-blue-800">
+                {{ trainerForm.trainer_name || 'None Selected' }}
+              </div>
+            </div>
+            <button
+              v-if="trainerForm.trainer_name"
+              @click="trainerForm.trainer_name = ''"
+              class="text-blue-400 hover:text-red-500 text-xs"
+            >
+              Clear
+            </button>
           </div>
 
           <div class="flex gap-3">
@@ -318,7 +374,7 @@
             </button>
             <button
               @click="handleSaveTrainer"
-              :disabled="isSavingTrainer"
+              :disabled="isSavingTrainer || !trainerForm.trainer_name"
               class="flex-1 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 disabled:opacity-50"
             >
               {{ isSavingTrainer ? 'Saving...' : 'Save' }}
@@ -461,13 +517,78 @@ const handleSaveNote = async () => {
   }
 }
 
-/* ================= TRAINER MODAL LOGIC ================= */
+/* ================= TRAINER LOOKUP LOGIC ================= */
 const showTrainerModal = ref(false)
 const isSavingTrainer = ref(false)
+const isDropdownOpen = ref(false) // สถานะเปิด/ปิด dropdown
+const userSearchQuery = ref('')
 const trainerForm = ref({ id: '', trainer_name: '' })
 
-const openTrainerModal = (item) => {
+const userList = ref([]) // เก็บรายชื่อที่จะเอามาทำ Lookup
+
+const searchedUsers = computed(() => {
+  // มั่นใจว่าได้ Array เสมอ แม้ userList จะยังโหลดไม่เสร็จ
+  const list = Array.isArray(userList.value) ? userList.value : []
+
+  const q = (userSearchQuery.value || '').toLowerCase().trim()
+
+  if (!q) return list
+
+  return list.filter(
+    (user) =>
+      user.name?.toLowerCase().includes(q) ||
+      user.phone?.includes(q) ||
+      user.username?.toLowerCase().includes(q),
+  )
+})
+
+const fetchUsers = async () => {
+  try {
+    const response = await api.auth.getUser()
+    console.log('Raw Axios Response:', response.data)
+
+    // 1. เจาะเข้าไปที่ก้อน data ภายใน response.data อีกที
+    const actualData = response.data.data
+
+    // 2. เช็คว่า actualData เป็น Array หรือไม่
+    if (Array.isArray(actualData)) {
+      userList.value = actualData.map((item) => {
+        // เจาะเข้า dataValues (Sequelize object)
+        const raw = item.dataValues || item
+        return {
+          id: raw.id,
+          name: raw.name || raw.username, // กันเหนียวถ้าไม่มี name ให้ใช้ username
+          phone: raw.phone || '-',
+          username: raw.username,
+        }
+      })
+    }
+
+    console.log('Cleaned User List:', userList.value) // รอบนี้ต้องขึ้น Array(2) แล้วครับ
+  } catch (err) {
+    console.error('❌ Fetch Users Error:', err)
+  }
+}
+
+const selectTrainer = (user) => {
+  // 1. เอาชื่อไปใส่ใน Form
+  trainerForm.value.trainer_name = user.name || user.username
+
+  // 2. อัปเดตช่อง Search ให้เห็นชื่อที่เลือก (หรือจะล้างออกก็ได้ตามใจชอบ)
+  userSearchQuery.value = user.name || user.username
+
+  // 3. ปิด Dropdown ทันทีเมื่อเลือกเสร็จ
+  isDropdownOpen.value = false
+
+  console.log('✅ Selected Trainer:', user.name)
+}
+
+const openTrainerModal = async (item) => {
   trainerForm.value = { id: item.id, trainer_name: item.trainer_name || '' }
+  userSearchQuery.value = ''
+  isDropdownOpen.value = false
+
+  await fetchUsers() // ดึงข้อมูลใหม่ทุกครั้งที่เปิด Modal
   showTrainerModal.value = true
 }
 
@@ -478,12 +599,11 @@ const handleSaveTrainer = async () => {
     await api.bookings.updateTrainer(trainerForm.value.id, {
       trainer_name: trainerForm.value.trainer_name,
     })
-
     emit('refresh')
     showTrainerModal.value = false
   } catch (err) {
     console.error('❌ Save Trainer Error:', err)
-    showError('Could not update trainer information. Please try again.', 'Update Failed')
+    showError('Could not update trainer.', 'Update Failed')
   } finally {
     isSavingTrainer.value = false
   }
