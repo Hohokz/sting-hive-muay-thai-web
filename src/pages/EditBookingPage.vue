@@ -110,6 +110,8 @@
                 v-model.number="participants"
                 type="number"
                 min="1"
+                max="5"
+                placeholder = "ระบุจำนวนคนได้ไม่เกิน 5"
                 class="w-full p-3 border rounded-md"
               />
             </div>
