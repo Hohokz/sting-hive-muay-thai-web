@@ -142,9 +142,12 @@
               <h2 class="text-xl font-semibold">Contact Information</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                    Name
-                  </p>
+                  <div class="flex items-center gap-1">
+                    <span class="text-red-500">*</span>
+                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                      Name
+                    </p>
+                  </div>
                   <input
                     v-model="clientName"
                     :disabled="isEditMode"
@@ -170,9 +173,12 @@
                   />
                 </div>
                 <div class="space-y-2">
-                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                    Email
-                  </p>
+                  <div class="flex items-center gap-1">
+                    <span class="text-red-500">*</span>
+                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                      Email
+                    </p>
+                  </div>
                   <input
                     v-model="email"
                     :disabled="isEditMode"
@@ -186,9 +192,12 @@
                   />
                 </div>
                 <div class="space-y-2">
-                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                    Participants
-                  </p>
+                  <div class="flex items-center gap-1">
+                    <span class="text-red-500">*</span>
+                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                      Participants
+                    </p>
+                  </div>
                   <input
                     v-model.number="participants"
                     type="number"

@@ -87,7 +87,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- NAME  -->
             <div>
-              <p class="text-gray-600 text-sm mb-1">Name</p>
+              <div class="flex items-center gap-1">
+                <span class="text-red-500">*</span>
+                <p class="text-gray-600 text-sm mb-1">Name</p>
+              </div>
+
               <input
                 v-model="clientName"
                 type="text"
@@ -111,7 +115,10 @@
 
             <!-- ✅ EMAIL -->
             <div>
-              <p class="text-gray-600 text-sm mb-1">Email</p>
+              <div class="flex items-center gap-1">
+                <span class="text-red-500">*</span>
+                <p class="text-gray-600 text-sm mb-1">Email</p>
+              </div>
               <input
                 v-model="email"
                 type="email"
@@ -124,17 +131,19 @@
             </div>
             <!-- ✅ Person -->
             <div>
-              <p class="text-gray-600 text-sm mb-1">Participants</p>
+              <div class="flex items-center gap-1">
+                <span class="text-red-500">*</span>
+                <p class="text-gray-600 text-sm mb-1">Participants</p>
+              </div>
               <input
-  v-model.number="participants"
-  type="number"
-  class="w-full p-3 border rounded-md"
-  placeholder="ระบุจำนวนผู้เข้าร่วม (สูงสุด 5 ท่าน)"
-  min="1"
-  max="5"
-  @input="if(participants > 5) participants = 5"
-/>
-
+                v-model.number="participants"
+                type="number"
+                class="w-full p-3 border rounded-md"
+                placeholder="Number of participants (Maximum 5 people)"
+                min="1"
+                max="5"
+                @input="handleParticipantsInput"
+              />
             </div>
           </div>
         </div>
@@ -320,6 +329,17 @@ const isSubmitting = ref(false)
 
 const { fetchSchedules } = useSchedules()
 
+const handleParticipantsInput = () => {
+  // 1. ถ้าค่าที่กรอกมากกว่า 5 ให้ปรับเป็น 5
+  if (participants.value > 5) {
+    participants.value = 5
+  }
+  // 2. ถ้ามีค่า (ไม่ว่าง) แต่น้อยกว่า 1 ให้ปรับเป็น 1
+  else if (participants.value !== null && participants.value < 1) {
+    participants.value = 1
+  }
+}
+
 const submitBooking = async () => {
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
     openModal(
@@ -330,8 +350,8 @@ const submitBooking = async () => {
     return
   }
 
-  if (!participants.value || participants.value < 1) {
-    openModal('Incomplete Information', 'Please enter a valid number of participants.', 'warning')
+  if (!participants.value || participants.value < 1 || participants.value > 5) {
+    openModal('Incomplete Information', 'Please enter 1 - 5 participants.', 'warning')
     return
   }
 
