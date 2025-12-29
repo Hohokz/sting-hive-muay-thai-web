@@ -382,47 +382,7 @@
           </div>
         </div>
       </div>
-      <div
-        v-if="errorState.show"
-        class="fixed inset-0 z-[1000] flex items-center justify-center p-4"
-      >
-        <div
-          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          @click="errorState.show = false"
-        ></div>
-        <div
-          class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden text-center"
-        >
-          <div class="absolute top-0 left-0 w-full h-2 bg-red-500"></div>
-
-          <div class="mb-4 flex justify-center">
-            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center">
-              <span class="text-3xl">⚠️</span>
-            </div>
-          </div>
-
-          <h3 class="text-xl font-black text-gray-900 mb-2">{{ errorState.title }}</h3>
-          <p class="text-sm text-gray-500 mb-8 leading-relaxed">
-            {{ errorState.message }}
-          </p>
-
-          <button
-            @click="errorState.show = false"
-            class="w-full py-3 bg-gray-900 text-white rounded-2xl text-sm font-bold hover:bg-black transition-colors"
-          >
-            Got it
-          </button>
-        </div>
-      </div>
     </Teleport>
-
-    <!-- EDIT BOOKING MODAL -->
-    <EditBookingModal
-      :show="showEditModal"
-      :bookingId="editingBookingId"
-      @close="showEditModal = false"
-      @updated="handleEditSuccess"
-    />
   </div>
 </template>
 
@@ -430,10 +390,13 @@
 import { ref, computed } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
+import { useModalStore } from '@/stores/modal'
+import StatusModal from '@/components/common/StatusModal.vue'
 import BookingFilter from './BookingFilter.vue'
 import EditBookingModal from './EditBookingModal.vue'
 
 const auth = useAuthStore()
+const modalStore = useModalStore()
 const emit = defineEmits(['refresh', 'cancel'])
 const props = defineProps({
   bookings: { type: Array, required: true },
@@ -443,25 +406,28 @@ const props = defineProps({
 const filters = defineModel('filters')
 
 /* ================= ADD/EDIT MODAL LOGIC ================= */
-const showEditModal = ref(false)
-const editingBookingId = ref(null)
-
-// ฟังก์ชันสำหรับเปิดเพื่อแก้ไข (มีอยู่แล้ว)
+// ฟังก์ชันสำหรับเปิดเพื่อแก้ไข
 const openEditModal = (id) => {
-  editingBookingId.value = id
-  showEditModal.value = true
+  modalStore.open(EditBookingModal, {
+    bookingId: id,
+    onUpdated: handleEditSuccess,
+    onClose: () => modalStore.close(), // Or let loader handle it
+  })
 }
 
-// ฟังก์ชันสำหรับเปิดเพื่อเพิ่มใหม่ (แก้ไขใหม่)
+// ฟังก์ชันสำหรับเปิดเพื่อเพิ่มใหม่
 const openAddModal = () => {
   if (!auth.isAdmin) return
-  editingBookingId.value = null // สำคัญ: เซตเป็น null เพื่อบอก Modal ว่าคือการสร้างใหม่
-  showEditModal.value = true
+  modalStore.open(EditBookingModal, {
+    bookingId: null,
+    onUpdated: handleEditSuccess,
+    onClose: () => modalStore.close(),
+  })
 }
 
-// ฟังก์ชันเมื่อบันทึกสำเร็จ (ใช้ร่วมกัน)
+// ฟังก์ชันเมื่อบันทึกสำเร็จ
 const handleEditSuccess = () => {
-  showEditModal.value = false // ปิด modal
+  modalStore.close() // Close the Edit Modal
   emit('refresh') // รีเฟรชรายการ
 }
 
@@ -475,18 +441,12 @@ const openNoteModal = (item) => {
   showNoteModal.value = true
 }
 
-const errorState = ref({
-  show: false,
-  title: 'Something went wrong',
-  message: '',
-})
-
 const showError = (message, title = 'Error') => {
-  errorState.value = {
-    show: true,
-    title: title,
-    message: message,
-  }
+  modalStore.open(StatusModal, {
+    title,
+    message,
+    type: 'error',
+  })
 }
 
 const handleSaveNote = async () => {
@@ -612,9 +572,6 @@ const handleSaveTrainer = async () => {
 const handlePaymentChange = async (item, event) => {
   const isChecked = event.target.checked
   console.log(isChecked)
-
-  // สร้างตัวแปรเก็บสถานะเดิมไว้เผื่อ Error จะได้ Rollback (UI Optimistic Update)
-  const originalStatus = item.booking_status
 
   try {
     // เรียก API ตามที่คุณระบุ (ส่ง Boolean true/false)
