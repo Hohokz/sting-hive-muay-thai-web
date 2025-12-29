@@ -126,12 +126,15 @@
             <div>
               <p class="text-gray-600 text-sm mb-1">Participants</p>
               <input
-                v-model.number="participants"
-                type="number"
-                class="w-full p-3 border rounded-md"
-                placeholder="Enter Participants Amount"
-                min="1"
-              />
+  v-model.number="participants"
+  type="number"
+  class="w-full p-3 border rounded-md"
+  placeholder="ระบุจำนวนผู้เข้าร่วม (สูงสุด 5 ท่าน)"
+  min="1"
+  max="5"
+  @input="if(participants > 5) participants = 5"
+/>
+
             </div>
           </div>
         </div>
