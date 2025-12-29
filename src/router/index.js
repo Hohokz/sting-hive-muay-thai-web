@@ -1,9 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 const routes = [
-  { path: '/', name: 'home', component: () => import('../pages/LandingPage.vue') },
+  //{ path: '/', name: 'home', component: () => import('../pages/LandingPage.vue') },
   {
-    path: '/booking',
+    path: '/',
     name: 'booking',
     component: () => import('@/components/landing/BookingPage.vue'),
   },
