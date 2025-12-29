@@ -193,6 +193,7 @@
                     v-model.number="participants"
                     type="number"
                     min="1"
+                    max="5"
                     class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
                   />
                 </div>
