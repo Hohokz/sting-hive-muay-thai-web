@@ -26,7 +26,7 @@
       </div>
 
       <div class="bg-white p-6 rounded-xl shadow">
-        <p class="text-sm text-gray-500">Class Type</p>
+        <p class="text-sm text-gray-500">Private Class</p>
         <p class="text-2xl font-bold">{{ summary.isPrivateCapacity || 0 }}</p>
       </div>
     </template>

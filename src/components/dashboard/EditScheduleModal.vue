@@ -89,7 +89,7 @@
                     />
                     <span
                       class="text-gray-700 font-medium group-hover:text-blue-600 transition-colors"
-                      >Class Type</span
+                      >Private Class</span
                     >
                   </label>
                 </div>

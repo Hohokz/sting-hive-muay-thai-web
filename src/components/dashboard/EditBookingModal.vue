@@ -84,7 +84,7 @@
                     v-model="selectPrivate"
                     class="w-5 h-5 accent-blue-600"
                   />
-                  <span class="text-gray-700 font-medium">Class Type</span>
+                  <span class="text-gray-700 font-medium">Private Class</span>
                 </label>
               </div>
             </div>
