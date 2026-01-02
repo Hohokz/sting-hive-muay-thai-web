@@ -4,7 +4,7 @@
     <h3 class="text-xl font-black text-gray-900 mb-2">{{ title }}</h3>
     <p class="text-sm text-gray-500 font-medium mb-6">{{ message }}</p>
     <button
-      @click="$emit('close')"
+      @click="handleButtonClick"
       class="w-full py-3 bg-black text-white rounded-xl font-extrabold text-xs uppercase tracking-widest shadow-lg shadow-black/10 hover:bg-gray-800 transition-colors"
     >
       {{ type === 'success' ? 'DONE' : 'GOT IT' }}
@@ -24,7 +24,15 @@ const props = defineProps({
   },
 })
 
-defineEmits(['close'])
+const emit = defineEmits(['close', 'success'])
+
+const handleButtonClick = () => {
+  if (props.type === 'success') {
+    emit('success')
+  } else {
+    emit('close')
+  }
+}
 
 const icon = computed(() => {
   switch (props.type) {

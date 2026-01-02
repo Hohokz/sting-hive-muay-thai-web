@@ -44,16 +44,37 @@
             <th class="py-3 px-2 cursor-pointer hover:text-black" @click="setSort('date_booking')">
               Date {{ sortIcon('date_booking') }}
             </th>
+            <th class="px-2 cursor-pointer hover:text-black" @click="setSort('time')">
+              Time {{ sortIcon('time') }}
+            </th>
             <th class="px-2 cursor-pointer hover:text-black" @click="setSort('gym')">
               Gym {{ sortIcon('gym') }}
             </th>
-            <th class="px-2">Date</th>
-            <th class="px-2">Time</th>
-            <th class="px-2">Name</th>
-            <th class="px-2 text-center font-bold">Pax</th>
+            <th class="px-2 cursor-pointer hover:text-black" @click="setSort('classType')">
+              ClassType {{ sortIcon('classType') }}
+            </th>
+            <th class="px-2 cursor-pointer hover:text-black" @click="setSort('client_name')">
+              Name {{ sortIcon('client_name') }}
+            </th>
+            <th
+              class="px-2 text-center font-bold cursor-pointer hover:text-black"
+              @click="setSort('capacity')"
+            >
+              Pax {{ sortIcon('capacity') }}
+            </th>
             <th class="px-2 text-center">Trainer Name</th>
-            <th class="px-2 text-center">Status</th>
-            <th class="px-2 text-center">Payment</th>
+            <th
+              class="px-2 text-center cursor-pointer hover:text-black"
+              @click="setSort('booking_status')"
+            >
+              Status {{ sortIcon('booking_status') }}
+            </th>
+            <th
+              class="px-2 text-center cursor-pointer hover:text-black"
+              @click="setSort('payment')"
+            >
+              Payment {{ sortIcon('payment') }}
+            </th>
             <th class="px-2">Note</th>
             <th v-if="auth.isAdmin" class="px-2 text-center">Actions</th>
           </tr>
@@ -427,7 +448,6 @@ const openAddModal = () => {
 
 // ฟังก์ชันเมื่อบันทึกสำเร็จ
 const handleEditSuccess = () => {
-  modalStore.close() // Close the Edit Modal
   emit('refresh') // รีเฟรชรายการ
 }
 
@@ -657,7 +677,17 @@ const sortedBookings = computed(() => {
     if (sortKey.value === 'gym') {
       valA = a.schedule?.gym_enum
       valB = b.schedule?.gym_enum
+    } else if (sortKey.value === 'time') {
+      valA = a.schedule?.start_time
+      valB = b.schedule?.start_time
+    } else if (sortKey.value === 'classType') {
+      valA = a.is_private ? 1 : 0
+      valB = b.is_private ? 1 : 0
+    } else if (sortKey.value === 'payment') {
+      valA = a.booking_status === 'PAYMENTED' ? 1 : 0
+      valB = b.booking_status === 'PAYMENTED' ? 1 : 0
     }
+
     if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1
     if (valA > valB) return sortOrder.value === 'asc' ? 1 : -1
     return 0

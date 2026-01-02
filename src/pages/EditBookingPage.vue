@@ -38,7 +38,7 @@
 
         <div class="bg-white rounded-xl shadow p-6 pb-8 space-y-6">
           <div>
-            <h3 class="text-xl font-semibold mb-4">Private Class</h3>
+            <h3 class="text-xl font-semibold mb-4">Class Type</h3>
           </div>
           <div class="flex justify-around items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer">

@@ -1,270 +1,247 @@
 <template>
-  <div class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-    <!-- Overlay/Backdrop managed by GlobalModalLoader or local -->
-    <!-- Since GlobalModalLoader has its own backdrop, we might not need this inner backdrop if we want to rely on the global one.
-         However, GlobalModalLoader renders component inside a div.
-         If we want this component to LOOK like a modal, it should probably be just the modal CONTENT, and GlobalModalLoader handles the centering and overlay.
-         BUT, existing GlobalModalLoader implementation loops components and renders them. It puts a SINGLE backdrop behind ALL of them?
-         No, GlobalModalLoader code:
-         <div v-if="modalStore.stack.length > 0" ...>
-           <div class="absolute inset-0 bg-black/60 ..." @click="handleBackdropClick"></div>
-           <div v-for="..."> <component ... /> </div>
-         </div>
-         So GlobalModalLoader provides the backdrop and centering container?
-         Actually GlobalModalLoader has `flex items-center justify-center`.
-         So the component should just be the card itself.
-    -->
-    <div
-      class="relative bg-gray-50 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col animate-fadeIn"
-      @click.stop
-    >
-      <div class="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div
-            :class="[
-              'w-10 h-10 rounded-full flex items-center justify-center text-white text-xl',
-              isEditMode ? 'bg-blue-600' : 'bg-green-600',
-            ]"
-          >
-            {{ isEditMode ? '✎' : '➕' }}
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-gray-900 leading-tight">
-              {{ isEditMode ? 'Edit Booking' : 'Add New Booking' }}
-            </h3>
-            <p class="text-sm text-gray-400 font-medium">
-              {{ isEditMode ? 'Modify reservation details' : 'Create a new client reservation' }}
-            </p>
-          </div>
-        </div>
-        <button
-          @click="$emit('close')"
-          class="text-gray-400 hover:text-black transition-colors p-2"
+  <div
+    class="relative bg-gray-50 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col animate-fadeIn"
+    @click.stop
+  >
+    <div class="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div
+          :class="[
+            'w-10 h-10 rounded-full flex items-center justify-center text-white text-xl',
+            isEditMode ? 'bg-blue-600' : 'bg-green-600',
+          ]"
         >
-          <span class="text-2xl">✖</span>
-        </button>
+          {{ isEditMode ? '✎' : '➕' }}
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900 leading-tight">
+            {{ isEditMode ? 'Edit Booking' : 'Add New Booking' }}
+          </h3>
+          <p class="text-sm text-gray-400 font-medium">
+            {{ isEditMode ? 'Modify reservation details' : 'Create a new client reservation' }}
+          </p>
+        </div>
+      </div>
+      <button @click="$emit('close')" class="text-gray-400 hover:text-black transition-colors p-2">
+        <span class="text-2xl">✖</span>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
+      <div
+        v-if="isInitialLoading"
+        class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm"
+      >
+        <div
+          class="w-12 h-12 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-4"
+        ></div>
+        <p class="text-gray-400 font-bold uppercase text-xs tracking-widest">Processing...</p>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
-        <div
-          v-if="isInitialLoading"
-          class="flex flex-col items-center justify-center py-20 bg-white rounded-2xl shadow-sm"
-        >
-          <div
-            class="w-12 h-12 border-4 border-gray-100 border-t-blue-600 rounded-full animate-spin mb-4"
-          ></div>
-          <p class="text-gray-400 font-bold uppercase text-xs tracking-widest">Processing...</p>
-        </div>
+      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-6">Select Place</h2>
+            <div class="flex justify-around items-center gap-6">
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  value="STING_CLUB"
+                  v-model="selectedGym"
+                  class="w-5 h-5 accent-blue-600"
+                />
+                <span class="text-gray-700 font-medium group-hover:text-blue-600">Sting Club</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="radio"
+                  value="STING_HIVE"
+                  v-model="selectedGym"
+                  class="w-5 h-5 accent-blue-600"
+                />
+                <span class="text-gray-700 font-medium group-hover:text-blue-600">Sting Hive</span>
+              </label>
+            </div>
+          </div>
 
-        <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-6">
-              <h2 class="text-xl font-semibold mb-6">Select Place</h2>
+          <div class="bg-white rounded-xl shadow-sm p-6 space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-6">Class Type</h3>
               <div class="flex justify-around items-center gap-6">
                 <label class="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="radio"
-                    value="STING_CLUB"
-                    v-model="selectedGym"
+                    :value="false"
+                    v-model="selectPrivate"
                     class="w-5 h-5 accent-blue-600"
                   />
-                  <span class="text-gray-700 font-medium group-hover:text-blue-600"
-                    >Sting Club</span
-                  >
+                  <span class="text-gray-700 font-medium">Group Class</span>
                 </label>
                 <label class="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="radio"
-                    value="STING_HIVE"
-                    v-model="selectedGym"
+                    :value="true"
+                    v-model="selectPrivate"
                     class="w-5 h-5 accent-blue-600"
                   />
-                  <span class="text-gray-700 font-medium group-hover:text-blue-600"
-                    >Sting Hive</span
-                  >
+                  <span class="text-gray-700 font-medium">Class Type</span>
                 </label>
               </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6 space-y-8">
-              <div>
-                <h3 class="text-xl font-semibold mb-6">Class Type</h3>
-                <div class="flex justify-around items-center gap-6">
-                  <label class="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="radio"
-                      :value="false"
-                      v-model="selectPrivate"
-                      class="w-5 h-5 accent-blue-600"
-                    />
-                    <span class="text-gray-700 font-medium">Group Class</span>
-                  </label>
-                  <label class="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="radio"
-                      :value="true"
-                      v-model="selectPrivate"
-                      class="w-5 h-5 accent-blue-600"
-                    />
-                    <span class="text-gray-700 font-medium">Private Class</span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="pt-6 border-t border-gray-50">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                  <div class="calendar-wrapper">
-                    <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
-                      Select Date
-                    </p>
-                    <div class="border rounded-2xl p-2 bg-gray-50/50">
-                      <BookingCalender v-model="selectedDate" />
-                    </div>
-                  </div>
-                  <div>
-                    <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
-                      Select Time
-                    </p>
-                    <div class="min-h-[250px] max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                      <BookingTimeSlots
-                        :date="selectedDate"
-                        :gym_enum="selectedGym"
-                        :is_private_class="selectPrivate"
-                        @select="onSelectSchedule"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm p-6 space-y-6">
-              <h2 class="text-xl font-semibold">Contact Information</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                  <div class="flex items-center gap-1">
-                    <span class="text-red-500">*</span>
-                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                      Name
-                    </p>
-                  </div>
-                  <input
-                    v-model="clientName"
-                    :disabled="isEditMode"
-                    :class="[
-                      'w-full p-4 border rounded-xl font-medium outline-none',
-                      isEditMode
-                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
-                    ]"
-                    placeholder="Full Name"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                    Mobile
+            <div class="pt-6 border-t border-gray-50">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div class="calendar-wrapper">
+                  <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
+                    Select Date
                   </p>
-                  <input
-                    v-model="mobile"
-                    maxlength="10"
-                    class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none"
-                    placeholder="0XXXXXXXXX"
-                    @input="mobile = mobile.replace(/\D/g, '')"
-                  />
-                </div>
-                <div class="space-y-2">
-                  <div class="flex items-center gap-1">
-                    <span class="text-red-500">*</span>
-                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                      Email
-                    </p>
+                  <div class="border rounded-2xl p-2 bg-gray-50/50">
+                    <BookingCalender v-model="selectedDate" />
                   </div>
-                  <input
-                    v-model="email"
-                    :disabled="isEditMode"
-                    :class="[
-                      'w-full p-4 border rounded-xl font-medium outline-none',
-                      isEditMode
-                        ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                        : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
-                    ]"
-                    placeholder="example@email.com"
-                  />
                 </div>
-                <div class="space-y-2">
-                  <div class="flex items-center gap-1">
-                    <span class="text-red-500">*</span>
-                    <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                      Participants
-                    </p>
+                <div>
+                  <p class="text-gray-500 text-sm font-bold uppercase tracking-wider mb-4 ml-1">
+                    Select Time
+                  </p>
+                  <div class="min-h-[250px] max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <BookingTimeSlots
+                      :date="selectedDate"
+                      :gym_enum="selectedGym"
+                      :is_private_class="selectPrivate"
+                      @select="onSelectSchedule"
+                    />
                   </div>
-                  <input
-                    v-model.number="participants"
-                    type="number"
-                    min="1"
-                    max="5"
-                    class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
-                  />
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 sticky top-0 overflow-hidden">
-              <div
-                :class="[
-                  'absolute top-0 left-0 w-full h-1',
-                  isEditMode ? 'bg-blue-600' : 'bg-green-600',
-                ]"
-              ></div>
-              <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
-                <span>ℹ️</span> {{ isEditMode ? 'Edit Summary' : 'New Summary' }}
-              </h2>
-
-              <div class="space-y-6">
-                <div class="border-b border-gray-50 pb-4">
-                  <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Place</p>
-                  <p class="text-gray-900 font-bold">{{ gymLabel }}</p>
-                </div>
-                <div class="border-b border-gray-50 pb-4">
-                  <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Date & Time</p>
-                  <p class="text-gray-900 font-bold">{{ displayDate }}</p>
-                  <p v-if="selectedSchedule" class="text-blue-600 text-sm font-black mt-1">
-                    {{ displayTime }}
+          <div class="bg-white rounded-xl shadow-sm p-6 space-y-6">
+            <h2 class="text-xl font-semibold">Contact Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <div class="flex items-center gap-1">
+                  <span class="text-red-500">*</span>
+                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                    Name
                   </p>
                 </div>
-
-                <div class="flex flex-col gap-3 pt-4 border-t border-gray-50">
-                  <button
-                    class="w-full text-white py-4 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    :class="
-                      isEditMode
-                        ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
-                        : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
-                    "
-                    :disabled="isSubmitting || !selectedSchedule"
-                    @click="handleSubmit"
-                  >
-                    <span
-                      v-if="isSubmitting"
-                      class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
-                    ></span>
-                    {{
-                      isSubmitting
-                        ? 'Processing...'
-                        : isEditMode
-                          ? 'Update Booking'
-                          : 'Create Booking'
-                    }}
-                  </button>
-                  <button
-                    class="w-full bg-gray-100 text-gray-500 py-3 rounded-xl text-xs font-bold hover:bg-gray-200"
-                    @click="$emit('close')"
-                  >
-                    Cancel
-                  </button>
+                <input
+                  v-model="clientName"
+                  :disabled="isEditMode"
+                  :class="[
+                    'w-full p-4 border rounded-xl font-medium outline-none',
+                    isEditMode
+                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
+                  ]"
+                  placeholder="Full Name"
+                />
+              </div>
+              <div class="space-y-2">
+                <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                  Mobile
+                </p>
+                <input
+                  v-model="mobile"
+                  maxlength="10"
+                  class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none"
+                  placeholder="0XXXXXXXXX"
+                  @input="mobile = mobile.replace(/\D/g, '')"
+                />
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-1">
+                  <span class="text-red-500">*</span>
+                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                    Email
+                  </p>
                 </div>
+                <input
+                  v-model="email"
+                  :disabled="isEditMode"
+                  :class="[
+                    'w-full p-4 border rounded-xl font-medium outline-none',
+                    isEditMode
+                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
+                  ]"
+                  placeholder="example@email.com"
+                />
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-1">
+                  <span class="text-red-500">*</span>
+                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                    Participants
+                  </p>
+                </div>
+                <input
+                  v-model.number="participants"
+                  type="number"
+                  min="1"
+                  max="5"
+                  class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl shadow-sm p-6 sticky top-0 overflow-hidden">
+            <div
+              :class="[
+                'absolute top-0 left-0 w-full h-1',
+                isEditMode ? 'bg-blue-600' : 'bg-green-600',
+              ]"
+            ></div>
+            <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+              <span>ℹ️</span> {{ isEditMode ? 'Edit Summary' : 'New Summary' }}
+            </h2>
+
+            <div class="space-y-6">
+              <div class="border-b border-gray-50 pb-4">
+                <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Place</p>
+                <p class="text-gray-900 font-bold">{{ gymLabel }}</p>
+              </div>
+              <div class="border-b border-gray-50 pb-4">
+                <p class="text-gray-400 text-[10px] font-black uppercase mb-1">Date & Time</p>
+                <p class="text-gray-900 font-bold">{{ displayDate }}</p>
+                <p v-if="selectedSchedule" class="text-blue-600 text-sm font-black mt-1">
+                  {{ displayTime }}
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-3 pt-4 border-t border-gray-50">
+                <button
+                  class="w-full text-white py-4 rounded-xl text-sm font-black uppercase tracking-widest shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  :class="
+                    isEditMode
+                      ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                      : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
+                  "
+                  :disabled="isSubmitting || !selectedSchedule"
+                  @click="handleSubmit"
+                >
+                  <span
+                    v-if="isSubmitting"
+                    class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
+                  ></span>
+                  {{
+                    isSubmitting
+                      ? 'Processing...'
+                      : isEditMode
+                        ? 'Update Booking'
+                        : 'Create Booking'
+                  }}
+                </button>
+                <button
+                  class="w-full bg-gray-100 text-gray-500 py-3 rounded-xl text-xs font-bold hover:bg-gray-200"
+                  @click="$emit('close')"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
@@ -286,6 +263,8 @@ import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 const props = defineProps({
   show: Boolean,
   bookingId: [String, Number], // null = Add Mode, has ID = Edit Mode
+  onUpdated: Function,
+  onClose: Function,
 })
 
 const emit = defineEmits(['close', 'updated'])
@@ -396,6 +375,14 @@ const handleSubmit = async () => {
 const onSelectSchedule = (payload) => {
   selectedSchedule.value = payload
 }
+const handleSuccessDone = () => {
+  if (props.onUpdated) props.onUpdated()
+  else emit('updated')
+
+  // Close ALL modals safely
+  modalStore.closeAll()
+}
+
 const openStatus = (title, message, type = 'success') => {
   modalStore.open(StatusModal, {
     title,
@@ -403,11 +390,6 @@ const openStatus = (title, message, type = 'success') => {
     type,
     onSuccess: type === 'success' ? handleSuccessDone : undefined,
   })
-}
-
-const handleSuccessDone = () => {
-  emit('updated')
-  emit('close')
 }
 
 // Watchers
