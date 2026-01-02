@@ -293,7 +293,7 @@ const { fetchSchedules } = useSchedules()
 
 // Form State
 const selectedGym = ref('STING_HIVE')
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref(new Date().toLocaleDateString('en-CA')) // YYYY-MM-DD in Local Time
 const selectedSchedule = ref(null)
 const selectPrivate = ref(false)
 const clientName = ref('')
