@@ -123,6 +123,7 @@
                 min="1"
                 max="5"
                 @input="handleParticipantsInput"
+                @blur="handleParticipantsBlur"
               />
             </div>
           </div>
@@ -333,12 +334,14 @@ const resetAll = () => {
 }
 
 const handleParticipantsInput = () => {
-  // 1. ถ้าค่าที่กรอกมากกว่า 5 ให้ปรับเป็น 5
   if (participants.value > 5) {
     participants.value = 5
   }
-  // 2. ถ้ามีค่า (ไม่ว่าง) แต่น้อยกว่า 1 ให้ปรับเป็น 1
-  else if (participants.value !== null && participants.value < 1) {
+}
+
+const handleParticipantsBlur = () => {
+  // ✅ เช็ค Min ตอนลูกค้ากดออกจากช่อง (Blur) แล้วเท่านั้น
+  if (!participants.value || participants.value < 1) {
     participants.value = 1
   }
 }
