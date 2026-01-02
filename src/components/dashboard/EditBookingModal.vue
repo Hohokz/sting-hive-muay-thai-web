@@ -275,7 +275,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
 import { useModalStore } from '@/stores/modal'
@@ -415,20 +415,28 @@ watch(
   () => props.show,
   (isOpen) => {
     if (isOpen) {
-      if (isEditMode.value) fetchBookingDetail(props.bookingId)
-      else resetForm()
+      init()
     }
   },
 )
 
 watch([selectedDate, selectPrivate, selectedGym], () => {
-  if (selectedDate.value && selectedGym.value && props.show) {
+  if (selectedDate.value && selectedGym.value) {
     fetchSchedules({
       date: selectedDate.value,
       gym_enum: selectedGym.value,
       is_private_class: selectPrivate.value,
     })
   }
+})
+
+const init = () => {
+  if (isEditMode.value) fetchBookingDetail(props.bookingId)
+  else resetForm()
+}
+
+onMounted(() => {
+  init()
 })
 </script>
 
