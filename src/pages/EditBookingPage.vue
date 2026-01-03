@@ -83,7 +83,6 @@
               </div>
               <input
                 v-model="clientName"
-                disabled
                 class="w-full p-3 border rounded-md bg-gray-50 text-gray-500"
               />
             </div>

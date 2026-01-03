@@ -128,7 +128,6 @@
                 </div>
                 <input
                   v-model="clientName"
-                  :disabled="isEditMode"
                   :class="[
                     'w-full p-4 border rounded-xl font-medium outline-none',
                     isEditMode
