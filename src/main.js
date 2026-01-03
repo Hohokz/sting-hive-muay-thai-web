@@ -4,6 +4,11 @@ import router from './router'
 import { createPinia } from 'pinia'
 import './utils/axios' // ✅ Apply axios interceptors
 import './assets/main.css'
+import VConsole from 'vconsole'
+
+if(import.meta.env.DEV){
+  new VConsole();
+}
 
 const app = createApp(App)
 app.use(router)
