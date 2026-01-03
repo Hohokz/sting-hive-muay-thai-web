@@ -83,7 +83,8 @@
               </div>
               <input
                 v-model="clientName"
-                class="w-full p-3 border rounded-md bg-gray-50 text-gray-500"
+                class="w-full p-3 border rounded-md"
+                placeholder="Enter name"
               />
             </div>
             <div>
