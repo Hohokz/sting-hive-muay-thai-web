@@ -1,7 +1,15 @@
 <template>
   <div class="bg-white rounded-xl shadow p-4 sm:p-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <h2 class="text-lg font-semibold text-gray-800">Bookings Management</h2>
+      <div class="flex items-center gap-2">
+        <h2 class="text-lg font-semibold text-gray-800">Bookings Management</h2>
+        <span
+          v-if="totalPax > 0"
+          class="text-xs font-medium bg-gray-100 text-gray-500 px-2 py-1 rounded-lg border border-gray-200"
+        >
+          Total Pax: <span class="text-black font-bold">{{ totalPax }}</span>
+        </span>
+      </div>
 
       <div class="flex items-center gap-2">
         <button
@@ -654,6 +662,12 @@ const filteredBookings = computed(() => {
     }
     return true
   })
+})
+
+const totalPax = computed(() => {
+  return filteredBookings.value.reduce((sum, item) => {
+    return sum + (Number(item.capacity) || 0)
+  }, 0)
 })
 
 /* ================= SORTING ================= */
