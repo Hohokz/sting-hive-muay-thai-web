@@ -65,18 +65,6 @@
                 :is_private_class="selectPrivate"
                 @select="onSelectSchedule"
               />
-
-              <span v-if="!selectedGym && !selectedDate" class="text-sm text-red-500">
-                Please select a Place and Date first.
-              </span>
-
-              <span v-else-if="!selectedGym" class="text-sm text-red-500">
-                Please select a Place first.
-              </span>
-
-              <span v-else-if="!selectedDate" class="text-sm text-red-500">
-                Please select a Date first.
-              </span>
             </div>
           </div>
         </div>
