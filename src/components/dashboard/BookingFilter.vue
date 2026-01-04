@@ -3,10 +3,14 @@
     <button
       @click="isOpen = !isOpen"
       type="button"
-      class="text-sm px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors"
+      class="group text-sm px-4 py-2 border border-gray-500 hover:border-gray-600 rounded-lg hover:bg-gray-600 hover:text-white flex items-center gap-2 transition-colors"
     >
-      <span>🔍</span> Filter
-      <span v-if="hasActiveFilters" class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+      <img
+        src="/dashboard/find-svgrepo-com.svg"
+        class="w-5 h-5 shrink-0 transition-all group-hover:brightness-0 group-hover:invert"
+        alt="Filter"
+      />
+      Filter
     </button>
 
     <div
@@ -177,12 +181,6 @@ watch(
   },
   { immediate: true },
 )
-
-const hasActiveFilters = computed(() => {
-  if (!filters.value) return false
-  const f = filters.value
-  return f.date !== '' || f.scheduleId !== '' || f.classType !== 'ALL'
-})
 
 const update = (key, value) => {
   const newFilters = { ...filters.value, [key]: value }

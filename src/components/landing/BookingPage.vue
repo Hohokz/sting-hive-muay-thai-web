@@ -318,6 +318,19 @@ const isSubmitting = ref(false)
 
 const { fetchSchedules } = useSchedules()
 
+const resetForm = () => {
+  clientName.value = ''
+  mobile.value = ''
+  email.value = ''
+  participants.value = 1
+
+  // ล้างค่าการเลือก (ถ้าต้องการให้เลือก Gym ใหม่ด้วยให้ uncomment บรรทัด selectedGym)
+  selectedSchedule.value = null
+  selectedDate.value = null
+  selectedGym.value = null
+  selectPrivate.value = false
+}
+
 const handleParticipantsInput = () => {
   if (participants.value > 5) {
     participants.value = 5
@@ -364,6 +377,7 @@ const submitBooking = async () => {
 
     console.log('✅ Booking success:', res.data)
     openModal('Booking Success', 'Your booking has been successfully created.', 'success')
+    resetForm()
   } catch (err) {
     console.error('❌ Booking failed:', err)
     openModal(

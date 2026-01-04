@@ -5,14 +5,6 @@
   >
     <div class="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <div
-          :class="[
-            'w-10 h-10 rounded-full flex items-center justify-center text-white text-xl',
-            isEditMode ? 'bg-blue-600' : 'bg-green-600',
-          ]"
-        >
-          {{ isEditMode ? '✎' : '➕' }}
-        </div>
         <div>
           <h3 class="text-xl font-bold text-gray-900 leading-tight">
             {{ isEditMode ? 'Edit Booking' : 'Add New Booking' }}
@@ -23,7 +15,7 @@
         </div>
       </div>
       <button @click="$emit('close')" class="text-gray-400 hover:text-black transition-colors p-2">
-        <span class="text-2xl">✖</span>
+        <img src="/dashboard/cancel1-svgrepo-com.svg" alt="Close" class="w-7 h-7" />
       </button>
     </div>
 
@@ -128,23 +120,23 @@
                 </div>
                 <input
                   v-model="clientName"
-                  :class="[
-                    'w-full p-4 border rounded-xl font-medium outline-none',
-                    isEditMode
-                      ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                      : 'bg-white border-gray-200 focus:ring-2 focus:ring-blue-600',
-                  ]"
+                  class="w-full p-4 border rounded-xl font-medium outline-none bg-white border-gray-200 focus:ring-2 focus:ring-blue-600"
                   placeholder="Full Name"
                 />
               </div>
               <div class="space-y-2">
-                <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                  Mobile
-                </p>
+                <div class="flex items-center gap-1">
+                  <span class="text-red-500 opacity-0">*</span>
+                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                    Mobile
+                  </p>
+                </div>
+
                 <input
                   v-model="mobile"
                   maxlength="10"
-                  class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none"
+                  type="number"
+                  class="w-full p-4 border rounded-xl font-medium outline-none bg-white border-gray-200 focus:ring-2 focus:ring-blue-600"
                   placeholder="0XXXXXXXXX"
                   @input="mobile = mobile.replace(/\D/g, '')"
                 />
@@ -284,6 +276,7 @@ const isSubmitting = ref(false)
 
 // Mode Indicator
 const isEditMode = computed(() => !!props.bookingId)
+console.log(isEditMode.value)
 
 const modalStore = useModalStore()
 

@@ -3,7 +3,6 @@
     <div class="bg-white rounded-xl shadow p-6 w-full max-w-md space-y-6">
       <h1 class="text-xl font-semibold text-center">Find Your Booking</h1>
 
-      <!-- ✅ EMAIL INPUT -->
       <div>
         <p class="text-sm text-gray-600 mb-1">Email</p>
         <input
@@ -17,7 +16,6 @@
         </p>
       </div>
 
-      <!-- ✅ BUTTON -->
       <div class="flex flex-col md:flex-row gap-4">
         <button
           class="w-full bg-gray-500 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
@@ -35,7 +33,6 @@
         </button>
       </div>
 
-      <!-- ✅ RESULT -->
       <div v-if="bookings.length" class="border-t pt-4 space-y-3">
         <h2 class="font-semibold text-gray-700">Your Bookings</h2>
 
@@ -72,7 +69,7 @@
         ❌ No bookings found for this email.
       </p>
     </div>
-    <!-- ✅ GLOBAL MODAL -->
+
     <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div class="bg-white p-6 rounded-2xl w-[340px] text-center shadow-xl">
         <h3
@@ -91,25 +88,56 @@
         </p>
 
         <div class="flex justify-center gap-3">
-          <!-- ✅ Cancel (เฉพาะตอน Confirm) -->
-          <button v-if="modalAction" class="px-4 py-2 bg-gray-300 rounded-lg" @click="closeModal">
+          <button
+            v-if="modalAction"
+            class="px-4 py-2 bg-gray-300 rounded-lg disabled:opacity-50"
+            :disabled="isLoading"
+            @click="closeModal"
+          >
             Cancel
           </button>
 
-          <!-- ✅ OK / Confirm -->
           <button
-            class="px-5 py-2 rounded-lg text-white"
+            class="px-5 py-2 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed"
             :class="{
               'bg-yellow-500 hover:bg-yellow-600': modalType === 'warning',
               'bg-red-500 hover:bg-red-600': modalType === 'error',
               'bg-green-500 hover:bg-green-600': modalType === 'success',
             }"
+            :disabled="isLoading"
             @click="modalAction ? modalAction() : closeModal()"
           >
             OK
           </button>
         </div>
       </div>
+    </div>
+
+    <div
+      v-if="isLoading"
+      class="fixed inset-0 bg-black/50 flex flex-col items-center justify-center z-[60]"
+    >
+      <svg
+        class="animate-spin h-12 w-12 text-white mb-4"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
+      <p class="text-white font-semibold text-lg">Processing...</p>
     </div>
   </div>
 </template>
@@ -121,7 +149,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed unused
 const email = ref('')
 const bookings = ref([])
 const isLoading = ref(false)
@@ -142,6 +169,7 @@ const openModal = (title, message, type = 'warning', action = null) => {
 }
 
 const closeModal = () => {
+  if (isLoading.value) return // ป้องกันปิด Modal ตอนโหลด
   showModal.value = false
   modalAction.value = null
 }
@@ -182,10 +210,11 @@ const cancelBooking = (bookingId) => {
     'warning',
     async () => {
       try {
-        isLoading.value = true
+        isLoading.value = true // เริ่มหมุน Loading
 
         await api.bookings.cancel(bookingId)
 
+        // โหลดข้อมูลใหม่หลังจากลบเสร็จ
         await searchBooking()
 
         openModal('Canceled Successfully', '✅ Booking has been canceled.', 'success')
@@ -193,7 +222,7 @@ const cancelBooking = (bookingId) => {
         console.error(err)
         openModal('Cancel Failed', '❌ Unable to cancel booking.', 'error')
       } finally {
-        isLoading.value = false
+        isLoading.value = false // หยุดหมุน
       }
     },
   )

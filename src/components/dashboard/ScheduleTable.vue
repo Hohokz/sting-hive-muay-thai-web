@@ -1,13 +1,13 @@
 <template>
   <div class="bg-white rounded-xl shadow p-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold">Schedules Management</h2>
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <h2 class="text-lg font-semibold whitespace-nowrap">Schedules Management</h2>
 
-      <div class="flex gap-2">
+      <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
         <button
           v-if="auth.isAdmin"
           @click="openViewAdvanceModal"
-          class="text-sm px-4 py-2 bg-white text-black border border-gray-300 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+          class="w-full sm:w-auto justify-center text-sm px-4 py-2 bg-white border border-gray-500 text-black rounded-lg hover:bg-gray-600 hover:text-white transition-colors flex items-center"
         >
           View Schedule In Advance
         </button>
@@ -15,16 +15,21 @@
         <button
           v-if="auth.isAdmin"
           @click="openAddAvanceModel"
-          class="text-sm px-4 py-2 bg-white text-black border border-gray-300 rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+          class="w-full sm:w-auto justify-center text-sm px-4 py-2 bg-white border border-gray-500 text-black rounded-lg hover:bg-gray-600 hover:text-white transition-colors flex items-center"
         >
-          <span>➕</span>Add Schedule In Advance
+          Add Schedule In Advance
         </button>
 
         <button
           v-if="auth.isAdmin"
           @click="openAddModal"
-          class="text-sm px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+          class="group w-full sm:w-auto justify-center text-sm px-4 py-2 bg-white border border-gray-500 text-black rounded-lg hover:bg-gray-600 hover:text-white transition-colors flex items-center gap-2"
         >
+          <img
+            src="/dashboard/add-circle-svgrepo-com.svg"
+            class="w-5 h-5 shrink-0 transition-all group-hover:brightness-0 group-hover:invert"
+            alt="Add Schedule"
+          />
           Add Schedule
         </button>
       </div>
@@ -43,7 +48,6 @@
             <th class="px-2">Type</th>
             <th class="px-2 text-center border-x">Capacity</th>
             <th class="px-2">Status</th>
-
             <th v-if="auth.isAdmin" class="px-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -87,14 +91,14 @@
                   class="text-blue-500 hover:text-blue-700 text-lg transition-transform hover:scale-125"
                   title="Edit"
                 >
-                  ✎
+                  <img src="/dashboard/edit-3-svgrepo-com.svg" alt="Edit" class="w-5 h-5" />
                 </button>
                 <button
                   @click="handleDeleteClick(item.id)"
                   class="text-red-400 hover:text-red-600 text-lg transition-transform hover:scale-125"
                   title="Delete"
                 >
-                  ✖
+                  <img src="/dashboard/delete-1-svgrepo-com.svg" alt="Delete" class="w-5 h-5" />
                 </button>
               </div>
             </td>
@@ -188,7 +192,7 @@ const openViewAdvanceModal = () => {
 const openAddAvanceModel = () => {
   if (!auth.isAdmin) return
   modalStore.open(AddAdvanceScheduleModal, {
-    onSuccess: fetchSchedules, // Or just let it be, but refresh is good
+    onSuccess: fetchSchedules,
     onClose: () => modalStore.close(),
   })
 }

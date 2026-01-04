@@ -15,15 +15,20 @@
         <button
           v-if="auth.isAdmin"
           @click="openAddModal"
-          class="text-sm px-4 py-2 bg-white border border-gray-300 text-black rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+          class="group text-sm px-4 py-2 bg-white border border-gray-500 text-black rounded-lg hover:bg-gray-600 hover:text-white transition-colors flex items-center gap-2"
         >
-          <span>➕</span> Add Booking
+          <img
+            src="/dashboard/add-circle-svgrepo-com.svg"
+            class="w-5 h-5 shrink-0 transition-all group-hover:brightness-0 group-hover:invert"
+            alt="Add Booking"
+          />
+          Add Booking
         </button>
         <BookingFilter v-model="filters" />
         <button
           @click="handleRefresh"
           :disabled="loading"
-          class="text-sm px-4 py-2 bg-black text-white rounded-lg disabled:opacity-50 whitespace-nowrap hover:bg-gray-800 transition-colors"
+          class="text-sm px-4 py-2 border border-black bg-black text-white rounded-lg disabled:opacity-50 whitespace-nowrap hover:bg-white hover:text-black hover:border-gray-500 transition-colors"
         >
           <span v-if="loading" class="inline-block animate-spin mr-1">⟳</span>
           {{ loading ? 'Loading...' : 'Refresh' }}
@@ -123,7 +128,7 @@
                   @click="openTrainerModal(item)"
                   class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold hover:underline"
                 >
-                  ✎ Edit
+                  Edit
                 </button>
               </div>
             </td>
@@ -152,7 +157,7 @@
                   @click="openNoteModal(item)"
                   class="opacity-0 group-hover:opacity-100 text-blue-500 text-[10px] font-bold hover:underline"
                 >
-                  ✎ Edit
+                  Edit
                 </button>
               </div>
             </td>
@@ -163,14 +168,14 @@
                   @click="openEditModal(item.id)"
                   class="text-blue-500 hover:text-blue-700 text-lg transition-transform hover:scale-125"
                 >
-                  ✎
+                  <img src="/dashboard/edit-3-svgrepo-com.svg" alt="Edit" class="w-5 h-5" />
                 </button>
                 <button
                   v-if="item.booking_status !== 'CANCELED'"
                   @click="confirmCancel(item)"
                   class="text-red-400 hover:text-red-600 text-lg transition-transform hover:scale-125"
                 >
-                  ✖
+                  <img src="/dashboard/delete-1-svgrepo-com.svg" alt="Edit" class="w-5 h-5" />
                 </button>
               </div>
             </td>

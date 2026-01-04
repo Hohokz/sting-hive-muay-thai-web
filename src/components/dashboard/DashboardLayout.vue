@@ -5,7 +5,7 @@
       class="md:hidden fixed top-0 left-0 right-0 h-16 bg-black text-white flex items-center justify-between px-4 z-50"
     >
       <button @click="open = !open" class="text-2xl">☰</button>
-      <h1 class="text-lg font-bold text-red-500">STING ADMIN</h1>
+      <h1 class="text-lg font-bold text-red-500">ADMIN MANAGER</h1>
       <div class="w-8"></div>
       <!-- Spacer for centering -->
     </header>
@@ -26,16 +26,21 @@
           class="hidden md:block text-xl font-bold text-red-500 mb-8 whitespace-nowrap transition-opacity duration-300"
           :class="open || hover ? 'opacity-100' : 'opacity-0'"
         >
-          STING ADMIN
+          ADMIN MANAGER
         </h1>
 
         <nav class="space-y-3 text-sm">
           <RouterLink
-            to="/admin"
+            to="/"
             class="flex items-center gap-4 hover:text-red-400 group h-6"
             @click="closeMobileSidebar"
           >
-            <span class="text-lg">🏠</span>
+            <img
+              src="/dashboard/clock-two-svgrepo-com.svg"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Booking"
+            />
             <span
               class="transition-all duration-300 whitespace-nowrap"
               :class="[
@@ -44,7 +49,29 @@
                   : 'opacity-0 -translate-x-4 pointer-events-none',
               ]"
             >
-              Home
+              Booking
+            </span>
+          </RouterLink>
+          <RouterLink
+            to="/admin"
+            class="flex items-center gap-4 hover:text-red-400 group h-6"
+            @click="closeMobileSidebar"
+          >
+            <img
+              src="/dashboard/board-svgrepo-com.svg"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Board"
+            />
+            <span
+              class="transition-all duration-300 whitespace-nowrap"
+              :class="[
+                open || hover
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 -translate-x-4 pointer-events-none',
+              ]"
+            >
+              Main Dashboard
             </span>
           </RouterLink>
 
@@ -62,7 +89,12 @@
             class="flex items-center gap-4 hover:text-red-400 h-6"
             @click="closeMobileSidebar"
           >
-            <span class="text-lg">🐝</span>
+            <img
+              src="/dashboard/appointments-svgrepo-com.svg"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Sting Hive"
+            />
             <span
               class="transition-all duration-300 whitespace-nowrap"
               :class="[
@@ -71,7 +103,7 @@
                   : 'opacity-0 -translate-x-4 pointer-events-none',
               ]"
             >
-              Sting Hive
+              Sting Hive Booking List
             </span>
           </RouterLink>
 
@@ -80,7 +112,12 @@
             class="flex items-center gap-4 hover:text-red-400 h-6"
             @click="closeMobileSidebar"
           >
-            <span class="text-lg">🥊</span>
+            <img
+              src="/dashboard/appointments-svgrepo-com.svg"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Sting Club"
+            />
             <span
               class="transition-all duration-300 whitespace-nowrap"
               :class="[
@@ -89,7 +126,7 @@
                   : 'opacity-0 -translate-x-4 pointer-events-none',
               ]"
             >
-              Sting Club
+              Sting Club Booking List
             </span>
           </RouterLink>
 
@@ -99,7 +136,12 @@
             class="flex items-center gap-4 hover:text-red-400 h-6"
             @click="closeMobileSidebar"
           >
-            <span class="text-lg">👤</span>
+            <img
+              src="/dashboard/user-circle-1-svgrepo-com.svg?url"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Users"
+            />
             <span
               class="transition-all duration-300 whitespace-nowrap"
               :class="[
@@ -108,14 +150,19 @@
                   : 'opacity-0 -translate-x-4 pointer-events-none',
               ]"
             >
-              Users
+              Users Manager
             </span>
           </RouterLink>
         </nav>
       </div>
 
       <button @click="logout" class="flex items-center gap-4 text-red-400 hover:text-white h-6">
-        <span class="text-lg">🚪</span>
+        <img
+          src="/dashboard/log-out-exit-svgrepo-com.svg?url"
+          class="w-5 h-5 shrink-0"
+          style="filter: brightness(0) invert(1)"
+          alt="Logout"
+        />
         <span
           class="transition-all duration-300 whitespace-nowrap"
           :class="[
