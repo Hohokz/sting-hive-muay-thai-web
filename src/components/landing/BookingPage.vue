@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full min-h-screen p-6">
+  <div class="w-full min-h-screen p-6 pb-20">
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- LEFT CONTENT -->
       <div class="lg:col-span-2 space-y-6">
@@ -115,7 +115,7 @@
                 placeholder="Enter email address"
               />
               <p v-if="email && !email.includes('@')" class="text-red-500 text-xs mt-1">
-                Email format ไม่ถูกต้อง
+                Invalid email format.
               </p>
             </div>
             <!-- ✅ Person -->
@@ -134,6 +134,61 @@
                 @input="handleParticipantsInput"
                 @blur="handleParticipantsBlur"
               />
+            </div>
+
+            <!-- ✅ TRAINER (Optional) -->
+            <div class="md:col-span-2 relative trainer-select-container">
+              <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
+              <div class="relative group">
+                <input
+                  v-model="trainerSearchQuery"
+                  type="text"
+                  class="w-full p-3 border rounded-md pr-10"
+                  placeholder="Search and select trainer..."
+                  @focus="showTrainerDropdown = true"
+                  @input="onTrainerInput"
+                />
+                <button
+                  @click="toggleTrainerDropdown"
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform"
+                  :class="{ 'rotate-180': showTrainerDropdown }"
+                >
+                  ▼
+                </button>
+              </div>
+
+              <!-- Dropdown -->
+              <div
+                v-if="showTrainerDropdown"
+                class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
+              >
+                <div
+                  v-for="trainer in filteredTrainers"
+                  :key="trainer.id"
+                  @click="selectTrainer(trainer)"
+                  class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-none flex justify-between items-center transition-colors"
+                >
+                  <span class="font-medium text-gray-700">{{ trainer.name }}</span>
+                  <span v-if="selectedTrainerName === trainer.name" class="text-blue-600 font-bold"
+                    >✓</span
+                  >
+                </div>
+                <div
+                  v-if="filteredTrainers.length === 0"
+                  class="p-4 text-center text-gray-400 italic text-sm"
+                >
+                  No trainers found matching your search.
+                </div>
+              </div>
+
+              <!-- Selected Trainer Info (Helper Text) -->
+              <p
+                v-if="selectedTrainerName && !showTrainerDropdown"
+                class="text-[10px] text-blue-600 mt-1 font-semibold"
+              >
+                ✓ Currently selected: {{ selectedTrainerName }}
+              </p>
             </div>
           </div>
         </div>
@@ -178,6 +233,10 @@
               <p>
                 <span class="text-gray-500">Participants:</span>
                 <span class="ml-1">{{ participants || '-' }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Trainer:</span>
+                <span class="ml-1">{{ selectedTrainerName || '-' }}</span>
               </p>
             </div>
           </div>
@@ -252,6 +311,7 @@ import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 import { api } from '@/api/bookingApi' // Updated import
 import { useRouter } from 'vue-router'
 import { useSchedules } from '@/composables/useSchedules'
+import { onMounted, onUnmounted } from 'vue'
 
 // const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
@@ -311,6 +371,74 @@ const email = ref('')
 const clientName = ref('')
 const participants = ref(1)
 
+// Trainer Selection
+const trainers = ref([])
+const trainerSearchQuery = ref('')
+const selectedTrainerName = ref('')
+const showTrainerDropdown = ref(false)
+
+const filteredTrainers = computed(() => {
+  const q = trainerSearchQuery.value.toLowerCase().trim()
+  // If the query exactly matches the selected name and dropdown has just been opened, show all for convenience
+  if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
+    return trainers.value
+  }
+  if (!q) return trainers.value
+  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
+})
+
+const fetchTrainers = async () => {
+  try {
+    const response = await api.bookings.getTrainers()
+    const responseData = response.data
+    const actualData = responseData.data || responseData
+
+    if (Array.isArray(actualData)) {
+      trainers.value = actualData.map((item) => {
+        const raw = item.dataValues || item
+        return {
+          id: raw.id,
+          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+        }
+      })
+    }
+  } catch (err) {
+    console.error('❌ Fetch Trainers Error:', err)
+  }
+}
+
+const toggleTrainerDropdown = () => {
+  showTrainerDropdown.value = !showTrainerDropdown.value
+}
+
+const onTrainerInput = () => {
+  showTrainerDropdown.value = true
+  // Clear selection if input changes significantly but keep it if it's just a prefix for now
+  // We'll trust the selectTrainer function to finalize the selection
+}
+
+const selectTrainer = (trainer) => {
+  selectedTrainerName.value = trainer.name
+  trainerSearchQuery.value = trainer.name
+  showTrainerDropdown.value = false
+}
+
+const handleClickOutside = (event) => {
+  const container = document.querySelector('.trainer-select-container')
+  if (container && !container.contains(event.target)) {
+    showTrainerDropdown.value = false
+  }
+}
+
+onMounted(() => {
+  fetchTrainers()
+  document.addEventListener('mousedown', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+})
+
 const onSelectSchedule = (payload) => {
   selectedSchedule.value = payload
 }
@@ -324,6 +452,8 @@ const resetForm = () => {
   mobile.value = ''
   email.value = ''
   participants.value = 1
+  selectedTrainerName.value = ''
+  trainerSearchQuery.value = ''
 
   // ล้างค่าการเลือก (ถ้าต้องการให้เลือก Gym ใหม่ด้วยให้ uncomment บรรทัด selectedGym)
   selectedSchedule.value = null
@@ -370,6 +500,7 @@ const submitBooking = async () => {
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: selectedDate.value,
     capacity: participants.value,
+    trainer: selectedTrainerName.value || null,
   }
 
   try {

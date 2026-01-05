@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full min-h-screen p-6">
+  <div class="w-full min-h-screen p-6 pb-20">
     <div
       v-if="isInitialLoading"
       class="max-w-4xl mx-auto bg-white rounded-xl shadow p-12 text-center"
@@ -127,6 +127,61 @@
                 @blur="handleParticipantsBlur"
               />
             </div>
+
+            <!-- ✅ TRAINER (Optional) -->
+            <div class="md:col-span-2 relative trainer-select-container">
+              <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
+              <div class="relative group">
+                <input
+                  v-model="trainerSearchQuery"
+                  type="text"
+                  class="w-full p-3 border rounded-md pr-10"
+                  placeholder="Search and select trainer..."
+                  @focus="showTrainerDropdown = true"
+                  @input="onTrainerInput"
+                />
+                <button
+                  @click="toggleTrainerDropdown"
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform"
+                  :class="{ 'rotate-180': showTrainerDropdown }"
+                >
+                  ▼
+                </button>
+              </div>
+
+              <!-- Dropdown -->
+              <div
+                v-if="showTrainerDropdown"
+                class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
+              >
+                <div
+                  v-for="trainer in filteredTrainers"
+                  :key="trainer.id"
+                  @click="selectTrainer(trainer)"
+                  class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-none flex justify-between items-center transition-colors"
+                >
+                  <span class="font-medium text-gray-700">{{ trainer.name }}</span>
+                  <span v-if="selectedTrainerName === trainer.name" class="text-blue-600 font-bold"
+                    >✓</span
+                  >
+                </div>
+                <div
+                  v-if="filteredTrainers.length === 0"
+                  class="p-4 text-center text-gray-400 italic text-sm"
+                >
+                  No trainers found matching your search.
+                </div>
+              </div>
+
+              <!-- Selected Trainer Info (Helper Text) -->
+              <p
+                v-if="selectedTrainerName && !showTrainerDropdown"
+                class="text-[10px] text-blue-600 mt-1 font-semibold"
+              >
+                ✓ Currently selected: {{ selectedTrainerName }}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -159,6 +214,10 @@
               <p>
                 <span class="text-gray-500">Type:</span>
                 <span class="ml-1">{{ selectPrivate ? 'Private' : 'Group' }}</span>
+              </p>
+              <p>
+                <span class="text-gray-500">Trainer:</span>
+                <span class="ml-1">{{ selectedTrainerName || '-' }}</span>
               </p>
             </div>
           </div>
@@ -250,7 +309,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
@@ -260,7 +319,6 @@ import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 const route = useRoute()
 const router = useRouter()
 const { fetchSchedules } = useSchedules()
-const emit = defineEmits(['cancel'])
 
 const bookingId = route.params.id
 const isSubmitting = ref(false)
@@ -275,6 +333,62 @@ const clientName = ref('')
 const mobile = ref('')
 const email = ref('')
 const participants = ref(1)
+
+// Trainer Selection
+const trainers = ref([])
+const trainerSearchQuery = ref('')
+const selectedTrainerName = ref('')
+const showTrainerDropdown = ref(false)
+
+const filteredTrainers = computed(() => {
+  const q = trainerSearchQuery.value.toLowerCase().trim()
+  if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
+    return trainers.value
+  }
+  if (!q) return trainers.value
+  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
+})
+
+const fetchTrainers = async () => {
+  try {
+    const response = await api.bookings.getTrainers()
+    const responseData = response.data
+    const actualData = responseData.data || responseData
+
+    if (Array.isArray(actualData)) {
+      trainers.value = actualData.map((item) => {
+        const raw = item.dataValues || item
+        return {
+          id: raw.id,
+          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+        }
+      })
+    }
+  } catch (err) {
+    console.error('❌ Fetch Trainers Error:', err)
+  }
+}
+
+const toggleTrainerDropdown = () => {
+  showTrainerDropdown.value = !showTrainerDropdown.value
+}
+
+const onTrainerInput = () => {
+  showTrainerDropdown.value = true
+}
+
+const selectTrainer = (trainer) => {
+  selectedTrainerName.value = trainer.name
+  trainerSearchQuery.value = trainer.name
+  showTrainerDropdown.value = false
+}
+
+const handleClickOutside = (event) => {
+  const container = document.querySelector('.trainer-select-container')
+  if (container && !container.contains(event.target)) {
+    showTrainerDropdown.value = false
+  }
+}
 
 // Modal State
 const showStatusModal = ref(false)
@@ -366,19 +480,32 @@ const fetchBookingDetail = async () => {
     mobile.value = b.client_phone
     email.value = b.client_email
     participants.value = b.capacity
+    // Handle trainer as either string or object
+    const tName =
+      b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
+    selectedTrainerName.value = tName
+    trainerSearchQuery.value = tName
     selectedSchedule.value = {
       id: b.classes_schedule_id,
       start_time: b.schedule.start_time,
       end_time: b.schedule.end_time,
     }
-  } catch (err) {
+  } catch {
     openStatusModal('Error', 'โหลดข้อมูล booking ไม่สำเร็จ', 'error')
   } finally {
     isInitialLoading.value = false
   }
 }
 
-onMounted(fetchBookingDetail)
+onMounted(() => {
+  fetchBookingDetail()
+  fetchTrainers()
+  document.addEventListener('mousedown', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+})
 
 // Watcher เพื่อดึงตารางเวลาใหม่ (เหมือนไฟล์ที่ 1)
 watch([selectedDate, selectPrivate, selectedGym], () => {
@@ -406,13 +533,14 @@ const updateBooking = async () => {
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: selectedDate.value,
+    trainer: selectedTrainerName.value || null,
   }
 
   try {
     isSubmitting.value = true
     await api.bookings.update(bookingId, payload)
     openStatusModal('Success', '✅ อัปเดต Booking สำเร็จแล้ว', 'success', true)
-  } catch (err) {
+  } catch {
     openStatusModal('Error', '❌ อัปเดตไม่สำเร็จ', 'error')
   } finally {
     isSubmitting.value = false

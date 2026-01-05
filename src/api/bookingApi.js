@@ -28,6 +28,7 @@ const bookings = {
   updateTrainer: (id, data) => axios.put(`/api/v1/bookings/updateBookingTrainer/${id}`, data),
   updateNote: (id, data) => axios.put(`/api/v1/bookings/updateBookingNote/${id}`, data),
   updatePayment: (id, data) => axios.put(`/api/v1/bookings/${id}/payment`, data),
+  getTrainers: () => axios.get('/api/v1/bookings/trainers'),
 }
 
 // SCHEDULES
