@@ -438,6 +438,7 @@ const props = defineProps({
 })
 
 const filters = defineModel('filters')
+const isFiltering = ref(false)
 
 /* ================= ADD/EDIT MODAL LOGIC ================= */
 // ฟังก์ชันสำหรับเปิดเพื่อแก้ไข
@@ -445,7 +446,6 @@ const openEditModal = (id) => {
   modalStore.open(EditBookingModal, {
     bookingId: id,
     onUpdated: handleEditSuccess,
-    onClose: () => modalStore.close(), // Or let loader handle it
   })
 }
 
@@ -455,7 +455,6 @@ const openAddModal = () => {
   modalStore.open(EditBookingModal, {
     bookingId: null,
     onUpdated: handleEditSuccess,
-    onClose: () => modalStore.close(),
   })
 }
 
@@ -538,7 +537,6 @@ const searchedUsers = computed(() => {
 const fetchUsers = async () => {
   try {
     const response = await api.auth.getUser()
-    console.log('Raw Axios Response:', response.data)
 
     // 1. เจาะเข้าไปที่ก้อน data ภายใน response.data อีกที
     const actualData = response.data.data
@@ -556,8 +554,6 @@ const fetchUsers = async () => {
         }
       })
     }
-
-    console.log('Cleaned User List:', userList.value) // รอบนี้ต้องขึ้น Array(2) แล้วครับ
   } catch (err) {
     console.error('❌ Fetch Users Error:', err)
   }
@@ -572,8 +568,6 @@ const selectTrainer = (user) => {
 
   // 3. ปิด Dropdown ทันทีเมื่อเลือกเสร็จ
   isDropdownOpen.value = false
-
-  console.log('✅ Selected Trainer:', user.name)
 }
 
 const openTrainerModal = async (item) => {
@@ -604,7 +598,6 @@ const handleSaveTrainer = async () => {
 
 const handlePaymentChange = async (item, event) => {
   const isChecked = event.target.checked
-  console.log(isChecked)
 
   try {
     // เรียก API ตามที่คุณระบุ (ส่ง Boolean true/false)
@@ -646,6 +639,13 @@ const filteredBookings = computed(() => {
   return props.bookings.filter((item) => {
     // 0. Canceled Booking
     if (item.booking_status === 'CANCELED') return false
+    // ✅ 0.1 เพิ่มการกรองด้วยชื่อ (NAME FILTER)
+    const searchName = filters.value.name?.toLowerCase().trim() || ''
+    if (searchName) {
+      // เช็คว่าชื่อลูกค้า (client_name) ตรงกับที่พิมพ์ไหม
+      const clientName = item.client_name?.toLowerCase() || ''
+      if (!clientName.includes(searchName)) return false
+    }
     // 1. Gym
     if (filters.value.gym && filters.value.gym !== 'ALL') {
       if (item.schedule?.gym_enum !== filters.value.gym) return false

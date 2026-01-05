@@ -11,7 +11,6 @@ async function findSchedule() {
   for (const gym of gyms) {
     for (const isPrivate of types) {
       try {
-        console.log(`Checking schedules for ${gym} (Private: ${isPrivate})...`)
         const res = await axios.get(`${API_URL}/api/v1/schedules/available`, {
           params: {
             date: DATE,
@@ -27,9 +26,6 @@ async function findSchedule() {
         const target = schedules.find((s) => s.start_time.startsWith(TIME))
 
         if (target) {
-          console.log(
-            `Found schedule: ID ${target.id}, Time: ${target.start_time}, Gym: ${gym}, Private: ${isPrivate}`,
-          )
           return { schedule: target, gym, isPrivate }
         }
       } catch (err) {
@@ -44,7 +40,6 @@ async function createBooking() {
   const result = await findSchedule()
 
   if (!result) {
-    console.log(`No schedule found for ${TIME} on ${DATE}`)
     return
   }
 
@@ -62,12 +57,8 @@ async function createBooking() {
     capacity: 1,
   }
 
-  console.log('Sending booking payload:', payload)
-
   try {
-    const res = await axios.post(`${API_URL}/api/v1/bookings`, payload)
-    console.log('Booking successfully created!')
-    console.log('Response:', res.data)
+    await axios.post(`${API_URL}/api/v1/bookings`, payload)
   } catch (err) {
     console.error('Failed to create booking:', err.response ? err.response.data : err.message)
   }

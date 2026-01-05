@@ -374,10 +374,9 @@ const submitBooking = async () => {
 
   try {
     isSubmitting.value = true
-    const res = await api.bookings.create(payload)
+    await api.bookings.create(payload)
 
-    console.log('✅ Booking success:', res.data)
-    openModal('Booking Success', 'Your booking has been successfully created.', 'success')
+    openModal('Booking completed!', 'Your booking has been successfully created.', 'success')
     resetForm()
   } catch (err) {
     console.error('❌ Booking failed:', err)
@@ -397,8 +396,6 @@ watch([selectedSchedule, selectPrivate, selectedGym], () => {
   if (!selectedDate.value || !selectedGym.value || selectPrivate.value === null) {
     return
   }
-
-  console.log('🔹 Fetch schedules now!')
 
   fetchSchedules({
     date: selectedDate.value,

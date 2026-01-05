@@ -91,8 +91,6 @@ const props = defineProps({
   },
 })
 
-console.log(props)
-
 const emit = defineEmits(['select'])
 const { schedules, loading, fetchSchedules } = useSchedules()
 const selectedId = ref(null)
@@ -107,9 +105,6 @@ const upcomingSchedules = computed(() => {
   if (!schedules.value) return []
 
   // 🔴 DEBUG MODE: เช็คค่ากันชัดๆ (กด F12 ดูได้เลย)
-  // console.log('------ CALC SCHEDULE ------')
-  // console.log('Prop filterPastTime:', props.filterPastTime)
-  console.log('Prop isAdminMode:', props.isAdminMode)
   // 2. เช็คแบบหักดิบ: ถ้าค่าเป็น false ให้ Return ทั้งก้อนทันที!
   if (props.filterPastTime === false) {
     return schedules.value
@@ -123,8 +118,6 @@ const upcomingSchedules = computed(() => {
 
   // แปลงเป็น YYYY-MM-DD เพื่อเทียบว่าเป็น "วันนี้" หรือไม่ (ตัดเรื่องเวลา/Timezone ทิ้ง)
   const isSameDay = targetDate.toDateString() === now.toDateString()
-
-  // console.log('Is Today?:', isSameDay)
 
   return schedules.value.filter((s) => {
     // ถ้าไม่ใช่วันนี้ -> เอาหมด

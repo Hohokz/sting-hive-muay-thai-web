@@ -14,7 +14,7 @@
           </p>
         </div>
       </div>
-      <button @click="$emit('close')" class="text-gray-400 hover:text-black transition-colors p-2">
+      <button @click="handleCancel" class="text-gray-400 hover:text-black transition-colors p-2">
         <img src="/dashboard/cancel1-svgrepo-com.svg" alt="Close" class="w-7 h-7" />
       </button>
     </div>
@@ -258,7 +258,6 @@ const props = defineProps({
   show: Boolean,
   bookingId: [String, Number], // null = Add Mode, has ID = Edit Mode
   onUpdated: Function,
-  onClose: Function,
 })
 
 const emit = defineEmits(['close', 'updated'])
@@ -279,7 +278,6 @@ const isSubmitting = ref(false)
 
 // Mode Indicator
 const isEditMode = computed(() => !!props.bookingId)
-console.log(isEditMode.value)
 
 const modalStore = useModalStore()
 
@@ -376,6 +374,10 @@ const handleSuccessDone = () => {
 
   // Close ALL modals safely
   modalStore.closeAll()
+}
+
+const handleCancel = () => {
+  emit('close') // เมื่อเรียกตัวนี้ @close ใน GlobalModalLoader จะทำงานเอง
 }
 
 const openStatus = (title, message, type = 'success') => {

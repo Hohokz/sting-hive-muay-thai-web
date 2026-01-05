@@ -29,7 +29,7 @@
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Date</label>
           <input
             type="date"
-            :value="filters.date"
+            :value="localFilters.date"
             @input="update('date', $event.target.value)"
             class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none"
           />
@@ -38,7 +38,7 @@
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Place</label>
           <select
-            :value="filters.gym"
+            :value="localFilters.gym"
             @change="update('gym', $event.target.value)"
             class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
           >
@@ -51,7 +51,7 @@
         <div>
           <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Class Type</label>
           <select
-            :value="filters.classType"
+            :value="localFilters.classType"
             @change="update('classType', $event.target.value)"
             class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
           >
@@ -66,9 +66,9 @@
             >Select Schedule Slot</label
           >
           <select
-            :value="filters.scheduleId"
+            :value="localFilters.scheduleId"
             @change="update('scheduleId', $event.target.value)"
-            :disabled="!filters.date || isLoadingSchedules"
+            :disabled="!localFilters.date || isLoadingSchedules"
             class="w-full border rounded-md px-2 py-1.5 text-sm bg-white disabled:bg-gray-50"
           >
             <option value="">{{ isLoadingSchedules ? 'Loading...' : 'Any Slot' }}</option>
@@ -78,30 +78,44 @@
               }}]
             </option>
           </select>
-          <p v-if="!filters.date" class="text-[10px] text-red-400 mt-1">
+          <p v-if="!localFilters.date" class="text-[10px] text-red-400 mt-1">
             * Please select date first
-          </p>
-          <p
-            v-if="filters.date && availableSchedules.length === 0 && !isLoadingSchedules"
-            class="text-[10px] text-orange-500 mt-1"
-          >
-            No slots found for this date.
           </p>
         </div>
 
-        <button
-          @click="isOpen = false"
-          class="w-full bg-black text-white text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-gray-800"
-        >
-          Apply Filters
-        </button>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
+            >Search Name</label
+          >
+          <input
+            type="text"
+            :value="localFilters.name"
+            @input="update('name', $event.target.value)"
+            placeholder="Search name..."
+            class="w-full border rounded-md px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
+          />
+        </div>
+
+        <div class="flex justify-end gap-2">
+          <button
+            @click="applyFilters"
+            class="w-full bg-black text-white text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-white hover:text-black hover:border hover:border-black"
+          >
+            Apply Filters
+          </button>
+          <button
+            @click="resetFilters"
+            class="w-full bg-white text-black border border-black text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-gray-800 hover:text-white"
+          >
+            Clear All
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import bookingApi from '@/api/bookingApi'
 const schedules = bookingApi.schedules
 
@@ -111,6 +125,7 @@ const filters = defineModel({
     scheduleId: '',
     classType: 'ALL',
     gym: 'ALL',
+    name: '',
   }),
 })
 
@@ -118,9 +133,16 @@ const isOpen = ref(false)
 const availableSchedules = ref([])
 const isLoadingSchedules = ref(false)
 
-// 📡 ฟังก์ชันดึง Schedules ตามวันที่และยิม
+const getTodayDate = () => new Date().toISOString().split('T')[0]
+
+// ✅ 1. ใช้ localFilters เก็บค่าไว้รอการกด Apply
+const localFilters = ref({
+  ...filters.value,
+  date: filters.value.date || getTodayDate(),
+})
+
 const fetchAvailableSchedules = async () => {
-  const date = filters.value.date
+  const date = localFilters.value.date
   if (!date) {
     availableSchedules.value = []
     return
@@ -128,66 +150,87 @@ const fetchAvailableSchedules = async () => {
 
   try {
     isLoadingSchedules.value = true
-
-    // ✅ ส่งทั้ง date และ gym_enum ไปกรองที่ Backend
+    // ดึงข้อมูลจาก API ตาม วัน และ ยิม
     const res = await schedules.get({
       date,
-      gym_enum: filters.value.gym === 'ALL' ? undefined : filters.value.gym,
+      gym_enum: localFilters.value.gym === 'ALL' ? undefined : localFilters.value.gym,
     })
 
     const rawData = res.data.data || []
 
-    // ✅ ทำการ Filter และต่อด้วย Sort ทันที
+    // ✅ แก้ไขจุดนี้: ฟิลเตอร์เฉพาะเงื่อนไขหลัก (Active/Gym/ClassType)
+    // โดย "ไม่เอาชื่อ (name)" มาฟิลเตอร์รายการใน Dropdown
     availableSchedules.value = rawData
       .filter((s) => {
         const isActive = s.is_active === true || s.is_active === 1
-        const isCorrectGym = filters.value.gym === 'ALL' || s.gym_enum === filters.value.gym
+        const isCorrectGym =
+          localFilters.value.gym === 'ALL' || s.gym_enum === localFilters.value.gym
 
-        // ✅ เพิ่มการกรองตาม Class Type (Private/Group)
         let isCorrectType = true
-        if (filters.value.classType !== 'ALL') {
+        if (localFilters.value.classType !== 'ALL') {
           const isPrivate = s.is_private_class === true || s.is_private_class === 1
-          isCorrectType = filters.value.classType === 'PRIVATE' ? isPrivate : !isPrivate
+          isCorrectType = localFilters.value.classType === 'PRIVATE' ? isPrivate : !isPrivate
         }
 
+        // คืนค่าเฉพาะเงื่อนไขของตัว Slot เอง เพื่อให้รายการ Slot ไม่หายไปเวลาพิมพ์ชื่อ
         return isActive && isCorrectGym && isCorrectType
       })
       .sort((a, b) => {
-        // ✅ เรียงตามเวลาเริ่ม (start_time)
-        // เนื่องจากเป็น String "08:00", "09:00" สามารถใช้การเทียบ String ได้เลย
         if (a.start_time < b.start_time) return -1
         if (a.start_time > b.start_time) return 1
-
-        // ถ้าเวลาเท่ากัน ให้เรียงตามชื่อยิมต่อ (Hive ก่อน Club หรือตามตัวอักษร)
         return a.gym_enum.localeCompare(b.gym_enum)
       })
   } catch (err) {
-    console.error('Failed to fetch schedules for filter:', err)
+    console.error('Failed to fetch schedules:', err)
     availableSchedules.value = []
   } finally {
     isLoadingSchedules.value = false
   }
 }
 
-// 👀 เฝ้าดูวันที่ และ ยิม (ถ้าเปลี่ยนยิม รายการเวลาก็ต้องเปลี่ยน)
-watch(
-  [() => filters.value.date, () => filters.value.gym, () => filters.value.classType],
-  ([newDate]) => {
-    // ✅ จุดสำคัญ: เมื่อวันที่หรือยิมเปลี่ยน ต้องล้าง ID เก่าทิ้งทันที!
-    filters.value = { ...filters.value, scheduleId: '' }
-    if (newDate) {
-      fetchAvailableSchedules()
-    }
-  },
-  { immediate: true },
-)
-
+// ✅ 2. ปรับ update ให้ทำงานกับ localFilters และจัดการล้างค่าเมื่อเปลี่ยนวัน
 const update = (key, value) => {
-  const newFilters = { ...filters.value, [key]: value }
-  // ✅ ถ้าเปลี่ยนวันที่ ให้ล้าง scheduleId ในก้อนใหม่ด้วย
-  if (key === 'date') newFilters.scheduleId = ''
-  filters.value = newFilters
+  localFilters.value[key] = value || ''
+
+  if (key === 'date') {
+    localFilters.value.scheduleId = ''
+    localFilters.value.name = '' // เปลี่ยนวันแล้วล้างชื่อตามที่คุยกัน
+    fetchAvailableSchedules()
+  } else if (key === 'gym' || key === 'classType') {
+    localFilters.value.scheduleId = '' // ล้าง Slot ที่เคยเลือกเพราะยิม/ประเภทเปลี่ยน
+    fetchAvailableSchedules() // ดึงรายการ Slot ใหม่ตามยิม/ประเภทที่เลือก
+  }
+  // ถ้าเป็น key === 'name' ไม่ต้องทำอะไร รายการใน Dropdown จะไม่ขยับ
+}
+
+// ✅ 3. ฟังก์ชันส่งค่าออกไปข้างนอกเมื่อกด Apply (ไม่ปิด Modal)
+const applyFilters = () => {
+  filters.value = { ...localFilters.value }
+  // ไม่ใส่ isOpen.value = false ตามโจทย์
+}
+
+const resetFilters = () => {
+  const today = getTodayDate()
+  localFilters.value = {
+    date: today,
+    scheduleId: '',
+    classType: 'ALL',
+    gym: 'ALL',
+    name: '',
+  }
+  fetchAvailableSchedules()
+  filters.value = { ...localFilters.value }
 }
 
 const formatTime = (time) => time?.slice(0, 5) || '--:--'
+
+// เมื่อเปิด Modal ครั้งแรก ให้ดึง Schedules ล่าสุดตามค่าที่มีอยู่
+watch(isOpen, (val) => {
+  if (val) {
+    if (!localFilters.value.date) {
+      localFilters.value.date = getTodayDate()
+    }
+    fetchAvailableSchedules()
+  }
+})
 </script>
