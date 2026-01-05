@@ -64,6 +64,7 @@
                 :date="selectedDate"
                 :gym_enum="selectedGym"
                 :is_private_class="selectPrivate"
+                :filter-past-time="true"
                 @select="onSelectSchedule"
               />
               <span v-if="!selectedGym" class="text-sm text-red-500">

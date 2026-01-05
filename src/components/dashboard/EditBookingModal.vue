@@ -100,6 +100,9 @@
                       :date="selectedDate"
                       :gym_enum="selectedGym"
                       :is_private_class="selectPrivate"
+                      :filter-past-time="false"
+                      :allow-full-selection="true"
+                      :is-admin-mode="true"
                       @select="onSelectSchedule"
                     />
                   </div>

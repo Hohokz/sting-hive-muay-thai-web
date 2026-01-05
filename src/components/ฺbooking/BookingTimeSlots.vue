@@ -11,8 +11,11 @@
         :key="s.id"
         @click="selectSchedule(s)"
         class="slot"
-        :class="{ active: selectedId === s.id, full: s.available_seats === 0 }"
-        :disabled="s.available_seats === 0"
+        :class="{
+          active: selectedId === s.id,
+          full: s.available_seats <= 0,
+        }"
+        :disabled="!props.isAdminMode && s.available_seats <= 0"
       >
         <span class="time-text">
           {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
@@ -35,7 +38,11 @@
           stroke-linejoin="round"
           d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
         />
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 14.25l4.5-4.5m0 4.5l-4.5-4.5" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M9.75 14.25l4.5-4.5m0 4.5l-4.5-4.5"
+        />
       </svg>
 
       <div v-if="!gym_enum && !date">
@@ -69,7 +76,22 @@ const props = defineProps({
   date: [String, Date, null],
   gym_enum: String,
   is_private_class: Boolean,
+  // ✅ เพิ่ม Prop นี้เข้ามา (Default เป็น false คือโชว์หมด)
+  filterPastTime: {
+    type: Boolean,
+    default: false,
+  },
+  allowFullSelection: {
+    type: Boolean,
+    default: false,
+  },
+  isAdminMode: {
+    type: Boolean,
+    default: false,
+  },
 })
+
+console.log(props)
 
 const emit = defineEmits(['select'])
 const { schedules, loading, fetchSchedules } = useSchedules()
@@ -78,22 +100,49 @@ const selectedId = ref(null)
 // ✅ Check if inputs are ready
 const isReady = computed(() => !!props.date && !!props.gym_enum)
 
-// ✅ Filter upcoming schedules with proper date comparison
+// ✅ Filter upcoming schedules
+// ✅ Filter upcoming schedules (แก้ใหม่ Logic แข็งโป๊ก)
 const upcomingSchedules = computed(() => {
-  if (!schedules.value || !props.date) return []
+  // 1. ถ้าไม่มี Data กลับไปเลย
+  if (!schedules.value) return []
+
+  // 🔴 DEBUG MODE: เช็คค่ากันชัดๆ (กด F12 ดูได้เลย)
+  // console.log('------ CALC SCHEDULE ------')
+  // console.log('Prop filterPastTime:', props.filterPastTime)
+  console.log('Prop isAdminMode:', props.isAdminMode)
+  // 2. เช็คแบบหักดิบ: ถ้าค่าเป็น false ให้ Return ทั้งก้อนทันที!
+  if (props.filterPastTime === false) {
+    return schedules.value
+  }
+
+  // --- โซนกรอง (ทำงานเมื่อเป็น true เท่านั้น) ---
+  if (!props.date) return schedules.value // กันเหนียว ถ้าไม่มีวันที่ก็โชว์หมด
+
   const now = new Date()
+  const targetDate = new Date(props.date)
+
+  // แปลงเป็น YYYY-MM-DD เพื่อเทียบว่าเป็น "วันนี้" หรือไม่ (ตัดเรื่องเวลา/Timezone ทิ้ง)
+  const isSameDay = targetDate.toDateString() === now.toDateString()
+
+  // console.log('Is Today?:', isSameDay)
 
   return schedules.value.filter((s) => {
-    // Combine props.date with s.start_time
-    const [hours, minutes] = s.start_time.split(':')
-    const scheduleTime = new Date(props.date)
-    scheduleTime.setHours(parseInt(hours), parseInt(minutes), 0)
+    // ถ้าไม่ใช่วันนี้ -> เอาหมด
+    if (!isSameDay) return true
 
-    const isToday = new Date(props.date).toDateString() === now.toDateString()
-    if (isToday) {
-      return scheduleTime > now
+    // ถ้าเป็นวันนี้ -> เช็คเวลา
+    const [hours, minutes] = s.start_time.split(':')
+
+    // สร้างเวลาของคลาส โดยอิงจากวันที่ปัจจุบันของเครื่อง User (เพื่อความชัวร์)
+    const classTime = new Date()
+    classTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+
+    // ถ้าเวลาคลาส < เวลาปัจจุบัน -> ซ่อน
+    if (classTime < now) {
+      return false
     }
-    return true // Always show future dates
+
+    return true
   })
 })
 
@@ -110,9 +159,7 @@ onMounted(() => {
 watch(
   () => [props.date, props.gym_enum, props.is_private_class],
   ([date, gym, isPrivate]) => {
-    // 🧹 Clear previous data immediately to show loading
-    schedules.value = []
-
+    schedules.value = [] // Clear data
     if (!date || !gym) return
 
     fetchSchedules({
@@ -143,7 +190,9 @@ const formatTime = (time) => {
 }
 
 @media (max-width: 480px) {
-  .time-grid { grid-template-columns: 1fr; }
+  .time-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .slot {
@@ -160,15 +209,51 @@ const formatTime = (time) => {
   transition: all 0.2s ease;
 }
 
-.time-text { font-size: 16px; font-weight: 500; color: #374151; }
-.seat-badge { font-size: 13px; background-color: #f3f4f6; color: #666; padding: 4px 12px; border-radius: 20px; }
+.time-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #374151;
+}
+.seat-badge {
+  font-size: 13px;
+  background-color: #f3f4f6;
+  color: #666;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
 
-.slot:hover { border-color: #2563eb; background-color: #f8faff; }
-.active { background: #2563eb; border-color: #2563eb; }
-.active .time-text, .active .seat-badge { color: white; }
-.active .seat-badge { background-color: rgba(255, 255, 255, 0.2); }
+.slot:hover {
+  border-color: #2563eb;
+  background-color: #f8faff;
+}
+.active {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+.active .time-text,
+.active .seat-badge {
+  color: white;
+}
+.active .seat-badge {
+  background-color: rgba(255, 255, 255, 0.2);
+}
 
-.full { opacity: 0.6; cursor: not-allowed; background: #eee; }
+.full {
+  opacity: 0.6;
+  background: #eee;
+}
+
+/* ✅ เพิ่ม CSS นี้เพื่อให้ Admin เห็นว่าเลือกช่องที่เต็มอยู่ */
+.full.active {
+  background: #2563eb !important; /* สีน้ำเงินเดียวกับปุ่มปกติ */
+  border-color: #2563eb !important;
+  opacity: 1; /* ดึงความชัดกลับมาตอนเลือก */
+}
+
+.full.active .time-text,
+.full.active .seat-badge {
+  color: white !important;
+}
 
 .empty-state {
   width: 100%;
@@ -184,9 +269,21 @@ const formatTime = (time) => {
   text-align: center;
 }
 
-.empty-icon { width: 56px; height: 56px; margin-bottom: 16px; color: #9ca3af; }
-.empty-state h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0; }
-.text-error { color: #ef4444 !important; }
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  color: #9ca3af;
+}
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+.text-error {
+  color: #ef4444 !important;
+}
 
 /* 🌀 Spinner Loader */
 .loader {
@@ -199,7 +296,11 @@ const formatTime = (time) => {
   margin-bottom: 16px;
 }
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
