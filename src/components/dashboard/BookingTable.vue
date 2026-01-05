@@ -536,7 +536,7 @@ const searchedUsers = computed(() => {
 
 const fetchUsers = async () => {
   try {
-    const response = await api.auth.getUser()
+    const response = await api.auth.getAllUser()
 
     // 1. เจาะเข้าไปที่ก้อน data ภายใน response.data อีกที
     const actualData = response.data.data

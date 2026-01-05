@@ -279,13 +279,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { api } from '@/api/bookingApi'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
-
-// ✅ CONFIG
-const API_URL = '/api/v1/users'
-const token = localStorage.getItem('token')
-const headers = { Authorization: `Bearer ${token}` }
 
 // ✅ STATE
 const users = ref([])
@@ -319,7 +314,7 @@ const openStatusModal = (title, message, type = 'success') => {
 const fetchUsers = async () => {
   isLoading.value = true
   try {
-    const res = await axios.get(API_URL, { headers })
+    const res = await api.auth.getUser()
     users.value = res.data.data
   } catch (err) {
     console.error('Fetch error:', err)
@@ -365,9 +360,9 @@ const handleSubmit = async () => {
         role: form.value.role,
       }
       if (form.value.password) payload.password = form.value.password
-      await axios.put(`${API_URL}/${selectedUserId.value}`, payload, { headers })
+      await api.auth.updateUser(selectedUserId.value, payload)
     } else {
-      await axios.post(API_URL, form.value, { headers })
+      await api.auth.createUser(form.value)
     }
     await fetchUsers()
     showFormModal.value = false
@@ -391,7 +386,7 @@ const confirmDelete = (user) => {
 const handleDelete = async () => {
   try {
     isDeleting.value = true
-    await axios.delete(`${API_URL}/${userToDelete.value.id}`, { headers })
+    await api.auth.deleteUser(userToDelete.value.id)
     users.value = users.value.filter((u) => u.id !== userToDelete.value.id)
     showConfirmModal.value = false
     openStatusModal('Success', 'User deleted successfully', 'success')

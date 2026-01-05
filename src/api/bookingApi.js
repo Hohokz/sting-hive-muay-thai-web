@@ -8,6 +8,7 @@ const auth = {
   refreshToken: (refreshToken) =>
     axios.post('/api/v1/middlewares/authMiddleware', { refreshToken }),
   getUser: () => axios.get('/api/v1/users'),
+  getAllUser: () => axios.get('/api/v1/users/justUsers'),
   logout: () => axios.post('/api/v1/auth/logout'),
 }
 
