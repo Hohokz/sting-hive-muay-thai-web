@@ -10,6 +10,9 @@ const auth = {
   getUser: () => axios.get('/api/v1/users'),
   getAllUser: () => axios.get('/api/v1/users/justUsers'),
   logout: () => axios.post('/api/v1/auth/logout'),
+  createUser: (data) => axios.post('/api/v1/users', data),
+  updateUser: (id, data) => axios.put(`/api/v1/users/${id}`, data),
+  deleteUser: (id) => axios.delete(`/api/v1/users/${id}`),
 }
 
 // DASHBOARD
