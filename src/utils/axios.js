@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
 
@@ -45,8 +46,11 @@ axios.interceptors.response.use(
     // 1. ตรวจสอบว่าเป็น Request จากหน้า Login หรือไม่
     const isLoginRequest = originalRequest.url.includes('/api/v1/auth/login')
 
-    // 2. ถ้าเป็น 401 และ "ไม่ใช่" การ Login ให้ทำ Logic Refresh Token/Redirect ตามปกติ
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 2. ถ้าเป็น 401 หรือ 403 และ "ไม่ใช่" การ Login ให้ทำ Logic Refresh Token/Redirect ตามปกติ
+    if (
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry
+    ) {
       // ✅ เพิ่มเงื่อนไข: ถ้าเป็นหน้า Login ให้พ่น Error กลับไปที่ Component เลย ห้ามเด้งหน้า
       if (isLoginRequest) {
         return Promise.reject(error)
@@ -92,7 +96,10 @@ axios.interceptors.response.use(
               localStorage.setItem('refreshToken', newRefreshToken)
             }
 
-            axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken
+            // Sync with Pinia store
+            const auth = useAuthStore()
+            auth.setTokens(accessToken, newRefreshToken || refreshToken)
+
             originalRequest.headers['Authorization'] = 'Bearer ' + accessToken
 
             processQueue(null, accessToken)
@@ -115,6 +122,10 @@ axios.interceptors.response.use(
       })
     }
 
+    console.error(
+      `[Axios Error] ${error.response?.status || 'Network Error'} on ${originalRequest?.url}`,
+      error,
+    )
     return Promise.reject(error)
   },
 )

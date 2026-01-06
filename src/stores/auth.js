@@ -48,6 +48,15 @@ export const useAuthStore = defineStore('auth', {
         return false
       }
     },
+    setTokens(token, refreshToken) {
+      this.token = token
+      this.refreshToken = refreshToken
+      try {
+        this.user = jwtDecode(token)
+      } catch (e) {
+        console.error('Invalid token on setTokens', e)
+      }
+    },
     logout() {
       this.token = null
       this.refreshToken = null

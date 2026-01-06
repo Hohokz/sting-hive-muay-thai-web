@@ -27,13 +27,13 @@ const routes = [
     path: '/admin/bookings',
     name: 'AdminBookings',
     component: () => import('@/pages/AdminBookingView.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, adminOnly: true },
   },
   {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('@/pages/AdminUsersPage.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, adminOnly: true },
   },
   {
     path: '/admin',

@@ -314,7 +314,7 @@ const openStatusModal = (title, message, type = 'success') => {
 const fetchUsers = async () => {
   isLoading.value = true
   try {
-    const res = await api.auth.getUser()
+    const res = await api.auth.getAllUser()
     users.value = res.data.data
   } catch (err) {
     console.error('Fetch error:', err)
