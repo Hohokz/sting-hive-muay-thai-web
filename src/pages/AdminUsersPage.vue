@@ -78,16 +78,27 @@
               </td>
               <td class="px-6 py-4 text-center">
                 <div class="flex items-center justify-center gap-2">
-                  <span
-                    class="w-2 h-2 rounded-full"
-                    :class="user.is_active ? 'bg-green-500' : 'bg-gray-300'"
-                  ></span>
-                  <span
-                    class="font-medium"
-                    :class="user.is_active ? 'text-gray-700' : 'text-gray-400'"
+                  <button
+                    @click="toggleStatus(user)"
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all hover:ring-2 hover:ring-offset-1"
+                    :class="
+                      user.is_active
+                        ? 'bg-green-50 hover:bg-green-100 hover:ring-green-400 cursor-pointer'
+                        : 'bg-gray-100 hover:bg-gray-200 hover:ring-gray-400 cursor-pointer'
+                    "
+                    title="Click to toggle status"
                   >
-                    {{ user.is_active ? 'Active' : 'Inactive' }}
-                  </span>
+                    <span
+                      class="w-2 h-2 rounded-full"
+                      :class="user.is_active ? 'bg-green-500' : 'bg-gray-400'"
+                    ></span>
+                    <span
+                      class="font-bold text-xs"
+                      :class="user.is_active ? 'text-green-700' : 'text-gray-500'"
+                    >
+                      {{ user.is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </button>
                 </div>
               </td>
               <td class="px-6 py-4 text-center">
@@ -390,10 +401,47 @@ const handleDelete = async () => {
     users.value = users.value.filter((u) => u.id !== userToDelete.value.id)
     showConfirmModal.value = false
     openStatusModal('Success', 'User deleted successfully', 'success')
-  } catch {
-    openStatusModal('Error', 'Delete failed', 'error')
+  } catch (err) {
+    console.error('Delete error:', err)
+    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Delete failed'
+    openStatusModal('Error', errorMessage, 'error')
   } finally {
     isDeleting.value = false
+  }
+}
+
+// ✅ TOGGLE STATUS
+const toggleStatus = async (user) => {
+  try {
+    const newStatus = !user.is_active
+    // Optimistic update
+    user.is_active = newStatus
+
+    // Prepare payload (assuming we need to send full object or just the field, depends on API)
+    // Safe bet is usually to just send the changes if it's PATCH, but since it's PUT we often need full data
+    // However, looking at handleSubmit, it sends specific fields. Let's try sending just the updated field if API supports it,
+    // or include main fields. From looking at bookingApi.js: updateUser: (id, data) => axios.put(...)
+    // Let's try to send a comprehensive payload similar to edit
+    const payload = {
+      ...user,
+      is_active: newStatus,
+      // Ensure password is not sent as empty string if not intended to change
+      password: undefined,
+    }
+
+    await api.auth.updateUser(user.id, payload)
+    openStatusModal(
+      'Success',
+      `User ${newStatus ? 'activated' : 'deactivated'} successfully`,
+      'success',
+    )
+  } catch (err) {
+    console.error('Toggle status error:', err)
+    // Revert on failure
+    user.is_active = !user.is_active
+    const errorMessage =
+      err.response?.data?.message || err.response?.data?.error || 'Failed to update status'
+    openStatusModal('Error', errorMessage, 'error')
   }
 }
 
