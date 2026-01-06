@@ -475,6 +475,13 @@ const handleParticipantsBlur = () => {
   }
 }
 
+const formatDateToLocal = (date) => {
+  if (!date) return null
+  const d = new Date(date)
+  const offset = d.getTimezoneOffset()
+  return new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0]
+}
+
 const submitBooking = async () => {
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
     openModal(
@@ -498,7 +505,7 @@ const submitBooking = async () => {
     participants: participants.value,
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
-    date_booking: selectedDate.value,
+    date_booking: formatDateToLocal(selectedDate.value),
     capacity: participants.value,
     trainer: selectedTrainerName.value || null,
   }

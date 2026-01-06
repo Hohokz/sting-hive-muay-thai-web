@@ -461,6 +461,13 @@ const handleParticipantsBlur = () => {
   }
 }
 
+const formatDateToLocal = (date) => {
+  if (!date) return null
+  const d = new Date(date)
+  const offset = d.getTimezoneOffset()
+  return new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0]
+}
+
 // Fetch Initial Data
 const fetchBookingDetail = async () => {
   try {
@@ -532,7 +539,7 @@ const updateBooking = async () => {
     capacity: participants.value,
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
-    date_booking: selectedDate.value,
+    date_booking: formatDateToLocal(selectedDate.value),
     trainer: selectedTrainerName.value || null,
   }
 
