@@ -478,8 +478,10 @@ const handleParticipantsBlur = () => {
 const formatDateToLocal = (date) => {
   if (!date) return null
   const d = new Date(date)
-  const offset = d.getTimezoneOffset()
-  return new Date(d.getTime() - offset * 60 * 1000).toISOString().split('T')[0]
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}T00:00:00.000Z`
 }
 
 const submitBooking = async () => {

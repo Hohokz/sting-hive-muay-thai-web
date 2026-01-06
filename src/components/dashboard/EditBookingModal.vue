@@ -335,6 +335,15 @@ const fetchBookingDetail = async (id) => {
   }
 }
 
+const formatDateToLocal = (date) => {
+  if (!date) return null
+  const d = new Date(date)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}T00:00:00.000Z`
+}
+
 const handleSubmit = async () => {
   if (!selectedSchedule.value) return
 
@@ -346,7 +355,7 @@ const handleSubmit = async () => {
     capacity: participants.value,
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
-    date_booking: selectedDate.value,
+    date_booking: formatDateToLocal(selectedDate.value),
   }
 
   try {
