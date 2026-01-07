@@ -104,14 +104,21 @@ const upcomingSchedules = computed(() => {
   // 1. ถ้าไม่มี Data กลับไปเลย
   if (!schedules.value) return []
 
+  let results = schedules.value
+
+  // ✅ 1.5 Filter Full Slots (unless Admin)
+  if (!props.isAdminMode) {
+    results = results.filter((s) => s.available_seats > 0)
+  }
+
   // 🔴 DEBUG MODE: เช็คค่ากันชัดๆ (กด F12 ดูได้เลย)
   // 2. เช็คแบบหักดิบ: ถ้าค่าเป็น false ให้ Return ทั้งก้อนทันที!
   if (props.filterPastTime === false) {
-    return schedules.value
+    return results
   }
 
   // --- โซนกรอง (ทำงานเมื่อเป็น true เท่านั้น) ---
-  if (!props.date) return schedules.value // กันเหนียว ถ้าไม่มีวันที่ก็โชว์หมด
+  if (!props.date) return results // กันเหนียว ถ้าไม่มีวันที่ก็โชว์หมด
 
   const now = new Date()
   const targetDate = new Date(props.date)
@@ -119,7 +126,7 @@ const upcomingSchedules = computed(() => {
   // แปลงเป็น YYYY-MM-DD เพื่อเทียบว่าเป็น "วันนี้" หรือไม่ (ตัดเรื่องเวลา/Timezone ทิ้ง)
   const isSameDay = targetDate.toDateString() === now.toDateString()
 
-  return schedules.value.filter((s) => {
+  return results.filter((s) => {
     // ถ้าไม่ใช่วันนี้ -> เอาหมด
     if (!isSameDay) return true
 
@@ -165,6 +172,11 @@ watch(
 )
 
 const selectSchedule = (s) => {
+  // ✅ Prevent selection if full (and not Admin)
+  if (!props.isAdminMode && s.available_seats <= 0) {
+    return
+  }
+
   selectedId.value = s.id
   emit('select', s)
 }

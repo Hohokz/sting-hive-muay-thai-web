@@ -129,7 +129,7 @@
             </div>
 
             <!-- ✅ TRAINER (Optional) -->
-            <div class="md:col-span-2 relative trainer-select-container">
+            <!--<div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
               <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
               <div class="relative group">
                 <input
@@ -148,10 +148,10 @@
                 >
                   ▼
                 </button>
-              </div>
+              </div> -->
 
-              <!-- Dropdown -->
-              <div
+            <!-- Dropdown -->
+            <!-- <div
                 v-if="showTrainerDropdown"
                 class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
               >
@@ -172,16 +172,16 @@
                 >
                   No trainers found matching your search.
                 </div>
-              </div>
+              </div> -->
 
-              <!-- Selected Trainer Info (Helper Text) -->
-              <p
+            <!-- Selected Trainer Info (Helper Text) -->
+            <!--<p
                 v-if="selectedTrainerName && !showTrainerDropdown"
                 class="text-[10px] text-blue-600 mt-1 font-semibold"
               >
                 ✓ Currently selected: {{ selectedTrainerName }}
               </p>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
@@ -217,7 +217,9 @@
               </p>
               <p>
                 <span class="text-gray-500">Trainer:</span>
-                <span class="ml-1">{{ selectedTrainerName || '-' }}</span>
+                <span class="ml-1">{{
+                  selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
+                }}</span>
               </p>
             </div>
           </div>
@@ -542,7 +544,7 @@ const updateBooking = async () => {
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: formatDateToLocal(selectedDate.value),
-    trainer: selectedTrainerName.value || null,
+    trainer: selectPrivate.value ? selectedTrainerName.value || null : null,
   }
 
   try {
