@@ -11,7 +11,7 @@
         </span>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <button
           v-if="auth.isAdmin"
           @click="openAddModal"
@@ -122,7 +122,9 @@
             <td class="px-2 text-center font-bold">{{ item.capacity }}</td>
             <td class="px-2">
               <div class="flex justify-center items-center gap-2 group relative">
-                <span class="text-gray-500">{{ item.trainer || '-' }}</span>
+                <span class="text-gray-500">{{
+                  item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || '-'
+                }}</span>
                 <button
                   v-if="auth.isAdmin"
                   @click="openTrainerModal(item)"
@@ -240,11 +242,13 @@
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Pax / Trainer</div>
           <div class="text-gray-700 flex items-center gap-2">
-            <span>{{ item.capacity }} pax / {{ item.trainer_name || '-' }}</span>
+            <span>{{ item.capacity }} pax / {{
+              item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || '-'
+            }}</span>
             <button
               v-if="auth.isAdmin"
               @click="openTrainerModal(item)"
-              class="text-blue-500 font-black text-[9px]"
+              class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded"
             >
               EDIT
             </button>
@@ -252,7 +256,7 @@
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
           <div class="flex items-center gap-2 italic text-gray-500">
             <span class="flex-1 truncate">{{ item.admin_note || '-' }}</span>
-            <button @click="openNoteModal(item)" class="text-blue-500 font-black text-[9px]">
+            <button @click="openNoteModal(item)" class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded">
               EDIT
             </button>
           </div>
@@ -331,7 +335,7 @@
             Select trainer from system
           </p>
 
-          <div class="mb-6 relative">
+          <div class="mb-6 relative" ref="trainerLookupRef">
             <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
               >Trainer Lookup</label
             >
@@ -421,7 +425,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
 import { useModalStore } from '@/stores/modal'
@@ -515,6 +519,7 @@ const isSavingTrainer = ref(false)
 const isDropdownOpen = ref(false) // สถานะเปิด/ปิด dropdown
 const userSearchQuery = ref('')
 const trainerForm = ref({ id: '', trainer_name: '' })
+const trainerLookupRef = ref(null)
 
 const userList = ref([]) // เก็บรายชื่อที่จะเอามาทำ Lookup
 
@@ -536,26 +541,22 @@ const searchedUsers = computed(() => {
 
 const fetchUsers = async () => {
   try {
-    const response = await api.auth.getAllUser()
+    const response = await api.bookings.getTrainers()
+    const actualData = response.data.data || response.data
 
-    // 1. เจาะเข้าไปที่ก้อน data ภายใน response.data อีกที
-    const actualData = response.data.data
-
-    // 2. เช็คว่า actualData เป็น Array หรือไม่
     if (Array.isArray(actualData)) {
       userList.value = actualData.map((item) => {
-        // เจาะเข้า dataValues (Sequelize object)
         const raw = item.dataValues || item
         return {
           id: raw.id,
-          name: raw.name || raw.username, // กันเหนียวถ้าไม่มี name ให้ใช้ username
+          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
           phone: raw.phone || '-',
           username: raw.username,
         }
       })
     }
   } catch (err) {
-    console.error('❌ Fetch Users Error:', err)
+    console.error('❌ Fetch Trainers Error:', err)
   }
 }
 
@@ -571,7 +572,8 @@ const selectTrainer = (user) => {
 }
 
 const openTrainerModal = async (item) => {
-  trainerForm.value = { id: item.id, trainer_name: item.trainer_name || '' }
+  const tName = item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || ''
+  trainerForm.value = { id: item.id, trainer_name: tName }
   userSearchQuery.value = ''
   isDropdownOpen.value = false
 
@@ -728,4 +730,20 @@ const statusClass = (s) => {
 }
 
 const confirmCancel = (i) => emit('cancel', i.id)
+
+const handleClickOutside = (e) => {
+  if (trainerLookupRef.value && !trainerLookupRef.value.contains(e.target)) {
+    isDropdownOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside)
+  document.addEventListener('touchstart', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('touchstart', handleClickOutside)
+})
 </script>

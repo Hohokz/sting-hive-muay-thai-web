@@ -178,6 +178,62 @@
                   class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
+
+              <!-- ✅ TRAINER SELECTION -->
+              <div v-if="selectPrivate" class="md:col-span-2 relative space-y-2" ref="trainerContainerRef">
+                <div class="flex items-center gap-1">
+                  <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
+                    Request Trainer (Optional)
+                  </p>
+                </div>
+                <div class="relative group">
+                  <input
+                    v-model="trainerSearchQuery"
+                    type="text"
+                    class="w-full p-4 border rounded-xl font-medium outline-none bg-white border-gray-200 focus:ring-2 focus:ring-blue-600 pr-12"
+                    placeholder="Search and select trainer..."
+                    @focus="showTrainerDropdown = true"
+                  />
+                  <button
+                    @click="showTrainerDropdown = !showTrainerDropdown"
+                    type="button"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-transform"
+                    :class="{ 'rotate-180': showTrainerDropdown }"
+                  >
+                    ▼
+                  </button>
+                </div>
+
+                <!-- Dropdown -->
+                <div
+                  v-if="showTrainerDropdown"
+                  class="absolute z-[100] w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-48 overflow-y-auto"
+                >
+                  <div
+                    v-for="trainer in filteredTrainers"
+                    :key="trainer.id"
+                    @click="selectTrainer(trainer)"
+                    class="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center transition-colors"
+                  >
+                    <span class="font-bold text-sm text-gray-800">{{ trainer.name }}</span>
+                    <span v-if="selectedTrainerName === trainer.name" class="text-blue-500 text-xs font-bold">✓ Selected</span>
+                  </div>
+                  <div
+                    v-if="filteredTrainers.length === 0"
+                    class="p-4 text-center text-xs text-gray-400 italic"
+                  >
+                    No matches found.
+                  </div>
+                </div>
+
+                <!-- Helper Text -->
+                <p
+                  v-if="selectedTrainerName && !showTrainerDropdown"
+                  class="text-[10px] text-blue-600 mt-1 font-semibold flex items-center gap-1"
+                >
+                  <span>✓</span> Currently selected: {{ selectedTrainerName }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -246,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
 import { useModalStore } from '@/stores/modal'
@@ -272,6 +328,44 @@ const clientName = ref('')
 const mobile = ref('')
 const email = ref('')
 const participants = ref(1)
+const trainerContainerRef = ref(null)
+
+// Trainer selection
+const trainers = ref([])
+const trainerSearchQuery = ref('')
+const selectedTrainerName = ref('')
+const showTrainerDropdown = ref(false)
+
+const filteredTrainers = computed(() => {
+  const q = trainerSearchQuery.value.toLowerCase().trim()
+  const list = trainers.value
+  if (!q) return list
+  return list.filter((t) => t.name.toLowerCase().includes(q))
+})
+
+const fetchTrainers = async () => {
+  try {
+    const response = await api.bookings.getTrainers()
+    const actualData = response.data.data || response.data
+    if (Array.isArray(actualData)) {
+      trainers.value = actualData.map((item) => {
+        const raw = item.dataValues || item
+        return {
+          id: raw.id,
+          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+        }
+      })
+    }
+  } catch (err) {
+    console.error('❌ Fetch Trainers Error:', err)
+  }
+}
+
+const selectTrainer = (trainer) => {
+  selectedTrainerName.value = trainer.name
+  trainerSearchQuery.value = trainer.name
+  showTrainerDropdown.value = false
+}
 
 const isInitialLoading = ref(false)
 const isSubmitting = ref(false)
@@ -306,6 +400,8 @@ const resetForm = () => {
   mobile.value = ''
   email.value = ''
   participants.value = 1
+  trainerSearchQuery.value = ''
+  selectedTrainerName.value = ''
 }
 
 const fetchBookingDetail = async (id) => {
@@ -322,6 +418,11 @@ const fetchBookingDetail = async (id) => {
     mobile.value = b.client_phone
     email.value = b.client_email
     participants.value = b.capacity
+
+    const tName = b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
+    selectedTrainerName.value = tName
+    trainerSearchQuery.value = tName
+
     selectedSchedule.value = {
       id: b.classes_schedule_id,
       start_time: b.schedule.start_time,
@@ -356,6 +457,7 @@ const handleSubmit = async () => {
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: formatDateToLocal(selectedDate.value),
+    trainer: selectPrivate.value ? selectedTrainerName.value || null : null,
   }
 
   try {
@@ -419,12 +521,26 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
 })
 
 const init = () => {
+  fetchTrainers()
   if (isEditMode.value) fetchBookingDetail(props.bookingId)
   else resetForm()
 }
 
+const handleClickOutside = (e) => {
+  if (trainerContainerRef.value && !trainerContainerRef.value.contains(e.target)) {
+    showTrainerDropdown.value = false
+  }
+}
+
 onMounted(() => {
   init()
+  document.addEventListener('mousedown', handleClickOutside)
+  document.addEventListener('touchstart', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('touchstart', handleClickOutside)
 })
 </script>
 
