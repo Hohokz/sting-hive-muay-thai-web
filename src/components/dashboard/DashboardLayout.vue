@@ -153,6 +153,54 @@
               Users Manager
             </span>
           </RouterLink>
+
+          <RouterLink
+            v-if="auth.isAdmin"
+            to="/admin/logs"
+            class="flex items-center gap-4 hover:text-red-400 h-6"
+            @click="closeMobileSidebar"
+          >
+            <img
+              src="/dashboard/board-svgrepo-com.svg"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Logs"
+            />
+            <span
+              class="transition-all duration-300 whitespace-nowrap"
+              :class="[
+                open || hover
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 -translate-x-4 pointer-events-none',
+              ]"
+            >
+              Activity Logs
+            </span>
+          </RouterLink>
+
+          <RouterLink
+            v-if="auth.isAdmin"
+            to="/admin/trainers"
+            class="flex items-center gap-4 hover:text-red-400 h-6"
+            @click="closeMobileSidebar"
+          >
+            <img
+              src="/dashboard/user-circle-1-svgrepo-com.svg?url"
+              class="w-5 h-5 shrink-0"
+              style="filter: brightness(0) invert(1)"
+              alt="Trainers"
+            />
+            <span
+              class="transition-all duration-300 whitespace-nowrap"
+              :class="[
+                open || hover
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 -translate-x-4 pointer-events-none',
+              ]"
+            >
+              Trainer Management
+            </span>
+          </RouterLink>
         </nav>
       </div>
 

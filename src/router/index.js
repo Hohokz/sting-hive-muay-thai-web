@@ -36,6 +36,18 @@ const routes = [
     meta: { requiresAuth: true, adminOnly: true },
   },
   {
+    path: '/admin/logs',
+    name: 'AdminLogs',
+    component: () => import('@/pages/ActivityLogPage.vue'),
+    meta: { requiresAuth: true, adminOnly: true },
+  },
+  {
+    path: '/admin/trainers',
+    name: 'TrainerManagement',
+    component: () => import('@/pages/TrainerGymPage.vue'),
+    meta: { requiresAuth: true, adminOnly: true },
+  },
+  {
     path: '/admin',
     name: 'login',
     component: () => import('@/pages/AdminPage.vue'),

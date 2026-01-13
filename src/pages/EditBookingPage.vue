@@ -128,6 +128,32 @@
               />
             </div>
 
+            <!-- ✅ MULTIPLE STUDENTS -->
+            <div v-if="selectPrivate">
+              <p class="text-gray-600 text-sm mb-1">Multiple Students</p>
+              <div class="flex items-center gap-6 p-3 border rounded-md">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="true"
+                    v-model="multipleStudents"
+                    class="accent-blue-600"
+                  />
+                  <span>Yes</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="false"
+                    v-model="multipleStudents"
+                    class="accent-blue-600"
+                  />
+                  <span>No</span>
+                </label>
+              </div>
+            </div>
+
             <!-- ✅ TRAINER (Optional) -->
             <!--<div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
               <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
@@ -220,6 +246,10 @@
                 <span class="ml-1">{{
                   selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
                 }}</span>
+              </p>
+              <p v-if="selectPrivate">
+                <span class="text-gray-500">Multiple Students:</span>
+                <span class="ml-1">{{ multipleStudents ? 'Yes' : 'No' }}</span>
               </p>
             </div>
           </div>
@@ -340,15 +370,22 @@ const participants = ref(1)
 const trainers = ref([])
 const trainerSearchQuery = ref('')
 const selectedTrainerName = ref('')
+
+// Multiple Students
+const multipleStudents = ref(false)
 const showTrainerDropdown = ref(false)
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
+  // Filter out users who already have a gym assigned
+  const availableTrainers = trainers.value.filter(trainer => {
+    return !trainer.gym_id && !trainer.gym_enum
+  })
   if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
-    return trainers.value
+    return availableTrainers
   }
-  if (!q) return trainers.value
-  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
+  if (!q) return availableTrainers
+  return availableTrainers.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const fetchTrainers = async () => {
@@ -363,6 +400,8 @@ const fetchTrainers = async () => {
         return {
           id: raw.id,
           name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+          gym_id: raw.gym_id,
+          gym_enum: raw.gym_enum,
         }
       })
     }
@@ -491,6 +530,7 @@ const fetchBookingDetail = async () => {
     mobile.value = b.client_phone
     email.value = b.client_email
     participants.value = b.capacity
+    multipleStudents.value = b.multipleStudents || b.multiple_students || false
     // Handle trainer as either string or object
     const tName =
       b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
@@ -545,6 +585,7 @@ const updateBooking = async () => {
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: formatDateToLocal(selectedDate.value),
     trainer: selectPrivate.value ? selectedTrainerName.value || null : null,
+    multipleStudents: selectPrivate.value ? multipleStudents.value : false,
   }
 
   try {

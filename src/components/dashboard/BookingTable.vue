@@ -75,7 +75,8 @@
             >
               Pax {{ sortIcon('capacity') }}
             </th>
-            <th class="px-2 text-center">Trainer Name</th>
+            <th class="px-2 text-center">Trainer</th>
+            <th class="px-2 text-center">Multi Pax</th>
             <th
               class="px-2 text-center cursor-pointer hover:text-black"
               @click="setSort('booking_status')"
@@ -89,6 +90,8 @@
               Payment {{ sortIcon('payment') }}
             </th>
             <th class="px-2">Note</th>
+            <th class="px-2 text-center">Updated By</th>
+            <th class="px-2 text-center whitespace-nowrap">Updated Date</th>
             <th v-if="auth.isAdmin" class="px-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -136,6 +139,16 @@
             </td>
             <td class="px-2 text-center">
               <span
+                v-if="item.is_private"
+                class="text-xs font-medium px-2 py-1 rounded"
+                :class="item.multiple_students ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+              >
+                {{ item.multiple_students ? 'Yes' : 'No' }}
+              </span>
+              <span v-else class="text-gray-400 text-xs">-</span>
+            </td>
+            <td class="px-2 text-center">
+              <span
                 class="text-[10px] font-bold px-2 py-1 rounded uppercase"
                 :class="statusClass(item.booking_status)"
               >
@@ -162,6 +175,12 @@
                   Edit
                 </button>
               </div>
+            </td>
+            <td class="px-2 text-center">
+              <div class="font-bold text-gray-700 whitespace-nowrap">{{ item.updated_by || item.admin_name || '-' }}</div>
+            </td>
+            <td class="px-2 text-center">
+              <div class="text-[10px] text-gray-400 font-mono">{{ formatDateTime(item.updated_at || item.updated_date) }}</div>
             </td>
             <td v-if="auth.isAdmin" class="px-2 text-center">
               <div class="flex items-center justify-center gap-4">
@@ -253,12 +272,26 @@
               EDIT
             </button>
           </div>
+          <div v-if="item.is_private" class="text-gray-400 font-bold uppercase text-[9px]">Multiple Students</div>
+          <div v-if="item.is_private" class="text-gray-700">
+            <span
+              class="text-xs font-medium px-2 py-1 rounded"
+              :class="item.multiple_students ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+            >
+              {{ item.multiple_students ? 'Yes' : 'No' }}
+            </span>
+          </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
           <div class="flex items-center gap-2 italic text-gray-500">
             <span class="flex-1 truncate">{{ item.admin_note || '-' }}</span>
             <button @click="openNoteModal(item)" class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded">
               EDIT
             </button>
+          </div>
+          <div class="text-gray-400 font-bold uppercase text-[9px]">Last Update</div>
+          <div class="text-[10px] text-gray-700 font-bold flex flex-col">
+            <span>By: {{ item.updated_by || item.admin_name || '-' }}</span>
+            <span class="text-gray-400 font-mono">{{ formatDateTime(item.updated_at || item.updated_date) }}</span>
           </div>
         </div>
 
@@ -719,6 +752,16 @@ const sortedBookings = computed(() => {
 const sortIcon = (key) => (sortKey.value !== key ? '↕' : sortOrder.value === 'asc' ? '↑' : '↓')
 const formatTime = (t) => t?.slice(0, 5) || '--:--'
 const formatDate = (d) => (d ? new Date(d).toLocaleDateString() : '-')
+const formatDateTime = (d) => {
+  if (!d) return '-'
+  return new Date(d).toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 const formatGym = (g) =>
   g === 'STING_HIVE' ? 'Sting Hive' : g === 'STING_CLUB' ? 'Sting Club' : '-'
 

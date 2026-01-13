@@ -137,7 +137,7 @@
             </div>
 
             <!-- ✅ TRAINER (Optional) -->
-            <!--<div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
+            <div v-if="selectPrivate" class="md:col-span-1 relative trainer-select-container">
               <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
               <div class="relative group">
                 <input
@@ -157,9 +157,8 @@
                   ▼
                 </button>
               </div>
-              -->
-            <!-- Dropdown -->
-            <!-- <div
+              <!-- Dropdown -->
+              <div
                 v-if="showTrainerDropdown"
                 class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
               >
@@ -180,16 +179,42 @@
                 >
                   No trainers found matching your search.
                 </div>
-              </div> -->
+              </div>
 
-            <!-- Selected Trainer Info (Helper Text) -->
-            <!-- <p
+              <!-- Selected Trainer Info (Helper Text) -->
+              <p
                 v-if="selectedTrainerName && !showTrainerDropdown"
                 class="text-[10px] text-blue-600 mt-1 font-semibold"
               >
                 ✓ Currently selected: {{ selectedTrainerName }}
               </p>
-            </div> -->
+            </div>
+
+            <!-- ✅ MULTIPLE STUDENTS -->
+            <div v-if="selectPrivate" class="md:col-span-1">
+              <p class="text-gray-600 text-sm mb-1">Multiple Students</p>
+              <div class="flex items-center gap-6 p-3 border rounded-md">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="true"
+                    v-model="multipleStudents"
+                    class="accent-blue-600"
+                  />
+                  <span>Yes</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    :value="false"
+                    v-model="multipleStudents"
+                    class="accent-blue-600"
+                  />
+                  <span>No</span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -239,6 +264,10 @@
                 <span class="ml-1">{{
                   selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
                 }}</span>
+              </p>
+              <p v-if="selectPrivate">
+                <span class="text-gray-500">Multiple Students:</span>
+                <span class="ml-1">{{ multipleStudents ? 'Yes' : 'No' }}</span>
               </p>
             </div>
           </div>
@@ -314,6 +343,7 @@ import { api } from '@/api/bookingApi' // Updated import
 import { useRouter } from 'vue-router'
 import { useSchedules } from '@/composables/useSchedules'
 import { onMounted, onUnmounted } from 'vue'
+import trainerGymApi from '@/api/trainerGymApi'
 
 // const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
@@ -379,6 +409,9 @@ const trainerSearchQuery = ref('')
 const selectedTrainerName = ref('')
 const showTrainerDropdown = ref(false)
 
+// Multiple Students
+const multipleStudents = ref(false)
+
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
   // If the query exactly matches the selected name and dropdown has just been opened, show all for convenience
@@ -389,23 +422,41 @@ const filteredTrainers = computed(() => {
   return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
-const fetchTrainers = async () => {
-  try {
-    const response = await api.bookings.getTrainers()
-    const responseData = response.data
-    const actualData = responseData.data || responseData
+// Helper function to convert gym_enum to gym ID
+const getGymIdFromEnum = (gymEnum) => {
+  if (gymEnum === 'STING_CLUB') return 1
+  if (gymEnum === 'STING_HIVE') return 2
+  return null
+}
 
-    if (Array.isArray(actualData)) {
-      trainers.value = actualData.map((item) => {
-        const raw = item.dataValues || item
-        return {
-          id: raw.id,
-          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-        }
-      })
+const fetchTrainers = async () => {
+  if (!selectedGym.value) {
+    trainers.value = []
+    return
+  }
+
+  try {
+    const gymId = getGymIdFromEnum(selectedGym.value)
+    if (!gymId) {
+      console.error('❌ Invalid gym enum:', selectedGym.value)
+      trainers.value = []
+      return
     }
+
+    const response = await trainerGymApi.getGymTrainers(gymId)
+    const responseData = response.data
+    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+
+    trainers.value = actualData.map((item) => {
+      const raw = item.dataValues || item
+      return {
+        id: raw.id,
+        name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+      }
+    })
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
+    trainers.value = []
   }
 }
 
@@ -433,7 +484,6 @@ const handleClickOutside = (event) => {
 }
 
 onMounted(() => {
-  fetchTrainers()
   document.addEventListener('mousedown', handleClickOutside)
 })
 
@@ -456,6 +506,7 @@ const resetForm = () => {
   participants.value = 1
   selectedTrainerName.value = ''
   trainerSearchQuery.value = ''
+  multipleStudents.value = false
 
   // ล้างค่าการเลือก (ถ้าต้องการให้เลือก Gym ใหม่ด้วยให้ uncomment บรรทัด selectedGym)
   selectedSchedule.value = null
@@ -512,6 +563,7 @@ const submitBooking = async () => {
     date_booking: formatDateToLocal(selectedDate.value),
     capacity: participants.value,
     trainer: selectPrivate.value ? selectedTrainerName.value || null : null,
+    multiple_students: selectPrivate.value ? multipleStudents.value : false,
   }
 
   try {
@@ -531,6 +583,16 @@ const submitBooking = async () => {
     isSubmitting.value = false
   }
 }
+
+/* ✅ เมื่อเปลี่ยน gym → fetch trainers */
+watch(selectedGym, () => {
+  if (selectedGym.value) {
+    fetchTrainers()
+    // Reset trainer selection when gym changes
+    selectedTrainerName.value = ''
+    trainerSearchQuery.value = ''
+  }
+})
 
 /* ✅ เมื่อเปลี่ยนวัน → reset เวลา */
 watch([selectedSchedule, selectPrivate, selectedGym], () => {

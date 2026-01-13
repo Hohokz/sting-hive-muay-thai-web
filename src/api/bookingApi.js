@@ -47,11 +47,17 @@ const schedules = {
   deleteAdvanced: (id) => axios.delete(`/api/v1/schedules/in-advance/${id}`),
 }
 
+// LOGS
+const logs = {
+  get: (params) => axios.get('/api/v1/activity-logs', { params }),
+}
+
 export default {
   auth,
   dashboard,
   bookings,
   schedules,
+  logs,
 }
 
 /**
@@ -63,4 +69,5 @@ export const api = {
   dashboard,
   bookings,
   schedules,
+  logs,
 }
