@@ -174,6 +174,7 @@ const fetchLogs = async () => {
     const params = {
       page: pagination.value.page,
       limit: pagination.value.limit,
+      offset: (pagination.value.page - 1) * pagination.value.limit,
       service: filters.value.service !== 'ALL' ? filters.value.service : undefined,
     }
 
