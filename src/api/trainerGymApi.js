@@ -3,7 +3,7 @@ import axios from '@/utils/axios'
 const trainerGymApi = {
   getAvailableUsers: () => axios.get('/api/v1/trainer-gyms/available-users'),
 
-  getGymTrainers: (gymId) => axios.get(`/api/v1/trainer-gyms/${gymId}`),
+  getGymTrainers: (gymId, params) => axios.get(`/api/v1/trainer-gyms/${gymId}`, { params }),
 
   assignTrainer: (userId, gymId) => axios.post('/api/v1/trainer-gyms/assign', { userId, gymId }),
 

@@ -345,6 +345,7 @@ import { useSchedules } from '@/composables/useSchedules'
 import { onMounted, onUnmounted } from 'vue'
 import trainerGymApi from '@/api/trainerGymApi'
 
+
 // const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
 
@@ -430,8 +431,17 @@ const getGymIdFromEnum = (gymEnum) => {
 }
 
 const fetchTrainers = async () => {
-  if (!selectedGym.value) {
+  // If no gym is selected, or if we are filtering by time but time is not selected, clear trainers.
+  // STRICT CHECK: Must have Gym, Date, Schedule AND Private Class (True)
+  if (
+    !selectedGym.value ||
+    !selectedDate.value ||
+    !selectedSchedule.value ||
+    !selectPrivate.value
+  ) {
     trainers.value = []
+    // Optional: Clear selection if we are hiding the list
+    // selectedTrainerName.value = ''
     return
   }
 
@@ -443,7 +453,19 @@ const fetchTrainers = async () => {
       return
     }
 
-    const response = await trainerGymApi.getGymTrainers(gymId)
+    // Format params
+    const d = new Date(selectedDate.value)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    const dateStr = `${yyyy}-${mm}-${dd}`
+
+    const params = {
+      date: dateStr,
+      classes_schedule_id: selectedSchedule.value.id, // match new backend logic
+    }
+
+    const response = await trainerGymApi.getGymTrainers(gymId, params)
     const responseData = response.data
     const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
 
@@ -584,14 +606,11 @@ const submitBooking = async () => {
   }
 }
 
-/* ✅ เมื่อเปลี่ยน gym → fetch trainers */
-watch(selectedGym, () => {
-  if (selectedGym.value) {
-    fetchTrainers()
-    // Reset trainer selection when gym changes
-    selectedTrainerName.value = ''
-    trainerSearchQuery.value = ''
-  }
+/* ✅ Watch for changes to re-fetch trainers */
+watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
+  // Whenever any of these change, try to fetch.
+  // The fetchTrainers function has the strict boolean check at the top.
+  fetchTrainers()
 })
 
 /* ✅ เมื่อเปลี่ยนวัน → reset เวลา */

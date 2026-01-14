@@ -337,6 +337,7 @@ import { useModalStore } from '@/stores/modal'
 import StatusModal from '@/components/common/StatusModal.vue'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
+import trainerGymApi from '@/api/trainerGymApi'
 
 const props = defineProps({
   show: Boolean,
@@ -369,31 +370,50 @@ const multipleStudents = ref(false)
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
-  // Filter out users who already have a gym assigned
-  const list = trainers.value.filter(trainer => {
-    return !trainer.gym_id && !trainer.gym_enum
-  })
-  if (!q) return list
-  return list.filter((t) => t.name.toLowerCase().includes(q))
+  if (!q) return trainers.value
+  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const fetchTrainers = async () => {
+    // Strict check: Gym + Date + Schedule + Private
+    if (!selectedGym.value || !selectedDate.value || !selectedSchedule.value || !selectPrivate.value) {
+        trainers.value = []
+        return
+    }
+
   try {
-    const response = await api.bookings.getTrainers()
-    const actualData = response.data.data || response.data
-    if (Array.isArray(actualData)) {
+    const gymId = selectedGym.value === 'STING_CLUB' ? 1 : (selectedGym.value === 'STING_HIVE' ? 2 : null)
+    if (!gymId) {
+        trainers.value = []
+        return
+    }
+
+    // Format params
+    const d = new Date(selectedDate.value)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    const dateStr = `${yyyy}-${mm}-${dd}`
+
+    const params = {
+      date: dateStr,
+      classes_schedule_id: selectedSchedule.value.id,
+    }
+
+    const response = await trainerGymApi.getGymTrainers(gymId, params)
+    const responseData = response.data
+    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+
       trainers.value = actualData.map((item) => {
         const raw = item.dataValues || item
         return {
           id: raw.id,
           name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-          gym_id: raw.gym_id,
-          gym_enum: raw.gym_enum,
         }
       })
-    }
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
+    trainers.value = []
   }
 }
 
@@ -559,8 +579,13 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
   }
 })
 
+// Watcher to fetch trainers
+watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
+    fetchTrainers()
+})
+
 const init = () => {
-  fetchTrainers()
+  // fetchTrainers() // Wait for details
   if (isEditMode.value) fetchBookingDetail(props.bookingId)
   else resetForm()
 }

@@ -155,7 +155,7 @@
             </div>
 
             <!-- ✅ TRAINER (Optional) -->
-            <!--<div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
+            <div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
               <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
               <div class="relative group">
                 <input
@@ -174,10 +174,10 @@
                 >
                   ▼
                 </button>
-              </div> -->
+              </div>
 
-            <!-- Dropdown -->
-            <!-- <div
+              <!-- Dropdown -->
+              <div
                 v-if="showTrainerDropdown"
                 class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
               >
@@ -198,16 +198,16 @@
                 >
                   No trainers found matching your search.
                 </div>
-              </div> -->
+              </div>
 
-            <!-- Selected Trainer Info (Helper Text) -->
-            <!--<p
+              <!-- Selected Trainer Info (Helper Text) -->
+              <p
                 v-if="selectedTrainerName && !showTrainerDropdown"
                 class="text-[10px] text-blue-600 mt-1 font-semibold"
               >
                 ✓ Currently selected: {{ selectedTrainerName }}
               </p>
-            </div> -->
+            </div>
           </div>
         </div>
       </div>
@@ -347,6 +347,7 @@ import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
+import trainerGymApi from '@/api/trainerGymApi'
 
 const route = useRoute()
 const router = useRouter()
@@ -377,36 +378,54 @@ const showTrainerDropdown = ref(false)
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
-  // Filter out users who already have a gym assigned
-  const availableTrainers = trainers.value.filter(trainer => {
-    return !trainer.gym_id && !trainer.gym_enum
-  })
+  // If the query exactly matches the selected name and dropdown has just been opened, show all for convenience
   if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
-    return availableTrainers
+    return trainers.value
   }
-  if (!q) return availableTrainers
-  return availableTrainers.filter((t) => t.name.toLowerCase().includes(q))
+  if (!q) return trainers.value
+  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
 const fetchTrainers = async () => {
-  try {
-    const response = await api.bookings.getTrainers()
-    const responseData = response.data
-    const actualData = responseData.data || responseData
+    // Strict check: Gym + Date + Schedule + Private
+    if (!selectedGym.value || !selectedDate.value || !selectedSchedule.value || !selectPrivate.value) {
+        trainers.value = []
+        return
+    }
 
-    if (Array.isArray(actualData)) {
+  try {
+    const gymId = selectedGym.value === 'STING_CLUB' ? 1 : (selectedGym.value === 'STING_HIVE' ? 2 : null)
+    if (!gymId) {
+        trainers.value = []
+        return
+    }
+
+    // Format params
+    const d = new Date(selectedDate.value)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    const dateStr = `${yyyy}-${mm}-${dd}`
+
+    const params = {
+      date: dateStr,
+      classes_schedule_id: selectedSchedule.value.id,
+    }
+
+    const response = await trainerGymApi.getGymTrainers(gymId, params)
+    const responseData = response.data
+    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+
       trainers.value = actualData.map((item) => {
         const raw = item.dataValues || item
         return {
           id: raw.id,
           name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-          gym_id: raw.gym_id,
-          gym_enum: raw.gym_enum,
         }
       })
-    }
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
+    trainers.value = []
   }
 }
 
@@ -550,7 +569,12 @@ const fetchBookingDetail = async () => {
 
 onMounted(() => {
   fetchBookingDetail()
-  fetchTrainers()
+  // fetchTrainers() // Don't call immediately, let watchers handle or handle after details loaded
+  // fetchBookingDetail calls fetchTrainers? No, but watchers might.
+  // Actually, fetchBookingDetail sets selectedSchedule etc.
+  // We should wait for booking detail to be loaded.
+  // But wait, the watcher watches [selectedDate, selectPrivate, selectedGym] but NOT selectedSchedule?
+  // Let's update the watcher logic below.
   document.addEventListener('mousedown', handleClickOutside)
 })
 
@@ -558,7 +582,7 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside)
 })
 
-// Watcher เพื่อดึงตารางเวลาใหม่ (เหมือนไฟล์ที่ 1)
+// Watcher เพื่อดึงตารางเวลาใหม่
 watch([selectedDate, selectPrivate, selectedGym], () => {
   if (selectedDate.value && selectedGym.value) {
     fetchSchedules({
@@ -567,6 +591,11 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
       is_private_class: selectPrivate.value,
     })
   }
+})
+
+// Watcher to fetch trainers
+watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
+    fetchTrainers()
 })
 
 const updateBooking = async () => {
