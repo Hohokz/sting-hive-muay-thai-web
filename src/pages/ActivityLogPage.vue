@@ -53,8 +53,8 @@
                   {{ formatDateTime(log.created_at) }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="font-bold text-gray-900">{{ log.user_name || log.admin_name || log.user?.name || log.details?.userName || 'System' }}</div>
-                  <div class="text-[10px] text-gray-400 uppercase font-bold">{{ log.user_role || log.role || 'ADMIN' }}</div>
+                  <div class="font-bold text-gray-900" :class="roleClass(getDisplayRole(log))">{{ log.user_name || log.admin_name || log.user?.name || log.details?.userName || 'System' }}</div>
+                  <div class="text-[10px] uppercase font-bold" :class="roleClass(getDisplayRole(log))">{{ getDisplayRole(log) }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
@@ -291,6 +291,30 @@ const getDisplayAction = (log) => {
   if (action === 'UPDATE_STATUS' || action.includes('UPDATE')) return 'UPDATE'
 
   return log.action
+}
+
+const getDisplayRole = (log) => {
+  if (log.user_role) return log.user_role
+  if (log.role) return log.role
+  if (log.user?.role) return log.user.role
+
+  // Inference
+  if (log.admin_name) return 'ADMIN'
+
+  // Check if the name itself implies ADMIN
+  const nameToCheck = (log.user_name || log.user?.name || log.details?.userName || '').toUpperCase()
+  if (nameToCheck.includes('ADMIN')) return 'ADMIN'
+
+  // If we have a user name but came here (no explicit role), it is likely a regular user
+  if (log.user_name) return 'USER'
+
+  // Default fallback
+  return 'ADMIN'
+}
+
+const roleClass = (role) => {
+  if (role === 'ADMIN') return 'text-red-600'
+  return 'text-gray-400'
 }
 
 const actionClass = (action, log) => {
