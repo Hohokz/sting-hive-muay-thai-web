@@ -267,7 +267,7 @@
               </p>
               <p v-if="selectPrivate">
                 <span class="text-gray-500">Multiple Students:</span>
-                <span class="ml-1">{{ multipleStudents ? 'Yes' : 'No' }}</span>
+                <span class="ml-1">{{ multipleStudents ? '2v1' : '1v1' }}</span>
               </p>
             </div>
           </div>
@@ -344,7 +344,6 @@ import { useRouter } from 'vue-router'
 import { useSchedules } from '@/composables/useSchedules'
 import { onMounted, onUnmounted } from 'vue'
 import trainerGymApi from '@/api/trainerGymApi'
-
 
 // const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
@@ -467,7 +466,7 @@ const fetchTrainers = async () => {
 
     const response = await trainerGymApi.getGymTrainers(gymId, params)
     const responseData = response.data
-    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+    const actualData = Array.isArray(responseData) ? responseData : responseData.data || []
 
     trainers.value = actualData.map((item) => {
       const raw = item.dataValues || item

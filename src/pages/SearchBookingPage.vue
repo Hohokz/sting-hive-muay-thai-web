@@ -190,9 +190,15 @@ const searchBooking = async () => {
       exclude_canceled: true,
     })
 
+    const date = new Date()
+    date.setHours(0, 0, 0, 0)
+
     const allBookings = res.data.data || []
     bookings.value = allBookings.filter(
-      (b) => b.booking_status !== 'CANCELLED' && b.booking_status !== 'CANCELED',
+      (b) =>
+        b.booking_status !== 'PAYMENTED' &&
+        b.booking_status !== 'CANCELED' &&
+        new Date(b.date_booking) >= date,
     )
     searched.value = true
   } catch (err) {

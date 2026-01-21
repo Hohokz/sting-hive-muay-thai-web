@@ -90,7 +90,9 @@
             <td class="px-2">
               <div class="flex justify-center items-center gap-2 group relative">
                 <span class="text-gray-500">{{
-                  item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || '-'
+                  item.trainer_name ||
+                  (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) ||
+                  '-'
                 }}</span>
                 <button
                   v-if="auth.isAdmin"
@@ -105,9 +107,13 @@
               <span
                 v-if="item.is_private"
                 class="text-xs font-medium px-2 py-1 rounded"
-                :class="item.multiple_students ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+                :class="
+                  item.multipleStudents || item.multiple_students
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-600'
+                "
               >
-                {{ item.multiple_students ? 'Yes' : 'No' }}
+                {{ item.multipleStudents || item.multiple_students ? 'Yes' : 'No' }}
               </span>
               <span v-else class="text-gray-400 text-xs">-</span>
             </td>
@@ -141,10 +147,14 @@
               </div>
             </td>
             <td class="px-2 text-center">
-              <div class="font-bold text-gray-700 whitespace-nowrap">{{ item.updated_by || item.admin_name || '-' }}</div>
+              <div class="font-bold text-gray-700 whitespace-nowrap">
+                {{ item.updated_by || item.admin_name || '-' }}
+              </div>
             </td>
             <td class="px-2 text-center">
-              <div class="text-[10px] text-gray-400 font-mono">{{ formatDateTime(item.updated_at || item.updated_date) }}</div>
+              <div class="text-[10px] text-gray-400 font-mono">
+                {{ formatDateTime(item.updated_at || item.updated_date) }}
+              </div>
             </td>
             <td v-if="auth.isAdmin" class="px-2 text-center">
               <div class="flex items-center justify-center gap-4">
@@ -225,9 +235,14 @@
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Pax / Trainer</div>
           <div class="text-gray-700 flex items-center gap-2">
-            <span>{{ item.capacity }} pax / {{
-              item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || '-'
-            }}</span>
+            <span
+              >{{ item.capacity }} pax /
+              {{
+                item.trainer_name ||
+                (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) ||
+                '-'
+              }}</span
+            >
             <button
               v-if="auth.isAdmin"
               @click="openTrainerModal(item)"
@@ -236,26 +251,37 @@
               EDIT
             </button>
           </div>
-          <div v-if="item.is_private" class="text-gray-400 font-bold uppercase text-[9px]">Multiple Students</div>
+          <div v-if="item.is_private" class="text-gray-400 font-bold uppercase text-[9px]">
+            Multiple Students
+          </div>
           <div v-if="item.is_private" class="text-gray-700">
             <span
               class="text-xs font-medium px-2 py-1 rounded"
-              :class="item.multiple_students ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+              :class="
+                item.multipleStudents || item.multiple_students
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              "
             >
-              {{ item.multiple_students ? 'Yes' : 'No' }}
+              {{ item.multipleStudents || item.multiple_students ? 'Yes' : 'No' }}
             </span>
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
           <div class="flex items-center gap-2 italic text-gray-500">
             <span class="flex-1 truncate">{{ item.admin_note || '-' }}</span>
-            <button @click="openNoteModal(item)" class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded">
+            <button
+              @click="openNoteModal(item)"
+              class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded"
+            >
               EDIT
             </button>
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Last Update</div>
           <div class="text-[10px] text-gray-700 font-bold flex flex-col">
             <span>By: {{ item.updated_by || item.admin_name || '-' }}</span>
-            <span class="text-gray-400 font-mono">{{ formatDateTime(item.updated_at || item.updated_date) }}</span>
+            <span class="text-gray-400 font-mono">{{
+              formatDateTime(item.updated_at || item.updated_date)
+            }}</span>
           </div>
         </div>
 
@@ -536,7 +562,10 @@ const selectTrainer = (user) => {
 }
 
 const openTrainerModal = async (item) => {
-  const tName = item.trainer_name || (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) || ''
+  const tName =
+    item.trainer_name ||
+    (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) ||
+    ''
   trainerForm.value = { id: item.id, trainer_name: tName }
   userSearchQuery.value = ''
   isDropdownOpen.value = false

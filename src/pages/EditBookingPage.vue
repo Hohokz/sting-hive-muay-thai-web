@@ -248,8 +248,8 @@
                 }}</span>
               </p>
               <p v-if="selectPrivate">
-                <span class="text-gray-500">Multiple Students:</span>
-                <span class="ml-1">{{ multipleStudents ? 'Yes' : 'No' }}</span>
+                <span class="text-gray-500">Type of Students:</span>
+                <span class="ml-1">{{ multipleStudents ? '2v1' : '1v1' }}</span>
               </p>
             </div>
           </div>
@@ -387,17 +387,23 @@ const filteredTrainers = computed(() => {
 })
 
 const fetchTrainers = async () => {
-    // Strict check: Gym + Date + Schedule + Private
-    if (!selectedGym.value || !selectedDate.value || !selectedSchedule.value || !selectPrivate.value) {
-        trainers.value = []
-        return
-    }
+  // Strict check: Gym + Date + Schedule + Private
+  if (
+    !selectedGym.value ||
+    !selectedDate.value ||
+    !selectedSchedule.value ||
+    !selectPrivate.value
+  ) {
+    trainers.value = []
+    return
+  }
 
   try {
-    const gymId = selectedGym.value === 'STING_CLUB' ? 1 : (selectedGym.value === 'STING_HIVE' ? 2 : null)
+    const gymId =
+      selectedGym.value === 'STING_CLUB' ? 1 : selectedGym.value === 'STING_HIVE' ? 2 : null
     if (!gymId) {
-        trainers.value = []
-        return
+      trainers.value = []
+      return
     }
 
     // Format params
@@ -414,15 +420,15 @@ const fetchTrainers = async () => {
 
     const response = await trainerGymApi.getGymTrainers(gymId, params)
     const responseData = response.data
-    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+    const actualData = Array.isArray(responseData) ? responseData : responseData.data || []
 
-      trainers.value = actualData.map((item) => {
-        const raw = item.dataValues || item
-        return {
-          id: raw.id,
-          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-        }
-      })
+    trainers.value = actualData.map((item) => {
+      const raw = item.dataValues || item
+      return {
+        id: raw.id,
+        name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+      }
+    })
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
     trainers.value = []
@@ -549,7 +555,7 @@ const fetchBookingDetail = async () => {
     mobile.value = b.client_phone
     email.value = b.client_email
     participants.value = b.capacity
-    multipleStudents.value = b.multipleStudents || b.multiple_students || false
+    multipleStudents.value = !!(b.multipleStudents || b.multiple_students)
     // Handle trainer as either string or object
     const tName =
       b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
@@ -595,7 +601,7 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
 
 // Watcher to fetch trainers
 watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
-    fetchTrainers()
+  fetchTrainers()
 })
 
 const updateBooking = async () => {

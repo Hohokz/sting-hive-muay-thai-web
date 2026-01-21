@@ -192,7 +192,7 @@
                       v-model="multipleStudents"
                       class="w-5 h-5 accent-blue-600"
                     />
-                    <span class="text-gray-700 font-medium">Yes</span>
+                    <span class="text-gray-700 font-medium">2v1</span>
                   </label>
 
                   <label class="flex items-center gap-2 cursor-pointer">
@@ -202,13 +202,17 @@
                       v-model="multipleStudents"
                       class="w-5 h-5 accent-blue-600"
                     />
-                    <span class="text-gray-700 font-medium">No</span>
+                    <span class="text-gray-700 font-medium">1v1</span>
                   </label>
                 </div>
               </div>
 
               <!-- ✅ TRAINER SELECTION -->
-              <div v-if="selectPrivate" class="md:col-span-2 relative space-y-2" ref="trainerContainerRef">
+              <div
+                v-if="selectPrivate"
+                class="md:col-span-2 relative space-y-2"
+                ref="trainerContainerRef"
+              >
                 <div class="flex items-center gap-1">
                   <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
                     Request Trainer (Optional)
@@ -244,7 +248,11 @@
                     class="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center transition-colors"
                   >
                     <span class="font-bold text-sm text-gray-800">{{ trainer.name }}</span>
-                    <span v-if="selectedTrainerName === trainer.name" class="text-blue-500 text-xs font-bold">✓ Selected</span>
+                    <span
+                      v-if="selectedTrainerName === trainer.name"
+                      class="text-blue-500 text-xs font-bold"
+                      >✓ Selected</span
+                    >
                   </div>
                   <div
                     v-if="filteredTrainers.length === 0"
@@ -375,17 +383,23 @@ const filteredTrainers = computed(() => {
 })
 
 const fetchTrainers = async () => {
-    // Strict check: Gym + Date + Schedule + Private
-    if (!selectedGym.value || !selectedDate.value || !selectedSchedule.value || !selectPrivate.value) {
-        trainers.value = []
-        return
-    }
+  // Strict check: Gym + Date + Schedule + Private
+  if (
+    !selectedGym.value ||
+    !selectedDate.value ||
+    !selectedSchedule.value ||
+    !selectPrivate.value
+  ) {
+    trainers.value = []
+    return
+  }
 
   try {
-    const gymId = selectedGym.value === 'STING_CLUB' ? 1 : (selectedGym.value === 'STING_HIVE' ? 2 : null)
+    const gymId =
+      selectedGym.value === 'STING_CLUB' ? 1 : selectedGym.value === 'STING_HIVE' ? 2 : null
     if (!gymId) {
-        trainers.value = []
-        return
+      trainers.value = []
+      return
     }
 
     // Format params
@@ -402,15 +416,15 @@ const fetchTrainers = async () => {
 
     const response = await trainerGymApi.getGymTrainers(gymId, params)
     const responseData = response.data
-    const actualData = Array.isArray(responseData) ? responseData : (responseData.data || [])
+    const actualData = Array.isArray(responseData) ? responseData : responseData.data || []
 
-      trainers.value = actualData.map((item) => {
-        const raw = item.dataValues || item
-        return {
-          id: raw.id,
-          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-        }
-      })
+    trainers.value = actualData.map((item) => {
+      const raw = item.dataValues || item
+      return {
+        id: raw.id,
+        name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+      }
+    })
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
     trainers.value = []
@@ -475,9 +489,10 @@ const fetchBookingDetail = async (id) => {
     mobile.value = b.client_phone
     email.value = b.client_email
     participants.value = b.capacity
-    multipleStudents.value = b.multiple_students || false
+    multipleStudents.value = !!(b.multipleStudents || b.multiple_students)
 
-    const tName = b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
+    const tName =
+      b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
     selectedTrainerName.value = tName
     trainerSearchQuery.value = tName
 
@@ -581,7 +596,7 @@ watch([selectedDate, selectPrivate, selectedGym], () => {
 
 // Watcher to fetch trainers
 watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
-    fetchTrainers()
+  fetchTrainers()
 })
 
 const init = () => {
