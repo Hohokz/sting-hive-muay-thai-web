@@ -34,7 +34,7 @@
         <div class="lg:col-span-2 space-y-6">
           <div class="bg-white rounded-xl shadow-sm p-6">
             <h2 class="text-xl font-semibold mb-6">Select Place</h2>
-            <div class="flex justify-around items-center gap-6">
+            <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
               <label class="flex items-center gap-3 cursor-pointer group">
                 <input
                   type="radio"
@@ -59,7 +59,7 @@
           <div class="bg-white rounded-xl shadow-sm p-6 space-y-8">
             <div>
               <h3 class="text-xl font-semibold mb-6">Class Type</h3>
-              <div class="flex justify-around items-center gap-6">
+              <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
                 <label class="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="radio"

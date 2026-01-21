@@ -217,7 +217,9 @@
           </span>
         </div>
 
-        <div class="grid grid-cols-2 gap-y-2 text-xs border-t border-gray-200 pt-3">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-4 text-xs border-t border-gray-200 pt-3"
+        >
           <div class="text-gray-400 font-bold uppercase text-[9px]">Name</div>
           <div class="font-bold text-gray-800">{{ item.client_name }}</div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Payment Status</div>

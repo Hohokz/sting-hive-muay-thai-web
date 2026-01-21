@@ -14,7 +14,7 @@
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-xl shadow p-6">
           <h2 class="text-xl font-semibold mb-4">Select Place</h2>
-          <div class="flex justify-around items-center gap-6">
+          <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="radio"
@@ -40,7 +40,7 @@
           <div>
             <h3 class="text-xl font-semibold mb-4">Class Type</h3>
           </div>
-          <div class="flex justify-around items-center gap-6">
+          <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" :value="false" v-model="selectPrivate" class="accent-blue-600" />
               <span>Group Class</span>

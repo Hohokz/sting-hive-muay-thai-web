@@ -39,24 +39,27 @@
         <div
           v-for="b in bookings"
           :key="b.id"
-          class="border p-3 rounded-md flex items-center justify-between"
+          class="border p-4 rounded-lg flex flex-col sm:flex-row gap-4 sm:items-center justify-between shadow-sm"
         >
-          <div class="text-sm">
-            <p><b>Date:</b> {{ b.date_booking }}</p>
-            <p><b>Time:</b> {{ b.schedule.start_time }} - {{ b.schedule.end_time }}</p>
-            <p><b>Place:</b> {{ b.schedule.gym_enum }}</p>
+          <div class="text-sm w-full sm:w-auto">
+            <p class="mb-1"><b class="text-gray-700">Date:</b> {{ b.date_booking }}</p>
+            <p class="mb-1">
+              <b class="text-gray-700">Time:</b> {{ b.schedule.start_time }} -
+              {{ b.schedule.end_time }}
+            </p>
+            <p><b class="text-gray-700">Place:</b> {{ b.schedule.gym_enum }}</p>
           </div>
 
-          <div class="flex gap-2">
+          <div class="flex gap-3 w-full sm:w-auto">
             <router-link
               :to="`/edit-booking/${b.id}`"
-              class="bg-green-600 text-white px-3 py-1 rounded text-sm"
+              class="flex-1 sm:flex-none text-center bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
             >
               Edit
             </router-link>
 
             <button
-              class="bg-red-600 text-white px-3 py-1 rounded text-sm"
+              class="flex-1 sm:flex-none bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
               @click="cancelBooking(b.id)"
             >
               Cancel
