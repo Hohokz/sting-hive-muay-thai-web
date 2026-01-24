@@ -201,7 +201,7 @@
                     v-model="multipleStudents"
                     class="accent-blue-600"
                   />
-                  <span>Yes</span>
+                  <span>2v1</span>
                 </label>
 
                 <label class="flex items-center gap-2 cursor-pointer">
@@ -211,7 +211,7 @@
                     v-model="multipleStudents"
                     class="accent-blue-600"
                   />
-                  <span>No</span>
+                  <span>1v1</span>
                 </label>
               </div>
             </div>

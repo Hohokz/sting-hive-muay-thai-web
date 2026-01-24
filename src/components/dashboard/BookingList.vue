@@ -113,7 +113,7 @@
                     : 'bg-gray-100 text-gray-600'
                 "
               >
-                {{ item.multipleStudents || item.multiple_students ? 'Yes' : 'No' }}
+                {{ item.multipleStudents || item.multiple_students ? '2v1' : '1v1' }}
               </span>
               <span v-else class="text-gray-400 text-xs">-</span>
             </td>
@@ -265,7 +265,7 @@
                   : 'bg-gray-100 text-gray-600'
               "
             >
-              {{ item.multipleStudents || item.multiple_students ? 'Yes' : 'No' }}
+              {{ item.multipleStudents || item.multiple_students ? '2v1' : '1v1' }}
             </span>
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
