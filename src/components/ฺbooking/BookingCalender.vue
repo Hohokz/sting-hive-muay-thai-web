@@ -1,7 +1,14 @@
 <template>
   <div class="w-full max-w-sm mt-5">
-    <VueDatePicker v-model="localDate" inline :auto-apply="true" :clearable="false" :min-date="new Date()"
-      :time-config="{ enableTimePicker: false }" />
+    <VueDatePicker
+      v-model="localDate"
+      inline
+      :auto-apply="true"
+      :clearable="false"
+      :min-date="new Date()"
+      :time-config="{ enableTimePicker: false }"
+      :disabled="disabled"
+    />
   </div>
 </template>
 
@@ -15,6 +22,10 @@ const props = defineProps({
     type: [Date, String, null],
     default: null,
     required: true,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 })
 

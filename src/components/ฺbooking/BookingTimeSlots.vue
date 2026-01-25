@@ -15,7 +15,7 @@
           active: selectedId === s.id,
           full: s.available_seats <= 0,
         }"
-        :disabled="!props.isAdminMode && s.available_seats <= 0"
+        :disabled="disabled || (!props.isAdminMode && s.available_seats <= 0)"
       >
         <span class="time-text">
           {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
@@ -86,6 +86,10 @@ const props = defineProps({
     default: false,
   },
   isAdminMode: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
     type: Boolean,
     default: false,
   },

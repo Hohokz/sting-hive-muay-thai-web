@@ -11,25 +11,47 @@
     </div>
 
     <div v-else class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Read-only Alert -->
+      <div
+        v-if="isReadOnly"
+        class="lg:col-span-3 bg-red-50 border border-red-200 p-4 rounded-xl flex items-center gap-3"
+      >
+        <span class="text-2xl">⚠️</span>
+        <div>
+          <h3 class="font-bold text-red-800">Booking is {{ bookingStatus }}</h3>
+          <p class="text-red-600 text-sm">
+            This booking cannot be edited because its status is not a confirmed success status.
+          </p>
+        </div>
+      </div>
+
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-xl shadow p-6">
           <h2 class="text-xl font-semibold mb-4">Select Place</h2>
           <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label
+              class="flex items-center gap-2"
+              :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+            >
               <input
                 type="radio"
                 value="STING_CLUB"
                 v-model="selectedGym"
                 class="accent-blue-600"
+                :disabled="isReadOnly"
               />
               <span>Sting Club</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label
+              class="flex items-center gap-2"
+              :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+            >
               <input
                 type="radio"
                 value="STING_HIVE"
                 v-model="selectedGym"
                 class="accent-blue-600"
+                :disabled="isReadOnly"
               />
               <span>Sting Hive</span>
             </label>
@@ -41,12 +63,30 @@
             <h3 class="text-xl font-semibold mb-4">Class Type</h3>
           </div>
           <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" :value="false" v-model="selectPrivate" class="accent-blue-600" />
+            <label
+              class="flex items-center gap-2"
+              :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+            >
+              <input
+                type="radio"
+                :value="false"
+                v-model="selectPrivate"
+                class="accent-blue-600"
+                :disabled="isReadOnly"
+              />
               <span>Group Class</span>
             </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" :value="true" v-model="selectPrivate" class="accent-blue-600" />
+            <label
+              class="flex items-center gap-2"
+              :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+            >
+              <input
+                type="radio"
+                :value="true"
+                v-model="selectPrivate"
+                class="accent-blue-600"
+                :disabled="isReadOnly"
+              />
               <span>Private Class</span>
             </label>
           </div>
@@ -55,7 +95,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div class="calendar-wrapper">
               <p class="text-gray-600 text-sm mb-2">Select Date</p>
-              <BookingCalender v-model="selectedDate" />
+              <BookingCalender v-model="selectedDate" :disabled="isReadOnly" />
             </div>
 
             <div>
@@ -65,6 +105,7 @@
                 :gym_enum="selectedGym"
                 :is_private_class="selectPrivate"
                 :filter-past-time="true"
+                :disabled="isReadOnly"
                 @select="onSelectSchedule"
               />
               <span v-if="!selectedGym" class="text-sm text-red-500">
@@ -86,6 +127,7 @@
                 v-model="clientName"
                 class="w-full p-3 border rounded-md"
                 placeholder="Enter name"
+                :disabled="isReadOnly"
               />
             </div>
             <div>
@@ -97,6 +139,7 @@
                 class="w-full p-3 border rounded-md"
                 placeholder="Enter mobile number"
                 maxlength="10"
+                :disabled="isReadOnly"
                 @input="mobile = mobile.replace(/\D/g, '')"
               />
             </div>
@@ -123,6 +166,7 @@
                 placeholder="Number of participants (Maximum 5 people)"
                 min="1"
                 max="5"
+                :disabled="isReadOnly"
                 @input="handleParticipantsInput"
                 @blur="handleParticipantsBlur"
               />
@@ -132,22 +176,30 @@
             <div v-if="selectPrivate">
               <p class="text-gray-600 text-sm mb-1">Multiple Students</p>
               <div class="flex items-center gap-6 p-3 border rounded-md">
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label
+                  class="flex items-center gap-2"
+                  :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+                >
                   <input
                     type="radio"
                     :value="true"
                     v-model="multipleStudents"
                     class="accent-blue-600"
+                    :disabled="isReadOnly"
                   />
                   <span>Yes</span>
                 </label>
 
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label
+                  class="flex items-center gap-2"
+                  :class="isReadOnly ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'"
+                >
                   <input
                     type="radio"
                     :value="false"
                     v-model="multipleStudents"
                     class="accent-blue-600"
+                    :disabled="isReadOnly"
                   />
                   <span>No</span>
                 </label>
@@ -163,6 +215,7 @@
                   type="text"
                   class="w-full p-3 border rounded-md pr-10"
                   placeholder="Search and select trainer..."
+                  :disabled="isReadOnly"
                   @focus="showTrainerDropdown = true"
                   @input="onTrainerInput"
                 />
@@ -171,6 +224,7 @@
                   type="button"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform"
                   :class="{ 'rotate-180': showTrainerDropdown }"
+                  :disabled="isReadOnly"
                 >
                   ▼
                 </button>
@@ -251,13 +305,21 @@
                 <span class="text-gray-500">Type of Students:</span>
                 <span class="ml-1">{{ multipleStudents ? '2v1' : '1v1' }}</span>
               </p>
+              <p>
+                <span class="text-gray-500">Status:</span>
+                <span
+                  class="ml-1 font-bold"
+                  :class="isReadOnly ? 'text-red-600' : 'text-green-600'"
+                  >{{ bookingStatus }}</span
+                >
+              </p>
             </div>
           </div>
 
           <div class="flex flex-col gap-3">
             <button
               class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-              :disabled="isSubmitting"
+              :disabled="isSubmitting || isReadOnly"
               @click="updateBooking"
             >
               <span v-if="!isSubmitting">Update Booking</span>
@@ -265,7 +327,7 @@
             </button>
             <button
               class="w-full bg-red-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-              :disabled="isSubmitting"
+              :disabled="isSubmitting || isReadOnly"
               @click="confirmCancel"
             >
               Cancel Booking
@@ -375,6 +437,12 @@ const selectedTrainerName = ref('')
 // Multiple Students
 const multipleStudents = ref(false)
 const showTrainerDropdown = ref(false)
+
+const bookingStatus = ref('')
+const isReadOnly = computed(() => {
+  const status = bookingStatus.value?.toLowerCase() || ''
+  return status !== 'success' && status !== 'succeed'
+})
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
@@ -561,10 +629,19 @@ const fetchBookingDetail = async () => {
       b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
     selectedTrainerName.value = tName
     trainerSearchQuery.value = tName
+    bookingStatus.value = b.booking_status || b.status || ''
     selectedSchedule.value = {
       id: b.classes_schedule_id,
       start_time: b.schedule.start_time,
       end_time: b.schedule.end_time,
+    }
+
+    if (isReadOnly.value) {
+      openStatusModal(
+        'Warning',
+        `Booking status : ${bookingStatus.value} can not reschedule this booking`,
+        'warning',
+      )
     }
   } catch {
     openStatusModal('Error', 'โหลดข้อมูล booking ไม่สำเร็จ', 'error')
