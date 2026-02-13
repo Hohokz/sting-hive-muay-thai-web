@@ -284,7 +284,8 @@
 
         <div
           v-if="isSubmitting"
-          class="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[90]"
+          style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
         >
           <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
             Creating Booking...
@@ -302,7 +303,10 @@
       </div>
     </div>
     <!-- WARNING MODAL -->
-    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]"
+    >
       <div class="bg-white p-6 rounded-2xl w-[340px] text-center shadow-xl animate-fadeIn">
         <h3
           class="text-lg font-semibold mb-2"
@@ -344,6 +348,7 @@ import { useRouter } from 'vue-router'
 import { useSchedules } from '@/composables/useSchedules'
 import { onMounted, onUnmounted } from 'vue'
 import trainerGymApi from '@/api/trainerGymApi'
+import { safeNewDate } from '@/utils/dateUtils'
 
 // const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
@@ -377,7 +382,7 @@ const displayDate = computed(() => {
   if (!selectedDate.value) return '-'
 
   const d = new Date(selectedDate.value)
-  return d.toLocaleDateString('en-EN', {
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -453,7 +458,9 @@ const fetchTrainers = async () => {
     }
 
     // Format params
-    const d = new Date(selectedDate.value)
+    const d = safeNewDate(selectedDate.value)
+    if (!d) return
+
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const dd = String(d.getDate()).padStart(2, '0')
@@ -559,6 +566,13 @@ const formatDateToLocal = (date) => {
 }
 
 const submitBooking = async () => {
+  if (isSubmitting.value) return
+
+  // ✅ Dismiss keyboard on mobile to prevent UI glitches in fixed overlays
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur()
+  }
+
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
     openModal(
       'Incomplete Information',
@@ -591,17 +605,17 @@ const submitBooking = async () => {
     isSubmitting.value = true
     await api.bookings.create(payload)
 
+    isSubmitting.value = false // ✅ Turn off loading BEFORE showing success modal
     openModal('Booking completed!', 'Your booking has been successfully created.', 'success')
     resetForm()
   } catch (err) {
     console.error('❌ Booking failed:', err)
+    isSubmitting.value = false // ✅ Turn off loading BEFORE showing error modal
     openModal(
       'Booking Failed',
       'There was an error creating your booking. Please try again later.',
       'error',
     )
-  } finally {
-    isSubmitting.value = false
   }
 }
 

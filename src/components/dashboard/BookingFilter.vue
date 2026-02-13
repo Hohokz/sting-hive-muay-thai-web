@@ -15,7 +15,7 @@
 
     <div
       v-if="isOpen"
-      class="fixed inset-x-0 mx-auto mt-2 w-[calc(100vw-2rem)] sm:absolute sm:right-0 sm:left-auto sm:inset-x-auto max-w-sm bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4"
+      class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-2rem)] sm:left-auto sm:right-0 sm:translate-x-0 sm:w-80 max-w-sm bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4"
     >
       <div class="flex justify-between items-center mb-4 border-b pb-2">
         <h3 class="font-bold text-gray-700">Filter Bookings</h3>

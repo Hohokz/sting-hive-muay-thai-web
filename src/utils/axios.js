@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth'
 const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'http://localhost:3000'
 
 axios.defaults.baseURL = STING_HIVE_API_URL
+axios.defaults.timeout = 20000 // 20 seconds timeout to prevent infinite loading on mobile
 
 // Helper to get tokens to avoid circular dependency issues if store usage is complex
 // But mostly we can just read localStorage directly or lazily import store

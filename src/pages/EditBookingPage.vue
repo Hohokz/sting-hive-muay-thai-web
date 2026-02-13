@@ -344,7 +344,11 @@
     </div>
   </div>
 
-  <div v-if="isSubmitting" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div
+    v-if="isSubmitting"
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[90]"
+    style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
+  >
     <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
       Updating Booking...
     </div>
@@ -353,7 +357,8 @@
   <div v-if="showStatusModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div
       class="absolute inset-0 bg-black/40 backdrop-blur-sm"
-      @click="showStatusModal = false"
+      style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
+      @click="handleModalClose"
     ></div>
     <div
       class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeIn"
@@ -373,6 +378,7 @@
   <div v-if="showCancelConfirm" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
     <div
       class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+      style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
       @click="showCancelConfirm = false"
     ></div>
     <div
@@ -410,6 +416,7 @@ import { useSchedules } from '@/composables/useSchedules'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
+import { safeNewDate } from '@/utils/dateUtils'
 
 const route = useRoute()
 const router = useRouter()
@@ -475,7 +482,9 @@ const fetchTrainers = async () => {
     }
 
     // Format params
-    const d = new Date(selectedDate.value)
+    const d = safeNewDate(selectedDate.value)
+    if (!d) return
+
     const yyyy = d.getFullYear()
     const mm = String(d.getMonth() + 1).padStart(2, '0')
     const dd = String(d.getDate()).padStart(2, '0')
@@ -546,7 +555,9 @@ const gymLabel = computed(() => {
 
 const displayDate = computed(() => {
   if (!selectedDate.value) return '-'
-  return new Date(selectedDate.value).toLocaleDateString('en-EN', {
+  const d = safeNewDate(selectedDate.value)
+  if (!d) return '-'
+  return d.toLocaleDateString('en-EN', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -682,6 +693,8 @@ watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
 })
 
 const updateBooking = async () => {
+  if (isSubmitting.value) return
+
   if (!selectedSchedule.value) {
     openStatusModal('Warning', 'กรุณาเลือกเวลาใหม่', 'warning')
     return
@@ -712,6 +725,7 @@ const updateBooking = async () => {
 }
 
 const handleConfirmCancel = async () => {
+  if (isSubmitting.value) return
   showCancelConfirm.value = false // ปิด Modal ยืนยัน
 
   try {
