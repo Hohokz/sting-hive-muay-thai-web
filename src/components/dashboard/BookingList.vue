@@ -135,8 +135,11 @@
             </td>
             <td class="px-2 max-w-[180px]">
               <div class="flex items-center gap-2 group relative">
-                <span class="truncate text-gray-500 italic text-xs" :title="item.admin_note">
-                  {{ item.admin_note || '-' }}
+                <span
+                  class="truncate text-gray-500 italic text-xs"
+                  :title="item.admin_note || item.note"
+                >
+                  {{ item.admin_note || item.note || '-' }}
                 </span>
                 <button
                   @click="openNoteModal(item)"
@@ -270,7 +273,7 @@
           </div>
           <div class="text-gray-400 font-bold uppercase text-[9px]">Note</div>
           <div class="flex items-center gap-2 italic text-gray-500">
-            <span class="flex-1 truncate">{{ item.admin_note || '-' }}</span>
+            <span class="flex-1 truncate">{{ item.admin_note || item.note || '-' }}</span>
             <button
               @click="openNoteModal(item)"
               class="text-blue-500 font-black text-[11px] px-2 py-1 bg-blue-50 rounded"
@@ -485,7 +488,7 @@ const isSavingNote = ref(false)
 const noteForm = ref({ id: '', note: '' })
 
 const openNoteModal = (item) => {
-  noteForm.value = { id: item.id, note: item.admin_note || '' }
+  noteForm.value = { id: item.id, note: item.admin_note || item.note || '' }
   showNoteModal.value = true
 }
 
@@ -502,6 +505,17 @@ const handleSaveNote = async () => {
   try {
     isSavingNote.value = true
     await api.bookings.updateNote(noteForm.value.id, { note: noteForm.value.note })
+
+    // Update locally to override stale API cache in search modal
+    const target = props.bookings.find((b) => b.id === noteForm.value.id)
+    if (target) {
+      target.admin_note = noteForm.value.note
+      target.note = noteForm.value.note
+      target.updated_at = new Date().toISOString()
+      target.updated_date = new Date().toISOString()
+      target.updated_by = auth.user?.name || auth.user?.username || 'Me'
+    }
+
     emit('refresh')
     showNoteModal.value = false
   } catch (err) {

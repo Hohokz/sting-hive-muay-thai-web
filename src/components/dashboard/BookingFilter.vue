@@ -13,105 +13,119 @@
       Filter
     </button>
 
-    <div
-      v-if="isOpen"
-      class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[calc(100vw-2rem)] sm:left-auto sm:right-0 sm:translate-x-0 sm:w-80 max-w-sm bg-white border border-gray-200 rounded-xl shadow-2xl z-50 p-4"
-    >
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h3 class="font-bold text-gray-700">Filter Bookings</h3>
-        <button @click="isOpen = false" class="text-gray-400 hover:text-gray-600 text-lg">
-          &times;
-        </button>
+    <Teleport to="body">
+      <div v-if="isOpen" class="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="isOpen = false"></div>
+
+        <!-- Modal Content -->
+        <div
+          class="relative w-full max-w-md bg-white border border-gray-200 rounded-2xl shadow-2xl p-6 animate-fadeIn"
+        >
+          <div class="flex justify-between items-center mb-6 border-b pb-3">
+            <h3 class="text-lg font-bold text-gray-800">Filter Bookings</h3>
+            <button
+              @click="isOpen = false"
+              class="text-gray-400 hover:text-gray-600 text-2xl transition-colors"
+            >
+              &times;
+            </button>
+          </div>
+
+          <div class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Date</label>
+              <input
+                type="date"
+                :value="localFilters.date"
+                @input="update('date', $event.target.value)"
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-black outline-none transition-all shadow-sm"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">Place</label>
+                <select
+                  :value="localFilters.gym"
+                  @change="update('gym', $event.target.value)"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="ALL">All Places</option>
+                  <option value="STING_HIVE">Sting Hive</option>
+                  <option value="STING_CLUB">Sting Club</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5"
+                  >Class Type</label
+                >
+                <select
+                  :value="localFilters.classType"
+                  @change="update('classType', $event.target.value)"
+                  class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 outline-none focus:ring-2 focus:ring-black"
+                >
+                  <option value="ALL">All Types</option>
+                  <option value="PRIVATE">Private Only</option>
+                  <option value="GROUP">Group Only</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5"
+                >Select Schedule Slot</label
+              >
+              <select
+                :value="localFilters.scheduleId"
+                @change="update('scheduleId', $event.target.value)"
+                :disabled="!localFilters.date || isLoadingSchedules"
+                class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400 outline-none focus:ring-2 focus:ring-black transition-all"
+              >
+                <option value="">{{ isLoadingSchedules ? 'Loading...' : 'Any Slot' }}</option>
+                <option v-for="sch in availableSchedules" :key="sch.id" :value="sch.id">
+                  {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }} [{{
+                    sch.gym_enum === 'STING_HIVE' ? 'Hive' : 'Club'
+                  }}]
+                </option>
+              </select>
+              <p v-if="!localFilters.date" class="text-[10px] text-red-500 mt-1.5 font-medium">
+                * Please select date first
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5"
+                >Search Name</label
+              >
+              <input
+                type="text"
+                :value="localFilters.name"
+                @input="update('name', $event.target.value)"
+                placeholder="Search name..."
+                class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black transition-all shadow-sm"
+              />
+            </div>
+
+            <div class="flex flex-col gap-2 pt-4">
+              <button
+                @click="applyFilters"
+                class="w-full bg-black text-white text-sm py-3 rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg active:scale-[0.98]"
+              >
+                Apply Filters
+              </button>
+              <button
+                @click="resetFilters"
+                class="w-full bg-white text-gray-600 border border-gray-200 text-sm py-3 rounded-xl font-bold hover:bg-gray-50 transition-all"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Date</label>
-          <input
-            type="date"
-            :value="localFilters.date"
-            @input="update('date', $event.target.value)"
-            class="w-full border rounded-md px-3 py-1.5 text-sm focus:ring-2 focus:ring-black outline-none"
-          />
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Place</label>
-          <select
-            :value="localFilters.gym"
-            @change="update('gym', $event.target.value)"
-            class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
-          >
-            <option value="ALL">All Places</option>
-            <option value="STING_HIVE">Sting Hive</option>
-            <option value="STING_CLUB">Sting Club</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Class Type</label>
-          <select
-            :value="localFilters.classType"
-            @change="update('classType', $event.target.value)"
-            class="w-full border rounded-md px-3 py-1.5 text-sm bg-white"
-          >
-            <option value="ALL">All Types</option>
-            <option value="PRIVATE">Private Only</option>
-            <option value="GROUP">Group Only</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
-            >Select Schedule Slot</label
-          >
-          <select
-            :value="localFilters.scheduleId"
-            @change="update('scheduleId', $event.target.value)"
-            :disabled="!localFilters.date || isLoadingSchedules"
-            class="w-full border rounded-md px-2 py-1.5 text-sm bg-white disabled:bg-gray-50"
-          >
-            <option value="">{{ isLoadingSchedules ? 'Loading...' : 'Any Slot' }}</option>
-            <option v-for="sch in availableSchedules" :key="sch.id" :value="sch.id">
-              {{ formatTime(sch.start_time) }} - {{ formatTime(sch.end_time) }} [{{
-                sch.gym_enum === 'STING_HIVE' ? 'Hive' : 'Club'
-              }}]
-            </option>
-          </select>
-          <p v-if="!localFilters.date" class="text-[10px] text-red-400 mt-1">
-            * Please select date first
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-500 uppercase mb-1"
-            >Search Name</label
-          >
-          <input
-            type="text"
-            :value="localFilters.name"
-            @input="update('name', $event.target.value)"
-            placeholder="Search name..."
-            class="w-full border rounded-md px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
-          />
-        </div>
-
-        <div class="flex justify-end gap-2">
-          <button
-            @click="applyFilters"
-            class="w-full bg-black text-white text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-white hover:text-black hover:border hover:border-black"
-          >
-            Apply Filters
-          </button>
-          <button
-            @click="resetFilters"
-            class="w-full bg-white text-black border border-black text-sm py-2.5 rounded-lg mt-2 font-medium hover:bg-gray-800 hover:text-white"
-          >
-            Clear All
-          </button>
-        </div>
-      </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 <script setup>
@@ -206,7 +220,7 @@ const update = (key, value) => {
 // ✅ 3. ฟังก์ชันส่งค่าออกไปข้างนอกเมื่อกด Apply (ไม่ปิด Modal)
 const applyFilters = () => {
   filters.value = { ...localFilters.value }
-  // ไม่ใส่ isOpen.value = false ตามโจทย์
+  isOpen.value = false
 }
 
 const resetFilters = () => {

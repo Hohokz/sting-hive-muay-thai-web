@@ -191,6 +191,10 @@ const searchBooking = async () => {
   if (isLoading.value) return
   try {
     isLoading.value = true
+    // Safari optimization: Dismiss keyboard
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
     searched.value = false
     bookings.value = []
 
@@ -226,6 +230,10 @@ const cancelBooking = (bookingId) => {
     async () => {
       try {
         isLoading.value = true // เริ่มหมุน Loading
+        // Safari optimization: Dismiss keyboard
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
 
         await api.bookings.cancel(bookingId)
 

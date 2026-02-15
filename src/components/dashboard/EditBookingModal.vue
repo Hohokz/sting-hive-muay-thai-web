@@ -449,7 +449,7 @@ const modalStore = useModalStore()
 const gymLabel = computed(() => (selectedGym.value === 'STING_CLUB' ? 'Sting Club' : 'Sting Hive'))
 const displayDate = computed(() =>
   selectedDate.value
-    ? new Date(selectedDate.value).toLocaleDateString('en-EN', {
+    ? new Date(selectedDate.value).toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric',
         year: 'numeric',
@@ -536,14 +536,22 @@ const handleSubmit = async () => {
 
   try {
     isSubmitting.value = true
+    // Safari optimization: Dismiss keyboard
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
     if (isEditMode.value) {
       await api.bookings.update(props.bookingId, payload)
+      isSubmitting.value = false
       openStatus('Success', 'Booking updated successfully!', 'success')
     } else {
-      await api.bookings.create(payload) // axios.post('/api/v1/bookings', payload)
+      await api.bookings.create(payload)
+      isSubmitting.value = false
       openStatus('Success', 'New booking created successfully!', 'success')
     }
   } catch (err) {
+    isSubmitting.value = false
     openStatus('Error', err.response?.data?.message || 'Operation failed', 'error')
   } finally {
     isSubmitting.value = false

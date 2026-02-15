@@ -557,7 +557,7 @@ const displayDate = computed(() => {
   if (!selectedDate.value) return '-'
   const d = safeNewDate(selectedDate.value)
   if (!d) return '-'
-  return d.toLocaleDateString('en-EN', {
+  return d.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -715,9 +715,19 @@ const updateBooking = async () => {
 
   try {
     isSubmitting.value = true
+    // Safari optimization: Dismiss keyboard
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
     await api.bookings.update(bookingId, payload)
+
+    // Safari optimization: reset loading state before showing success modal
+    isSubmitting.value = false
+
     openStatusModal('Success', '✅ อัปเดต Booking สำเร็จแล้ว', 'success', true)
   } catch {
+    isSubmitting.value = false
     openStatusModal('Error', '❌ อัปเดตไม่สำเร็จ', 'error')
   } finally {
     isSubmitting.value = false
