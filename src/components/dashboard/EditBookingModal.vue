@@ -592,7 +592,20 @@ watch(
   },
 )
 
-watch([selectedDate, selectPrivate, selectedGym], () => {
+watch([selectedDate, selectPrivate, selectedGym], (newValues, oldValues) => {
+  const [newDate, newPrivate, newGym] = newValues
+  const [oldDate, oldPrivate, oldGym] = oldValues || []
+
+  // Reset schedule selection if critical fields change
+  // We check if it's NOT the initial load by seeing if oldValues exist
+  if (oldValues) {
+    if (newGym !== oldGym || newDate !== oldDate || newPrivate !== oldPrivate) {
+      selectedSchedule.value = null
+      selectedTrainerName.value = ''
+      trainerSearchQuery.value = ''
+    }
+  }
+
   if (selectedDate.value && selectedGym.value) {
     fetchSchedules({
       date: selectedDate.value,
