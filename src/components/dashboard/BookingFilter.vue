@@ -14,7 +14,7 @@
     </button>
 
     <Teleport to="body">
-      <div v-if="isOpen" class="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6">
+      <div v-if="isOpen" class="fixed inset-0 z-[2000] flex items-center justify-center p-4 sm:p-6">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="isOpen = false"></div>
 

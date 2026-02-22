@@ -310,7 +310,7 @@
 
     <Teleport to="body">
       <!-- NOTE MODAL -->
-      <div v-if="showNoteModal" class="fixed inset-0 z-[999] flex items-center justify-center p-4">
+      <div v-if="showNoteModal" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
         <div
           class="absolute inset-0 bg-black/60 backdrop-blur-sm"
           @click="showNoteModal = false"
@@ -350,7 +350,7 @@
       <!-- TRAINER MODAL -->
       <div
         v-if="showTrainerModal"
-        class="fixed inset-0 z-[999] flex items-center justify-center p-4"
+        class="fixed inset-0 z-[2000] flex items-center justify-center p-4"
       >
         <div
           class="absolute inset-0 bg-black/60 backdrop-blur-sm"

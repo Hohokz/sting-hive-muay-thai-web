@@ -95,9 +95,9 @@
                 </h4>
 
                 <p class="text-sm text-gray-500" v-if="!item.is_close_gym">
-                  New Capacity: <b class="text-gray-800">{{ item.capacity }}</b> slots
-                  <span v-if="getScheduleInfo(item)" class="text-xs text-gray-400 ml-1">
-                    ({{ getScheduleInfo(item) }})
+                  New Capacity: <b class="text-gray-800">{{ item.new_capacity }}</b> slots
+                  <span class="text-xs text-gray-400 ml-1">
+                    (Original: {{ item.original_capacity }} slots)
                   </span>
                 </p>
                 <p class="text-sm text-gray-500" v-else>Bookings suspended for entire duration</p>
@@ -147,7 +147,6 @@ import StatusModal from '@/components/common/StatusModal.vue'
 const modalStore = useModalStore()
 const loading = ref(false)
 const items = ref([])
-const allSchedules = ref([]) // For lookup
 const activeFilter = ref('ALL')
 
 const filters = [
@@ -161,13 +160,7 @@ const fetchItems = async () => {
     loading.value = true
 
     // Fetch parallel: config rules + all schedules
-    const [rulesRes, schedulesRes] = await Promise.all([
-      api.schedules.getAdvanced(),
-      api.schedules.get(),
-    ])
-
-    // Process Schedules
-    allSchedules.value = schedulesRes.data.data || []
+    const [rulesRes] = await Promise.all([api.schedules.getAdvanced()])
 
     // Process Rules
     const data = rulesRes.data.data || {}
@@ -177,29 +170,12 @@ const fetchItems = async () => {
     items.value = [...closures, ...adjustments].sort((a, b) => {
       return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0)
     })
+    console.log(items.value)
   } catch (err) {
     console.error('Failed to load data', err)
   } finally {
     loading.value = false
   }
-}
-
-const getScheduleInfo = (item) => {
-  // If schedule object exists from generic include
-  if (item.schedule) {
-    return `${formatTime(item.schedule.start_time)} - ${formatTime(item.schedule.end_time)}`
-  }
-
-  // Look up by ID
-  const scheduleId = item.schedule_id || item.classes_schedule_id
-  if (!scheduleId) return ''
-
-  const found = allSchedules.value.find((s) => s.id === scheduleId)
-  if (found) {
-    return `${formatTime(found.start_time)} - ${formatTime(found.end_time)}`
-  }
-
-  return ''
 }
 
 const handleEdit = (item) => {
