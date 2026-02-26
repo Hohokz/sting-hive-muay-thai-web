@@ -85,9 +85,6 @@
                     {{ item.is_close_gym ? 'Gym Closed' : 'Capacity Update' }}
                   </span>
                   <span class="text-gray-300 text-xs">•</span>
-                  <span class="text-xs font-bold text-gray-500">{{
-                    formatGym(item.gyms_id || item.gym_id || item.gym_enum)
-                  }}</span>
                 </div>
 
                 <h4 class="text-gray-900 font-bold text-lg">
@@ -95,6 +92,12 @@
                 </h4>
 
                 <p class="text-sm text-gray-500" v-if="!item.is_close_gym">
+                  <span class="text-xs font-bold text-gray-900">{{
+                    formatGym(item.gyms_id || item.gym_id || item.gym_enum)
+                  }}</span>
+                  <span v-if="getScheduleInfo(item)" class="text-xs text-gray-800 ml-1">
+                    ({{ getScheduleInfo(item) }})
+                  </span>
                   New Capacity: <b class="text-gray-800">{{ item.new_capacity }}</b> slots
                   <span class="text-xs text-gray-400 ml-1">
                     (Original: {{ item.original_capacity }} slots)
@@ -148,6 +151,7 @@ const modalStore = useModalStore()
 const loading = ref(false)
 const items = ref([])
 const activeFilter = ref('ALL')
+const allSchedules = ref([])
 
 const filters = [
   { label: 'All Rules', value: 'ALL' },
@@ -160,7 +164,12 @@ const fetchItems = async () => {
     loading.value = true
 
     // Fetch parallel: config rules + all schedules
-    const [rulesRes] = await Promise.all([api.schedules.getAdvanced()])
+    const [rulesRes, schedulesRes] = await Promise.all([
+      api.schedules.getAdvanced(),
+      api.schedules.get(),
+    ])
+
+    allSchedules.value = schedulesRes.data.data || []
 
     // Process Rules
     const data = rulesRes.data.data || {}
@@ -170,12 +179,29 @@ const fetchItems = async () => {
     items.value = [...closures, ...adjustments].sort((a, b) => {
       return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0)
     })
-    console.log(items.value)
   } catch (err) {
     console.error('Failed to load data', err)
   } finally {
     loading.value = false
   }
+}
+
+const getScheduleInfo = (item) => {
+  // If schedule object exists from generic include
+  if (item.schedule) {
+    return `${formatTime(item.schedule.start_time)} - ${formatTime(item.schedule.end_time)}`
+  }
+
+  // Look up by ID
+  const scheduleId = item.schedule_id || item.classes_schedule_id
+  if (!scheduleId) return ''
+
+  const found = allSchedules.value.find((s) => s.id === scheduleId)
+  if (found) {
+    return `${formatTime(found.start_time)} - ${formatTime(found.end_time)}`
+  }
+
+  return ''
 }
 
 const handleEdit = (item) => {
