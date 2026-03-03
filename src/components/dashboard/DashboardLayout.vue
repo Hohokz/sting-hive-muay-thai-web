@@ -154,7 +154,7 @@
             </span>
           </RouterLink>
 
-                    <RouterLink
+          <RouterLink
             v-if="auth.isAdmin"
             to="/admin/trainers"
             class="flex items-center gap-4 hover:text-red-400 h-6"
@@ -245,12 +245,44 @@
       <main class="p-4 sm:p-8">
         <slot />
       </main>
+
+      <!-- Back to Top Button -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="translate-y-10 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-10 opacity-0"
+      >
+        <button
+          v-show="showBackToTop"
+          @click="scrollToTop"
+          class="fixed bottom-8 right-8 z-50 p-3 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-4 focus:ring-red-300"
+          aria-label="Back to top"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 10l7-7m0 0l7 7m-7-7v18"
+            />
+          </svg>
+        </button>
+      </Transition>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
@@ -259,6 +291,26 @@ const router = useRouter()
 
 const open = ref(false) // mobile toggle
 const hover = ref(false) // desktop hover expand
+const showBackToTop = ref(false)
+
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 300
+}
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 const closeMobileSidebar = () => {
   // Only close on mobile (screen width < 768px)

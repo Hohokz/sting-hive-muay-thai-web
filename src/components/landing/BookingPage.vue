@@ -65,6 +65,7 @@
                 :is_private_class="selectPrivate"
                 :filter-past-time="true"
                 @select="onSelectSchedule"
+                @loading="isSlotsLoading = $event"
               />
             </div>
           </div>
@@ -274,7 +275,7 @@
 
           <button
             class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-            :disabled="isSubmitting"
+            :disabled="isSubmitting || isSlotsLoading"
             @click="submitBooking"
           >
             <span v-if="!isSubmitting">Proceed to Booking</span>
@@ -345,7 +346,6 @@ import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 import { api } from '@/api/bookingApi' // Updated import
 import { useRouter } from 'vue-router'
-import { useSchedules } from '@/composables/useSchedules'
 import { onMounted, onUnmounted } from 'vue'
 import trainerGymApi from '@/api/trainerGymApi'
 import { safeNewDate } from '@/utils/dateUtils'
@@ -524,8 +524,7 @@ const onSelectSchedule = (payload) => {
 }
 
 const isSubmitting = ref(false)
-
-const { fetchSchedules } = useSchedules()
+const isSlotsLoading = ref(false)
 
 const resetForm = () => {
   clientName.value = ''
@@ -624,20 +623,6 @@ watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
   // Whenever any of these change, try to fetch.
   // The fetchTrainers function has the strict boolean check at the top.
   fetchTrainers()
-})
-
-/* ✅ เมื่อเปลี่ยนวัน → reset เวลา */
-watch([selectedSchedule, selectPrivate, selectedGym], () => {
-  // ถ้าค่ายังไม่ครบ → ไม่ต้องยิง API
-  if (!selectedDate.value || !selectedGym.value || selectPrivate.value === null) {
-    return
-  }
-
-  fetchSchedules({
-    date: selectedDate.value,
-    gym_enum: selectedGym.value,
-    is_private_class: selectPrivate.value,
-  })
 })
 </script>
 <style>

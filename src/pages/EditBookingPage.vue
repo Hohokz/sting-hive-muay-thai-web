@@ -107,6 +107,7 @@
                 :filter-past-time="true"
                 :disabled="isReadOnly"
                 @select="onSelectSchedule"
+                @loading="isSlotsLoading = $event"
               />
               <span v-if="!selectedGym" class="text-sm text-red-500">
                 Please select a Place first.
@@ -319,7 +320,7 @@
           <div class="flex flex-col gap-3">
             <button
               class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-              :disabled="isSubmitting || isReadOnly"
+              :disabled="isSubmitting || isReadOnly || isSlotsLoading"
               @click="updateBooking"
             >
               <span v-if="!isSubmitting">Update Booking</span>
@@ -412,7 +413,6 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/api/bookingApi'
-import { useSchedules } from '@/composables/useSchedules'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
@@ -420,10 +420,9 @@ import { safeNewDate } from '@/utils/dateUtils'
 
 const route = useRoute()
 const router = useRouter()
-const { fetchSchedules } = useSchedules()
-
 const bookingId = route.params.id
 const isSubmitting = ref(false)
+const isSlotsLoading = ref(false)
 const isInitialLoading = ref(true)
 
 // Form State
@@ -677,15 +676,7 @@ onUnmounted(() => {
 })
 
 // Watcher เพื่อดึงตารางเวลาใหม่
-watch([selectedDate, selectPrivate, selectedGym], () => {
-  if (selectedDate.value && selectedGym.value) {
-    fetchSchedules({
-      date: selectedDate.value,
-      gym_enum: selectedGym.value,
-      is_private_class: selectPrivate.value,
-    })
-  }
-})
+// Removed redundant watch since BookingTimeSlots handles this.
 
 // Watcher to fetch trainers
 watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {

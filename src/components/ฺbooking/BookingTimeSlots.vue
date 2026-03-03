@@ -95,8 +95,14 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'loading'])
 const { schedules, loading, fetchSchedules } = useSchedules()
+
+// ✅ Emit loading state to parent
+watch(loading, (val) => {
+  emit('loading', val)
+})
+
 const selectedId = ref(null)
 
 // ✅ Check if inputs are ready
