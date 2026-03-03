@@ -101,6 +101,9 @@ const { schedules, loading, fetchSchedules } = useSchedules()
 // ✅ Emit loading state to parent
 watch(loading, (val) => {
   emit('loading', val)
+  if (val) {
+    selectedId.value = null
+  }
 })
 
 const selectedId = ref(null)

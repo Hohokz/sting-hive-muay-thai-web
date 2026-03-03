@@ -683,6 +683,14 @@ watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
   fetchTrainers()
 })
 
+watch(isSlotsLoading, (loading) => {
+  if (loading) {
+    selectedSchedule.value = null
+    selectedTrainerName.value = ''
+    trainerSearchQuery.value = ''
+  }
+})
+
 const updateBooking = async () => {
   if (isSubmitting.value) return
 
