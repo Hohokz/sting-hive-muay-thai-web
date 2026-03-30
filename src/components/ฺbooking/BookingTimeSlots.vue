@@ -118,33 +118,38 @@ const selectedId = ref(null)
 const isReady = computed(() => !!props.date && !!props.gym_enum)
 
 const upcomingSchedules = computed(() => {
-  if (!schedules.value) return []
-  let results = schedules.value
+  if (!schedules.value || !Array.isArray(schedules.value)) return []
+  let results = [...schedules.value]
 
   if (!props.isAdminMode) {
     results = results.filter((s) => s.available_seats > 0)
   }
 
-  if (props.filterPastTime === false) {
+  if (props.filterPastTime === false || !props.date) {
     return results
   }
 
-  if (!props.date) return results
+  try {
+    const now = new Date()
+    const targetDate = new Date(props.date)
+    const isSameDay = targetDate.toDateString() === now.toDateString()
 
-  const now = new Date()
-  const targetDate = new Date(props.date)
-  const isSameDay = targetDate.toDateString() === now.toDateString()
+    if (!isSameDay) return results
 
-  return results.filter((s) => {
-    if (!isSameDay) return true
-    const [hours, minutes] = s.start_time.split(':')
-    const classTime = new Date()
-    classTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-    if (classTime < now) {
-      return false
-    }
-    return true
-  })
+    return results.filter((s) => {
+      if (!s.start_time) return true
+      const parts = s.start_time.split(':')
+      if (parts.length < 2) return true
+
+      const [hours, minutes] = parts
+      const classTime = new Date()
+      classTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+      return classTime >= now
+    })
+  } catch (e) {
+    console.error('Error filtering schedules:', e)
+    return results
+  }
 })
 
 onMounted(() => {
@@ -160,8 +165,12 @@ onMounted(() => {
 watch(
   () => [props.date, props.gym_enum, props.is_private_class],
   ([date, gym, isPrivate]) => {
+    console.log('BookingTimeSlots Props changed:', { date, gym, isPrivate })
     schedules.value = []
-    if (!date || !gym) return
+    if (!date || !gym) {
+      console.warn('BookingTimeSlots: Ready check failed.', { date, gym })
+      return
+    }
     fetchSchedules({
       date,
       gym_enum: gym,
