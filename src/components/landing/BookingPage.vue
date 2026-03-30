@@ -1,11 +1,16 @@
 <template>
   <div class="w-full min-h-screen p-6 pb-20">
+    <!-- Language Switcher -->
+    <div class="max-w-6xl mx-auto mb-6 flex justify-end">
+      <LanguageSwitcher />
+    </div>
+
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- LEFT CONTENT -->
       <div class="lg:col-span-2 space-y-6">
         <!-- ✅ SELECT GYM -->
         <div class="bg-white rounded-xl shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Select Place</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.select_place') }}</h2>
 
           <div class="flex justify-around items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer">
@@ -15,7 +20,7 @@
                 v-model="selectedGym"
                 class="accent-blue-600"
               />
-              <span>Sting Club</span>
+              <span>{{ t('booking.sting_club') }}</span>
             </label>
 
             <label class="flex items-center gap-2 cursor-pointer">
@@ -25,7 +30,7 @@
                 v-model="selectedGym"
                 class="accent-blue-600"
               />
-              <span>Sting Hive</span>
+              <span>{{ t('booking.sting_hive') }}</span>
             </label>
           </div>
         </div>
@@ -33,31 +38,31 @@
         <!-- ✅ SELECT A SLOT -->
         <div class="bg-white rounded-xl shadow p-6 pb-8 space-y-6">
           <div>
-            <h3 class="text-xl font-semibold mb-4">Class Type</h3>
+            <h3 class="text-xl font-semibold mb-4">{{ t('booking.class_type') }}</h3>
           </div>
           <div class="flex justify-around items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" :value="false" v-model="selectPrivate" class="accent-blue-600" />
-              <span>Group Class</span>
+              <span>{{ t('booking.group_class') }}</span>
             </label>
 
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="radio" :value="true" v-model="selectPrivate" class="accent-blue-600" />
-              <span>Private Class</span>
+              <span>{{ t('booking.private_class') }}</span>
             </label>
           </div>
-          <h2 class="text-xl font-semibold mb-4">Select a Slot</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.select_slot') }}</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <!-- DATE -->
             <div class="calendar-wrapper">
-              <p class="text-gray-600 text-sm mb-2">Select Date</p>
+              <p class="text-gray-600 text-sm mb-2">{{ t('booking.select_date') }}</p>
               <BookingCalender v-model="selectedDate" />
             </div>
 
             <!-- TIME -->
             <div>
-              <p class="text-gray-600 text-sm mb-5">Select Time</p>
+              <p class="text-gray-600 text-sm mb-5">{{ t('booking.select_time') }}</p>
 
               <BookingTimeSlots
                 :date="selectedDate"
@@ -72,32 +77,32 @@
         </div>
         <!-- ✅ CONTACT INFO -->
         <div class="bg-white rounded-xl shadow p-6 space-y-4">
-          <h2 class="text-xl font-semibold mb-4">Contact Information</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.contact_info') }}</h2>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- NAME  -->
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Name</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.name') }}</p>
               </div>
 
               <input
                 v-model="clientName"
                 type="text"
                 class="w-full p-3 border rounded-md"
-                placeholder="Enter Your Name"
+                :placeholder="t('booking.enter_name')"
               />
             </div>
             <!-- ✅ MOBILE -->
             <div>
-              <p class="text-gray-600 text-sm mb-1">Mobile Number</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.mobile') }}</p>
               <input
                 v-model="mobile"
                 inputmode="numeric"
                 pattern="[0-9]*"
                 class="w-full p-3 border rounded-md"
-                placeholder="Enter mobile number"
+                :placeholder="t('booking.enter_mobile')"
                 maxlength="10"
                 @input="mobile = mobile.replace(/\D/g, '')"
               />
@@ -107,29 +112,29 @@
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Email</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.email') }}</p>
               </div>
               <input
                 v-model="email"
                 type="email"
                 class="w-full p-3 border rounded-md"
-                placeholder="Enter email address"
+                :placeholder="t('booking.enter_email')"
               />
               <p v-if="email && !email.includes('@')" class="text-red-500 text-xs mt-1">
-                Invalid email format.
+                {{ t('booking.invalid_email') }}
               </p>
             </div>
             <!-- ✅ Person -->
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Participants</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.participants') }}</p>
               </div>
               <input
                 v-model.number="participants"
                 type="number"
                 class="w-full p-3 border rounded-md"
-                placeholder="Number of participants (Maximum 5 people)"
+                :placeholder="t('booking.max_people')"
                 min="1"
                 max="5"
                 @input="handleParticipantsInput"
@@ -139,13 +144,13 @@
 
             <!-- ✅ TRAINER (Optional) -->
             <div v-if="selectPrivate" class="md:col-span-1 relative trainer-select-container">
-              <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.request_trainer') }}</p>
               <div class="relative group">
                 <input
                   v-model="trainerSearchQuery"
                   type="text"
                   class="w-full p-3 border rounded-md pr-10"
-                  placeholder="Search and select trainer..."
+                  :placeholder="t('booking.search_trainer')"
                   @focus="showTrainerDropdown = true"
                   @input="onTrainerInput"
                 />
@@ -178,7 +183,7 @@
                   v-if="filteredTrainers.length === 0"
                   class="p-4 text-center text-gray-400 italic text-sm"
                 >
-                  No trainers found matching your search.
+                  {{ t('booking.no_trainers') }}
                 </div>
               </div>
 
@@ -187,13 +192,13 @@
                 v-if="selectedTrainerName && !showTrainerDropdown"
                 class="text-[10px] text-blue-600 mt-1 font-semibold"
               >
-                ✓ Currently selected: {{ selectedTrainerName }}
+                ✓ {{ t('booking.currently_selected') }}: {{ selectedTrainerName }}
               </p>
             </div>
 
             <!-- ✅ MULTIPLE STUDENTS -->
             <div v-if="selectPrivate" class="md:col-span-1">
-              <p class="text-gray-600 text-sm mb-1">Multiple Students</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.multiple_students') }}</p>
               <div class="flex items-center gap-6 p-3 border rounded-md">
                 <label class="flex items-center gap-2 cursor-pointer">
                   <input
@@ -223,51 +228,51 @@
       <!-- ✅ RIGHT SUMMARY -->
       <div>
         <div class="bg-white rounded-xl shadow p-6 h-fit">
-          <h2 class="text-lg font-semibold mb-4">Booking Details</h2>
+          <h2 class="text-lg font-semibold mb-4">{{ t('booking.summary') }}</h2>
 
           <!-- ✅ PLACE -->
           <div class="border-b pb-4 mb-4">
-            <p class="text-gray-700 font-medium">Place</p>
+            <p class="text-gray-700 font-medium">{{ t('booking.place') }}</p>
             <p class="text-sm">{{ gymLabel }}</p>
           </div>
 
           <!-- ✅ DATE & TIME -->
           <div class="border-b pb-4 mb-4">
-            <p class="text-gray-700 font-medium">Date & Time</p>
+            <p class="text-gray-700 font-medium">{{ t('booking.date_time') }}</p>
             <p v-if="!selectedDate || !selectedSchedule" class="text-sm mt-1">-</p>
             <p v-else class="text-sm mt-1">{{ displayDate }} - {{ displayTime }}</p>
           </div>
 
           <!-- ✅ CONTACT INFO SUMMARY -->
           <div class="border-b pb-4">
-            <p class="text-gray-700 font-medium mb-2">Contact Information</p>
+            <p class="text-gray-700 font-medium mb-2">{{ t('booking.contact_info') }}</p>
 
             <div class="text-sm space-y-1">
               <p>
-                <span class="text-gray-500">Name:</span>
+                <span class="text-gray-500">{{ t('booking.name') }}:</span>
                 <span class="ml-1">{{ clientName || '-' }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Mobile:</span>
+                <span class="text-gray-500">{{ t('booking.mobile') }}:</span>
                 <span class="ml-1">{{ mobile || '-' }}</span>
               </p>
 
               <p>
-                <span class="text-gray-500">Email:</span>
+                <span class="text-gray-500">{{ t('booking.email') }}:</span>
                 <span class="ml-1">{{ email || '-' }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Participants:</span>
+                <span class="text-gray-500">{{ t('booking.participants') }}:</span>
                 <span class="ml-1">{{ participants || '-' }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Trainer:</span>
+                <span class="text-gray-500">{{ t('booking.trainer') }}:</span>
                 <span class="ml-1">{{
                   selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
                 }}</span>
               </p>
               <p v-if="selectPrivate">
-                <span class="text-gray-500">Multiple Students:</span>
+                <span class="text-gray-500">{{ t('booking.multiple_students') }}:</span>
                 <span class="ml-1">{{ multipleStudents ? '2v1' : '1v1' }}</span>
               </p>
             </div>
@@ -278,8 +283,8 @@
             :disabled="isSubmitting || isSlotsLoading"
             @click="submitBooking"
           >
-            <span v-if="!isSubmitting">Proceed to Booking</span>
-            <span v-else>Loading...</span>
+            <span v-if="!isSubmitting">{{ t('booking.proceed') }}</span>
+            <span v-else>{{ t('booking.loading') }}</span>
           </button>
         </div>
 
@@ -289,16 +294,16 @@
           style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
         >
           <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
-            Creating Booking...
+            {{ t('booking.creating') }}
           </div>
         </div>
         <div class="bg-white rounded-xl shadow p-6 h-fit mt-6">
-          <h2 class="text-lg font-semibold mb-4">Find Your Booking</h2>
+          <h2 class="text-lg font-semibold mb-4">{{ t('booking.find_booking') }}</h2>
           <button
             class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
             @click="goToFindBooking"
           >
-            <span>Find Booking</span>
+            <span>{{ t('booking.find_btn') }}</span>
           </button>
         </div>
       </div>
@@ -333,7 +338,7 @@
           }"
           @click="showModal = false"
         >
-          OK
+          {{ t('booking.ok') }}
         </button>
       </div>
     </div>
@@ -341,21 +346,23 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
-import { api } from '@/api/bookingApi' // Updated import
-import { useRouter } from 'vue-router'
-import { onMounted, onUnmounted } from 'vue'
+import { api } from '@/api/bookingApi'
 import trainerGymApi from '@/api/trainerGymApi'
 import { safeNewDate } from '@/utils/dateUtils'
 
-// const STING_HIVE_API_URL = import.meta.env.VITE_STING_HIVE_API_URL || 'localhost:3000'; // Removed
 const router = useRouter()
+const { t } = useI18n()
 
 const goToFindBooking = () => {
-  router.push('/search-booking') // ✅ path ของหน้าค้นหา booking
+  router.push('/search-booking')
 }
+
 const showModal = ref(false)
 const modalTitle = ref('')
 const modalMessage = ref('')
@@ -368,13 +375,9 @@ const openModal = (title, message, type = 'warning') => {
   showModal.value = true
 }
 
-// ... existing helper functions omitted for brevity in replace block if unchanged,
-// but since this is a clean replacement let's include context or replace minimal part.
-// I'll replace the script section mostly.
-
 const gymLabel = computed(() => {
-  if (selectedGym.value === 'STING_CLUB') return 'Sting Club'
-  if (selectedGym.value === 'STING_HIVE') return 'Sting Hive'
+  if (selectedGym.value === 'STING_CLUB') return t('booking.sting_club')
+  if (selectedGym.value === 'STING_HIVE') return t('booking.sting_hive')
   return '-'
 })
 
@@ -382,7 +385,7 @@ const displayDate = computed(() => {
   if (!selectedDate.value) return '-'
 
   const d = new Date(selectedDate.value)
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString(t('booking.select_date').includes('เลือก') ? 'th-TH' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -400,7 +403,6 @@ const displayTime = computed(() => {
 
 const selectedSchedule = ref(null)
 const selectedDate = ref(null)
-
 const selectedGym = ref(null)
 const selectPrivate = ref(false)
 const mobile = ref('')
@@ -419,7 +421,6 @@ const multipleStudents = ref(false)
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
-  // If the query exactly matches the selected name and dropdown has just been opened, show all for convenience
   if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
     return trainers.value
   }
@@ -427,7 +428,6 @@ const filteredTrainers = computed(() => {
   return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
 })
 
-// Helper function to convert gym_enum to gym ID
 const getGymIdFromEnum = (gymEnum) => {
   if (gymEnum === 'STING_CLUB') return 1
   if (gymEnum === 'STING_HIVE') return 2
@@ -435,8 +435,6 @@ const getGymIdFromEnum = (gymEnum) => {
 }
 
 const fetchTrainers = async () => {
-  // If no gym is selected, or if we are filtering by time but time is not selected, clear trainers.
-  // STRICT CHECK: Must have Gym, Date, Schedule AND Private Class (True)
   if (
     !selectedGym.value ||
     !selectedDate.value ||
@@ -444,20 +442,16 @@ const fetchTrainers = async () => {
     !selectPrivate.value
   ) {
     trainers.value = []
-    // Optional: Clear selection if we are hiding the list
-    // selectedTrainerName.value = ''
     return
   }
 
   try {
     const gymId = getGymIdFromEnum(selectedGym.value)
     if (!gymId) {
-      console.error('❌ Invalid gym enum:', selectedGym.value)
       trainers.value = []
       return
     }
 
-    // Format params
     const d = safeNewDate(selectedDate.value)
     if (!d) return
 
@@ -468,7 +462,7 @@ const fetchTrainers = async () => {
 
     const params = {
       date: dateStr,
-      classes_schedule_id: selectedSchedule.value.id, // match new backend logic
+      classes_schedule_id: selectedSchedule.value.id,
     }
 
     const response = await trainerGymApi.getGymTrainers(gymId, params)
@@ -494,8 +488,6 @@ const toggleTrainerDropdown = () => {
 
 const onTrainerInput = () => {
   showTrainerDropdown.value = true
-  // Clear selection if input changes significantly but keep it if it's just a prefix for now
-  // We'll trust the selectTrainer function to finalize the selection
 }
 
 const selectTrainer = (trainer) => {
@@ -534,8 +526,6 @@ const resetForm = () => {
   selectedTrainerName.value = ''
   trainerSearchQuery.value = ''
   multipleStudents.value = false
-
-  // ล้างค่าการเลือก (ถ้าต้องการให้เลือก Gym ใหม่ด้วยให้ uncomment บรรทัด selectedGym)
   selectedSchedule.value = null
   selectedDate.value = null
   selectedGym.value = null
@@ -549,7 +539,6 @@ const handleParticipantsInput = () => {
 }
 
 const handleParticipantsBlur = () => {
-  // ✅ เช็ค Min ตอนลูกค้ากดออกจากช่อง (Blur) แล้วเท่านั้น
   if (!participants.value || participants.value < 1) {
     participants.value = 1
   }
@@ -567,22 +556,17 @@ const formatDateToLocal = (date) => {
 const submitBooking = async () => {
   if (isSubmitting.value) return
 
-  // ✅ Dismiss keyboard on mobile to prevent UI glitches in fixed overlays
   if (document.activeElement && typeof document.activeElement.blur === 'function') {
     document.activeElement.blur()
   }
 
   if (!selectedDate.value || !selectedSchedule.value || !selectedGym.value) {
-    openModal(
-      'Incomplete Information',
-      'Please select Place / Date / Time before continuing.',
-      'warning',
-    )
+    openModal(t('booking.incomplete_info'), t('booking.please_select'), 'warning')
     return
   }
 
   if (!participants.value || participants.value < 1 || participants.value > 5) {
-    openModal('Incomplete Information', 'Please enter 1 - 5 participants.', 'warning')
+    openModal(t('booking.incomplete_info'), t('booking.please_enter_participants'), 'warning')
     return
   }
 
@@ -603,18 +587,13 @@ const submitBooking = async () => {
   try {
     isSubmitting.value = true
     await api.bookings.create(payload)
-
-    isSubmitting.value = false // ✅ Turn off loading BEFORE showing success modal
-    openModal('Booking completed!', 'Your booking has been successfully created.', 'success')
+    isSubmitting.value = false
+    openModal(t('booking.completed'), t('booking.success_msg'), 'success')
     resetForm()
   } catch (err) {
     console.error('❌ Booking failed:', err)
-    isSubmitting.value = false // ✅ Turn off loading BEFORE showing error modal
-    openModal(
-      'Booking Failed',
-      'There was an error creating your booking. Please try again later.',
-      'error',
-    )
+    isSubmitting.value = false
+    openModal(t('booking.failed'), t('booking.error_msg'), 'error')
   }
 }
 
@@ -626,20 +605,17 @@ watch(isSlotsLoading, (loading) => {
   }
 })
 
-/* ✅ Watch for changes to re-fetch trainers */
 watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
-  // Whenever any of these change, try to fetch.
-  // The fetchTrainers function has the strict boolean check at the top.
   fetchTrainers()
 })
 </script>
+
 <style>
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: scale(0.9);
   }
-
   to {
     opacity: 1;
     transform: scale(1);

@@ -8,6 +8,7 @@
       :min-date="new Date()"
       :time-config="{ enableTimePicker: false }"
       :disabled="disabled"
+      :locale="locale"
     />
   </div>
 </template>
@@ -16,6 +17,9 @@
 import { computed } from 'vue'
 import { VueDatePicker } from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import { useI18n } from 'vue-i18n'
+
+const { locale } = useI18n()
 
 const props = defineProps({
   modelValue: {

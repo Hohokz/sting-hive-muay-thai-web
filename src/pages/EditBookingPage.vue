@@ -1,5 +1,10 @@
 <template>
   <div class="w-full min-h-screen p-6 pb-20">
+    <!-- Language Switcher -->
+    <div class="max-w-6xl mx-auto mb-6 flex justify-end">
+      <LanguageSwitcher />
+    </div>
+
     <div
       v-if="isInitialLoading"
       class="max-w-4xl mx-auto bg-white rounded-xl shadow p-12 text-center"
@@ -7,7 +12,7 @@
       <div
         class="inline-block w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mb-4"
       ></div>
-      <p class="text-gray-500 font-medium">Loading booking details...</p>
+      <p class="text-gray-500 font-medium">{{ t('edit.loading') }}</p>
     </div>
 
     <div v-else class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -18,16 +23,16 @@
       >
         <span class="text-2xl">⚠️</span>
         <div>
-          <h3 class="font-bold text-red-800">Booking is {{ bookingStatus }}</h3>
+          <h3 class="font-bold text-red-800">{{ t('edit.read_only_title', { status: bookingStatus }) }}</h3>
           <p class="text-red-600 text-sm">
-            This booking cannot be edited because its status is not a confirmed success status.
+            {{ t('edit.read_only_msg') }}
           </p>
         </div>
       </div>
 
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-xl shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Select Place</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.select_place') }}</h2>
           <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
             <label
               class="flex items-center gap-2"
@@ -40,7 +45,7 @@
                 class="accent-blue-600"
                 :disabled="isReadOnly"
               />
-              <span>Sting Club</span>
+              <span>{{ t('booking.sting_club') }}</span>
             </label>
             <label
               class="flex items-center gap-2"
@@ -53,14 +58,14 @@
                 class="accent-blue-600"
                 :disabled="isReadOnly"
               />
-              <span>Sting Hive</span>
+              <span>{{ t('booking.sting_hive') }}</span>
             </label>
           </div>
         </div>
 
         <div class="bg-white rounded-xl shadow p-6 pb-8 space-y-6">
           <div>
-            <h3 class="text-xl font-semibold mb-4">Class Type</h3>
+            <h3 class="text-xl font-semibold mb-4">{{ t('booking.class_type') }}</h3>
           </div>
           <div class="flex flex-col sm:flex-row justify-around items-center gap-4 sm:gap-6">
             <label
@@ -74,7 +79,7 @@
                 class="accent-blue-600"
                 :disabled="isReadOnly"
               />
-              <span>Group Class</span>
+              <span>{{ t('booking.group_class') }}</span>
             </label>
             <label
               class="flex items-center gap-2"
@@ -87,19 +92,19 @@
                 class="accent-blue-600"
                 :disabled="isReadOnly"
               />
-              <span>Private Class</span>
+              <span>{{ t('booking.private_class') }}</span>
             </label>
           </div>
 
-          <h2 class="text-xl font-semibold mb-4">Select a Slot</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.select_slot') }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div class="calendar-wrapper">
-              <p class="text-gray-600 text-sm mb-2">Select Date</p>
+              <p class="text-gray-600 text-sm mb-2">{{ t('booking.select_date') }}</p>
               <BookingCalender v-model="selectedDate" :disabled="isReadOnly" />
             </div>
 
             <div>
-              <p class="text-gray-600 text-sm mb-5">Select Time</p>
+              <p class="text-gray-600 text-sm mb-5">{{ t('booking.select_time') }}</p>
               <BookingTimeSlots
                 :date="selectedDate"
                 :gym_enum="selectedGym"
@@ -110,35 +115,35 @@
                 @loading="isSlotsLoading = $event"
               />
               <span v-if="!selectedGym" class="text-sm text-red-500">
-                Please select a Place first.
+                {{ t('booking.please_select_place') }}
               </span>
             </div>
           </div>
         </div>
 
         <div class="bg-white rounded-xl shadow p-6 space-y-4">
-          <h2 class="text-xl font-semibold mb-4">Contact Information</h2>
+          <h2 class="text-xl font-semibold mb-4">{{ t('booking.contact_info') }}</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Name</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.name') }}</p>
               </div>
               <input
                 v-model="clientName"
                 class="w-full p-3 border rounded-md"
-                placeholder="Enter name"
+                :placeholder="t('booking.enter_name')"
                 :disabled="isReadOnly"
               />
             </div>
             <div>
-              <p class="text-gray-600 text-sm mb-1">Mobile Number</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.mobile') }}</p>
               <input
                 v-model="mobile"
                 inputmode="numeric"
                 pattern="[0-9]*"
                 class="w-full p-3 border rounded-md"
-                placeholder="Enter mobile number"
+                :placeholder="t('booking.enter_mobile')"
                 maxlength="10"
                 :disabled="isReadOnly"
                 @input="mobile = mobile.replace(/\D/g, '')"
@@ -147,7 +152,7 @@
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Email</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.email') }}</p>
               </div>
               <input
                 v-model="email"
@@ -158,13 +163,13 @@
             <div>
               <div class="flex items-center gap-1">
                 <span class="text-red-500">*</span>
-                <p class="text-gray-600 text-sm mb-1">Participants</p>
+                <p class="text-gray-600 text-sm mb-1">{{ t('booking.participants') }}</p>
               </div>
               <input
                 v-model.number="participants"
                 type="number"
                 class="w-full p-3 border rounded-md"
-                placeholder="Number of participants (Maximum 5 people)"
+                :placeholder="t('booking.max_people')"
                 min="1"
                 max="5"
                 :disabled="isReadOnly"
@@ -175,7 +180,7 @@
 
             <!-- ✅ MULTIPLE STUDENTS -->
             <div v-if="selectPrivate">
-              <p class="text-gray-600 text-sm mb-1">Multiple Students</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.multiple_students') }}</p>
               <div class="flex items-center gap-6 p-3 border rounded-md">
                 <label
                   class="flex items-center gap-2"
@@ -188,7 +193,7 @@
                     class="accent-blue-600"
                     :disabled="isReadOnly"
                   />
-                  <span>Yes</span>
+                  <span>{{ t('edit.yes') }}</span>
                 </label>
 
                 <label
@@ -202,20 +207,20 @@
                     class="accent-blue-600"
                     :disabled="isReadOnly"
                   />
-                  <span>No</span>
+                  <span>{{ t('edit.no') }}</span>
                 </label>
               </div>
             </div>
 
             <!-- ✅ TRAINER (Optional) -->
             <div v-if="selectPrivate" class="md:col-span-2 relative trainer-select-container">
-              <p class="text-gray-600 text-sm mb-1">Request Trainer (Optional)</p>
+              <p class="text-gray-600 text-sm mb-1">{{ t('booking.request_trainer') }}</p>
               <div class="relative group">
                 <input
                   v-model="trainerSearchQuery"
                   type="text"
                   class="w-full p-3 border rounded-md pr-10"
-                  placeholder="Search and select trainer..."
+                  :placeholder="t('booking.search_trainer')"
                   :disabled="isReadOnly"
                   @focus="showTrainerDropdown = true"
                   @input="onTrainerInput"
@@ -251,7 +256,7 @@
                   v-if="filteredTrainers.length === 0"
                   class="p-4 text-center text-gray-400 italic text-sm"
                 >
-                  No trainers found matching your search.
+                  {{ t('booking.no_trainers') }}
                 </div>
               </div>
 
@@ -260,7 +265,7 @@
                 v-if="selectedTrainerName && !showTrainerDropdown"
                 class="text-[10px] text-blue-600 mt-1 font-semibold"
               >
-                ✓ Currently selected: {{ selectedTrainerName }}
+                ✓ {{ t('booking.currently_selected') }}: {{ selectedTrainerName }}
               </p>
             </div>
           </div>
@@ -269,45 +274,45 @@
 
       <div class="space-y-6">
         <div class="bg-white rounded-xl shadow p-6 h-fit">
-          <h2 class="text-lg font-semibold mb-4">Edit Summary</h2>
+          <h2 class="text-lg font-semibold mb-4">{{ t('edit.summary_title') }}</h2>
 
           <div class="border-b pb-4 mb-4">
-            <p class="text-gray-700 font-medium">Place</p>
+            <p class="text-gray-700 font-medium">{{ t('booking.place') }}</p>
             <p class="text-sm">{{ gymLabel }}</p>
           </div>
 
           <div class="border-b pb-4 mb-4">
-            <p class="text-gray-700 font-medium">Date & Time</p>
+            <p class="text-gray-700 font-medium">{{ t('booking.date_time') }}</p>
             <p v-if="!selectedDate || !selectedSchedule" class="text-sm mt-1">-</p>
             <p v-else class="text-sm mt-1">{{ displayDate }} - {{ displayTime }}</p>
           </div>
 
           <div class="border-b pb-4 mb-6">
-            <p class="text-gray-700 font-medium mb-2">Booking Info</p>
+            <p class="text-gray-700 font-medium mb-2">{{ t('edit.booking_info') }}</p>
             <div class="text-sm space-y-1">
               <p>
-                <span class="text-gray-500">Name:</span> <span class="ml-1">{{ clientName }}</span>
+                <span class="text-gray-500">{{ t('booking.name') }}:</span> <span class="ml-1">{{ clientName }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Participants:</span>
+                <span class="text-gray-500">{{ t('booking.participants') }}:</span>
                 <span class="ml-1">{{ participants }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Type:</span>
-                <span class="ml-1">{{ selectPrivate ? 'Private' : 'Group' }}</span>
+                <span class="text-gray-500">{{ t('edit.type') }}:</span>
+                <span class="ml-1">{{ selectPrivate ? t('edit.private') : t('edit.group') }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Trainer:</span>
+                <span class="text-gray-500">{{ t('edit.trainer') }}:</span>
                 <span class="ml-1">{{
                   selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
                 }}</span>
               </p>
               <p v-if="selectPrivate">
-                <span class="text-gray-500">Type of Students:</span>
+                <span class="text-gray-500">{{ t('edit.type_students') }}:</span>
                 <span class="ml-1">{{ multipleStudents ? '2v1' : '1v1' }}</span>
               </p>
               <p>
-                <span class="text-gray-500">Status:</span>
+                <span class="text-gray-500">{{ t('edit.status') }}:</span>
                 <span
                   class="ml-1 font-bold"
                   :class="isReadOnly ? 'text-red-600' : 'text-green-600'"
@@ -323,21 +328,21 @@
               :disabled="isSubmitting || isReadOnly || isSlotsLoading"
               @click="updateBooking"
             >
-              <span v-if="!isSubmitting">Update Booking</span>
-              <span v-else>Updating...</span>
+              <span v-if="!isSubmitting">{{ t('edit.update_btn') }}</span>
+              <span v-else>{{ t('edit.updating') }}</span>
             </button>
             <button
               class="w-full bg-red-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
               :disabled="isSubmitting || isReadOnly"
               @click="confirmCancel"
             >
-              Cancel Booking
+              {{ t('edit.cancel_btn') }}
             </button>
             <button
               class="w-full bg-gray-100 text-gray-600 py-3 rounded-lg font-semibold"
               @click="resetAll"
             >
-              Back
+              {{ t('edit.back_btn') }}
             </button>
           </div>
         </div>
@@ -351,7 +356,7 @@
     style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
   >
     <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
-      Updating Booking...
+      {{ t('edit.updating') }}
     </div>
   </div>
 
@@ -371,7 +376,7 @@
         @click="handleModalClose"
         class="w-full py-2 bg-black text-white rounded-xl font-semibold"
       >
-        OK
+        {{ t('booking.ok') }}
       </button>
     </div>
   </div>
@@ -386,9 +391,9 @@
       class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-fadeIn"
     >
       <div class="text-3xl mb-4">🗑️</div>
-      <h3 class="text-xl font-bold mb-2">Cancel Booking?</h3>
+      <h3 class="text-xl font-bold mb-2">{{ t('edit.cancel_confirm_title') }}</h3>
       <p class="text-gray-500 mb-6">
-        Are you sure you want to cancel this booking? This action cannot be undone.
+        {{ t('edit.cancel_confirm_msg') }}
       </p>
 
       <div class="flex gap-3">
@@ -396,13 +401,13 @@
           @click="showCancelConfirm = false"
           class="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl font-semibold"
         >
-          No, Keep it
+          {{ t('edit.keep_it') }}
         </button>
         <button
           @click="handleConfirmCancel"
           class="flex-1 py-2 bg-red-600 text-white rounded-xl font-semibold"
         >
-          Yes, Cancel
+          {{ t('edit.yes_cancel') }}
         </button>
       </div>
     </div>
@@ -412,7 +417,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { api } from '@/api/bookingApi'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
 import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
@@ -420,6 +427,7 @@ import { safeNewDate } from '@/utils/dateUtils'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const bookingId = route.params.id
 const isSubmitting = ref(false)
 const isSlotsLoading = ref(false)
@@ -452,7 +460,6 @@ const isReadOnly = computed(() => {
 
 const filteredTrainers = computed(() => {
   const q = trainerSearchQuery.value.toLowerCase().trim()
-  // If the query exactly matches the selected name and dropdown has just been opened, show all for convenience
   if (selectedTrainerName.value === trainerSearchQuery.value && q !== '') {
     return trainers.value
   }
@@ -461,7 +468,6 @@ const filteredTrainers = computed(() => {
 })
 
 const fetchTrainers = async () => {
-  // Strict check: Gym + Date + Schedule + Private
   if (
     !selectedGym.value ||
     !selectedDate.value ||
@@ -480,7 +486,6 @@ const fetchTrainers = async () => {
       return
     }
 
-    // Format params
     const d = safeNewDate(selectedDate.value)
     if (!d) return
 
@@ -545,10 +550,9 @@ const confirmCancel = () => {
   showCancelConfirm.value = true
 }
 
-// Computed (เหมือนไฟล์ที่ 1)
 const gymLabel = computed(() => {
-  if (selectedGym.value === 'STING_CLUB') return 'Sting Club'
-  if (selectedGym.value === 'STING_HIVE') return 'Sting Hive'
+  if (selectedGym.value === 'STING_CLUB') return t('booking.sting_club')
+  if (selectedGym.value === 'STING_HIVE') return t('booking.sting_hive')
   return '-'
 })
 
@@ -556,7 +560,7 @@ const displayDate = computed(() => {
   if (!selectedDate.value) return '-'
   const d = safeNewDate(selectedDate.value)
   if (!d) return '-'
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString(t('booking.select_date').includes('เลือก') ? 'th-TH' : 'en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -599,7 +603,6 @@ const handleParticipantsInput = () => {
 }
 
 const handleParticipantsBlur = () => {
-  // ✅ เช็ค Min ตอนลูกค้ากดออกจากช่อง (Blur) แล้วเท่านั้น
   if (!participants.value || participants.value < 1) {
     participants.value = 1
   }
@@ -622,7 +625,7 @@ const fetchBookingDetail = async () => {
     const b = Array.isArray(res.data.data) ? res.data.data[0] : res.data.data
 
     if (!b) {
-      openStatusModal('Error', 'ไม่พบข้อมูล booking', 'error')
+      openStatusModal(t('edit.update_failed'), t('edit.update_failed_msg'), 'error')
       return
     }
 
@@ -634,9 +637,7 @@ const fetchBookingDetail = async () => {
     email.value = b.client_email
     participants.value = b.capacity
     multipleStudents.value = !!(b.multipleStudents || b.multiple_students)
-    // Handle trainer as either string or object
-    const tName =
-      b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
+    const tName = b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
     selectedTrainerName.value = tName
     trainerSearchQuery.value = tName
     bookingStatus.value = b.booking_status || b.status || ''
@@ -648,13 +649,13 @@ const fetchBookingDetail = async () => {
 
     if (isReadOnly.value) {
       openStatusModal(
-        'Warning',
-        `Booking status : ${bookingStatus.value} can not reschedule this booking`,
+        t('booking.incomplete_info'),
+        t('edit.read_only_title', { status: bookingStatus.value }),
         'warning',
       )
     }
   } catch {
-    openStatusModal('Error', 'โหลดข้อมูล booking ไม่สำเร็จ', 'error')
+    openStatusModal(t('edit.update_failed'), t('edit.update_failed_msg'), 'error')
   } finally {
     isInitialLoading.value = false
   }
@@ -662,12 +663,6 @@ const fetchBookingDetail = async () => {
 
 onMounted(() => {
   fetchBookingDetail()
-  // fetchTrainers() // Don't call immediately, let watchers handle or handle after details loaded
-  // fetchBookingDetail calls fetchTrainers? No, but watchers might.
-  // Actually, fetchBookingDetail sets selectedSchedule etc.
-  // We should wait for booking detail to be loaded.
-  // But wait, the watcher watches [selectedDate, selectPrivate, selectedGym] but NOT selectedSchedule?
-  // Let's update the watcher logic below.
   document.addEventListener('mousedown', handleClickOutside)
 })
 
@@ -675,10 +670,6 @@ onUnmounted(() => {
   document.removeEventListener('mousedown', handleClickOutside)
 })
 
-// Watcher เพื่อดึงตารางเวลาใหม่
-// Removed redundant watch since BookingTimeSlots handles this.
-
-// Watcher to fetch trainers
 watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
   fetchTrainers()
 })
@@ -695,7 +686,7 @@ const updateBooking = async () => {
   if (isSubmitting.value) return
 
   if (!selectedSchedule.value) {
-    openStatusModal('Warning', 'กรุณาเลือกเวลาใหม่', 'warning')
+    openStatusModal(t('booking.incomplete_info'), t('booking.select_time'), 'warning')
     return
   }
 
@@ -714,38 +705,30 @@ const updateBooking = async () => {
 
   try {
     isSubmitting.value = true
-    // Safari optimization: Dismiss keyboard
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
 
     await api.bookings.update(bookingId, payload)
-
-    // Safari optimization: reset loading state before showing success modal
     isSubmitting.value = false
-
-    openStatusModal('Success', '✅ อัปเดต Booking สำเร็จแล้ว', 'success', true)
+    openStatusModal(t('edit.update_success'), t('edit.update_success_msg'), 'success', true)
   } catch {
     isSubmitting.value = false
-    openStatusModal('Error', '❌ อัปเดตไม่สำเร็จ', 'error')
-  } finally {
-    isSubmitting.value = false
+    openStatusModal(t('edit.update_failed'), t('edit.update_failed_msg'), 'error')
   }
 }
 
 const handleConfirmCancel = async () => {
   if (isSubmitting.value) return
-  showCancelConfirm.value = false // ปิด Modal ยืนยัน
+  showCancelConfirm.value = false
 
   try {
-    isSubmitting.value = true // แสดง loading overlay
+    isSubmitting.value = true
     await api.bookings.cancel(bookingId)
-
-    // เมื่อลบสำเร็จ แสดง Modal แจ้งผล และตั้ง redirect เป็น true เพื่อกลับไปหน้าค้นหา
-    openStatusModal('Success', '✅ ยกเลิกการจองเรียบร้อยแล้ว', 'success', true)
+    openStatusModal(t('edit.cancel_success'), t('edit.cancel_success_msg'), 'success', true)
   } catch (err) {
     console.error(err)
-    openStatusModal('Error', '❌ ไม่สามารถยกเลิกการจองได้ กรุณาลองใหม่', 'error')
+    openStatusModal(t('edit.cancel_failed'), t('edit.cancel_failed_msg'), 'error')
   } finally {
     isSubmitting.value = false
   }

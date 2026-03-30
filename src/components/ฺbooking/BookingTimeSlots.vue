@@ -2,7 +2,7 @@
   <div>
     <div v-if="loading" class="empty-state">
       <div class="loader"></div>
-      <p>Loading schedules...</p>
+      <p>{{ t('booking.loading_schedules') }}</p>
     </div>
 
     <div v-else-if="isReady && upcomingSchedules.length > 0" class="time-grid">
@@ -20,7 +20,7 @@
         <span class="time-text">
           {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
         </span>
-        <span class="seat-badge"> (Available : {{ s.available_seats }}) </span>
+        <span class="seat-badge"> ({{ t('booking.available') }} : {{ s.available_seats }}) </span>
       </button>
     </div>
 
@@ -46,23 +46,23 @@
       </svg>
 
       <div v-if="!gym_enum && !date">
-        <h3>Waiting for Selection</h3>
-        <p class="text-error">Please select a Place and Date first.</p>
+        <h3>{{ waitingSelectionText }}</h3>
+        <p class="text-error">{{ pleaseSelectPlaceDateText }}</p>
       </div>
 
       <div v-else-if="!gym_enum">
-        <h3>Select Place</h3>
-        <p class="text-error">Please select a Place first.</p>
+        <h3>{{ selectPlaceText }}</h3>
+        <p class="text-error">{{ pleaseSelectPlaceText }}</p>
       </div>
 
       <div v-else-if="!date">
-        <h3>Select Date</h3>
-        <p class="text-error">Please select a Date first.</p>
+        <h3>{{ selectDateText }}</h3>
+        <p class="text-error">{{ selectDateText }}</p>
       </div>
 
       <div v-else>
-        <h3>No classes available</h3>
-        <p>Please try selecting a different date or branch.</p>
+        <h3>{{ t('booking.no_classes') }}</h3>
+        <p>{{ t('booking.try_different') }}</p>
       </div>
     </div>
   </div>
@@ -71,12 +71,21 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import { useSchedules } from '@/composables/useSchedules'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
+// Computed translations to ensure reactivity
+const waitingSelectionText = computed(() => t('booking.waiting_selection'))
+const pleaseSelectPlaceDateText = computed(() => t('booking.please_select_place_date'))
+const selectPlaceText = computed(() => t('booking.select_place'))
+const pleaseSelectPlaceText = computed(() => t('booking.please_select_place'))
+const selectDateText = computed(() => t('booking.select_date'))
 
 const props = defineProps({
   date: [String, Date, null],
   gym_enum: String,
   is_private_class: Boolean,
-  // ✅ เพิ่ม Prop นี้เข้ามา (Default เป็น false คือโชว์หมด)
   filterPastTime: {
     type: Boolean,
     default: false,
@@ -98,7 +107,6 @@ const props = defineProps({
 const emit = defineEmits(['select', 'loading'])
 const { schedules, loading, fetchSchedules } = useSchedules()
 
-// ✅ Emit loading state to parent
 watch(loading, (val) => {
   emit('loading', val)
   if (val) {
@@ -107,54 +115,34 @@ watch(loading, (val) => {
 })
 
 const selectedId = ref(null)
-
-// ✅ Check if inputs are ready
 const isReady = computed(() => !!props.date && !!props.gym_enum)
 
-// ✅ Filter upcoming schedules
-// ✅ Filter upcoming schedules (แก้ใหม่ Logic แข็งโป๊ก)
 const upcomingSchedules = computed(() => {
-  // 1. ถ้าไม่มี Data กลับไปเลย
   if (!schedules.value) return []
-
   let results = schedules.value
 
-  // ✅ 1.5 Filter Full Slots (unless Admin)
   if (!props.isAdminMode) {
     results = results.filter((s) => s.available_seats > 0)
   }
 
-  // 🔴 DEBUG MODE: เช็คค่ากันชัดๆ (กด F12 ดูได้เลย)
-  // 2. เช็คแบบหักดิบ: ถ้าค่าเป็น false ให้ Return ทั้งก้อนทันที!
   if (props.filterPastTime === false) {
     return results
   }
 
-  // --- โซนกรอง (ทำงานเมื่อเป็น true เท่านั้น) ---
-  if (!props.date) return results // กันเหนียว ถ้าไม่มีวันที่ก็โชว์หมด
+  if (!props.date) return results
 
   const now = new Date()
   const targetDate = new Date(props.date)
-
-  // แปลงเป็น YYYY-MM-DD เพื่อเทียบว่าเป็น "วันนี้" หรือไม่ (ตัดเรื่องเวลา/Timezone ทิ้ง)
   const isSameDay = targetDate.toDateString() === now.toDateString()
 
   return results.filter((s) => {
-    // ถ้าไม่ใช่วันนี้ -> เอาหมด
     if (!isSameDay) return true
-
-    // ถ้าเป็นวันนี้ -> เช็คเวลา
     const [hours, minutes] = s.start_time.split(':')
-
-    // สร้างเวลาของคลาส โดยอิงจากวันที่ปัจจุบันของเครื่อง User (เพื่อความชัวร์)
     const classTime = new Date()
     classTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-
-    // ถ้าเวลาคลาส < เวลาปัจจุบัน -> ซ่อน
     if (classTime < now) {
       return false
     }
-
     return true
   })
 })
@@ -172,9 +160,8 @@ onMounted(() => {
 watch(
   () => [props.date, props.gym_enum, props.is_private_class],
   ([date, gym, isPrivate]) => {
-    schedules.value = [] // Clear data
+    schedules.value = []
     if (!date || !gym) return
-
     fetchSchedules({
       date,
       gym_enum: gym,
@@ -185,11 +172,9 @@ watch(
 )
 
 const selectSchedule = (s) => {
-  // ✅ Prevent selection if full (and not Admin)
   if (!props.isAdminMode && s.available_seats <= 0) {
     return
   }
-
   selectedId.value = s.id
   emit('select', s)
 }
@@ -261,11 +246,10 @@ const formatTime = (time) => {
   background: #eee;
 }
 
-/* ✅ เพิ่ม CSS นี้เพื่อให้ Admin เห็นว่าเลือกช่องที่เต็มอยู่ */
 .full.active {
-  background: #2563eb !important; /* สีน้ำเงินเดียวกับปุ่มปกติ */
+  background: #2563eb !important;
   border-color: #2563eb !important;
-  opacity: 1; /* ดึงความชัดกลับมาตอนเลือก */
+  opacity: 1;
 }
 
 .full.active .time-text,
@@ -303,7 +287,6 @@ const formatTime = (time) => {
   color: #ef4444 !important;
 }
 
-/* 🌀 Spinner Loader */
 .loader {
   width: 40px;
   height: 40px;

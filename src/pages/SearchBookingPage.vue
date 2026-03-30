@@ -1,18 +1,23 @@
 <template>
-  <div class="w-full min-h-screen flex items-center justify-center p-6">
+  <div class="w-full min-h-screen flex flex-col items-center justify-center p-6">
+    <!-- Language Switcher -->
+    <div class="w-full max-w-md mb-6 flex justify-end">
+      <LanguageSwitcher />
+    </div>
+
     <div class="bg-white rounded-xl shadow p-6 w-full max-w-md space-y-6">
-      <h1 class="text-xl font-semibold text-center">Find Your Booking</h1>
+      <h1 class="text-xl font-semibold text-center">{{ t('search.title') }}</h1>
 
       <div>
-        <p class="text-sm text-gray-600 mb-1">Email</p>
+        <p class="text-sm text-gray-600 mb-1">{{ t('search.email') }}</p>
         <input
           v-model="email"
           type="email"
           class="w-full p-3 border rounded-md"
-          placeholder="Enter your email"
+          :placeholder="t('search.enter_email')"
         />
         <p v-if="email && !email.includes('@')" class="text-xs text-red-500 mt-1">
-          Invalid email format.
+          {{ t('booking.invalid_email') }}
         </p>
       </div>
 
@@ -21,20 +26,20 @@
           class="w-full bg-gray-500 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
           @click="resetAll"
         >
-          Back
+          {{ t('search.back') }}
         </button>
         <button
           class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
           :disabled="isLoading || !email || !email.includes('@')"
           @click="searchBooking"
         >
-          <span v-if="!isLoading">Search Booking</span>
-          <span v-else>Searching...</span>
+          <span v-if="!isLoading">{{ t('search.search_btn') }}</span>
+          <span v-else>{{ t('search.searching') }}</span>
         </button>
       </div>
 
       <div v-if="bookings.length" class="border-t pt-4 space-y-3">
-        <h2 class="font-semibold text-gray-700">Your Bookings</h2>
+        <h2 class="font-semibold text-gray-700">{{ t('search.your_bookings') }}</h2>
 
         <div
           v-for="b in bookings"
@@ -42,12 +47,12 @@
           class="border p-4 rounded-lg flex flex-col sm:flex-row gap-4 sm:items-center justify-between shadow-sm"
         >
           <div class="text-sm w-full sm:w-auto">
-            <p class="mb-1"><b class="text-gray-700">Date:</b> {{ b.date_booking }}</p>
+            <p class="mb-1"><b class="text-gray-700">{{ t('search.date') }}:</b> {{ b.date_booking }}</p>
             <p class="mb-1">
-              <b class="text-gray-700">Time:</b> {{ b.schedule.start_time }} -
+              <b class="text-gray-700">{{ t('search.time') }}:</b> {{ b.schedule.start_time }} -
               {{ b.schedule.end_time }}
             </p>
-            <p><b class="text-gray-700">Place:</b> {{ b.schedule.gym_enum }}</p>
+            <p><b class="text-gray-700">{{ t('search.place') }}:</b> {{ b.schedule.gym_enum }}</p>
           </div>
 
           <div class="flex gap-3 w-full sm:w-auto">
@@ -55,24 +60,25 @@
               :to="`/edit-booking/${b.id}`"
               class="flex-1 sm:flex-none text-center bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
             >
-              Edit
+              {{ t('search.edit') }}
             </router-link>
 
             <button
               class="flex-1 sm:flex-none bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition"
               @click="cancelBooking(b.id)"
             >
-              Cancel
+              {{ t('search.cancel') }}
             </button>
           </div>
         </div>
       </div>
 
       <p v-if="searched && !bookings.length" class="text-center text-red-500 text-sm">
-        ❌ No bookings found for this email.
+        {{ t('search.no_bookings') }}
       </p>
     </div>
 
+    <!-- Modals (Confirmation, etc) -->
     <div
       v-if="showModal"
       class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]"
@@ -101,7 +107,7 @@
             :disabled="isLoading"
             @click="closeModal"
           >
-            Cancel
+            {{ t('edit.back_btn') }}
           </button>
 
           <button
@@ -114,7 +120,7 @@
             :disabled="isLoading"
             @click="modalAction ? modalAction() : closeModal()"
           >
-            OK
+            {{ t('booking.ok') }}
           </button>
         </div>
       </div>
@@ -145,7 +151,7 @@
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         ></path>
       </svg>
-      <p class="text-white font-semibold text-lg">Processing...</p>
+      <p class="text-white font-semibold text-lg">{{ t('search.processing') }}</p>
     </div>
   </div>
 </template>
@@ -154,8 +160,11 @@
 import { ref } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const email = ref('')
 const bookings = ref([])
@@ -191,7 +200,6 @@ const searchBooking = async () => {
   if (isLoading.value) return
   try {
     isLoading.value = true
-    // Safari optimization: Dismiss keyboard
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
@@ -216,7 +224,7 @@ const searchBooking = async () => {
     searched.value = true
   } catch (err) {
     console.error(err)
-    openModal('Search Failed', '❌ Unable to search booking. Please try again.', 'error')
+    openModal(t('search.search_failed'), t('search.search_failed_msg'), 'error')
   } finally {
     isLoading.value = false
   }
@@ -224,28 +232,24 @@ const searchBooking = async () => {
 
 const cancelBooking = (bookingId) => {
   openModal(
-    'Confirm Cancel',
-    'Are you sure you want to cancel this booking?',
+    t('search.confirm_cancel'),
+    t('search.cancel_prompt'),
     'warning',
     async () => {
       try {
-        isLoading.value = true // เริ่มหมุน Loading
-        // Safari optimization: Dismiss keyboard
+        isLoading.value = true 
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur()
         }
 
         await api.bookings.cancel(bookingId)
-
-        // โหลดข้อมูลใหม่หลังจากลบเสร็จ
         await searchBooking()
-
-        openModal('Canceled Successfully', '✅ Booking has been canceled.', 'success')
+        openModal(t('search.cancel_success'), t('search.cancel_success_msg'), 'success')
       } catch (err) {
         console.error(err)
-        openModal('Cancel Failed', '❌ Unable to cancel booking.', 'error')
+        openModal(t('search.cancel_failed'), t('search.cancel_failed_msg'), 'error')
       } finally {
-        isLoading.value = false // หยุดหมุน
+        isLoading.value = false
       }
     },
   )
