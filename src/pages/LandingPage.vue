@@ -21,11 +21,6 @@
       </div>
     </section>
 
-    <!-- ✅ TESTIMONIAL -->
-    <Testimonials />
-
-    <!-- ✅ FOOTER -->
-    <FooterSection />
   </div>
 </template>
 
@@ -33,8 +28,6 @@
 import { ref } from 'vue'
 
 import HeroSection from '@/components/landing/HeroSection.vue'
-import Testimonials from '@/components/landing/Testimonials.vue'
-import FooterSection from '@/components/landing/FooterSection.vue'
 
 import BookingPage from '@/components/landing/BookingPage.vue'
 import { RouterLink } from 'vue-router'
