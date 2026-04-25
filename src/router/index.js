@@ -4,8 +4,8 @@ const routes = [
   //{ path: '/', name: 'home', component: () => import('../pages/LandingPage.vue') },
   {
     path: '/',
-    name: 'booking',
-    component: () => import('@/components/landing/BookingPage.vue'),
+    name: 'home',
+    component: () => import('@/pages/LandingPage.vue'),
   },
   {
     path: '/edit-booking/:id',

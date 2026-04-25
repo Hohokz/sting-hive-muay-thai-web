@@ -11,12 +11,6 @@
     <!-- ✅ HERO -->
     <HeroSection @scrollToBooking="scrollToBooking" />
 
-    <!-- ✅ ABOUT -->
-    <AboutSection />
-
-    <!-- ✅ CLASS TYPES -->
-    <ClassTypes />
-
     <!-- ✅ BOOKING (COMPONENT หลักของมึง) -->
     <section ref="bookingRef" class="py-20 bg-[#f7f9fc]">
       <div class="max-w-7xl mx-auto px-4">
@@ -39,8 +33,6 @@
 import { ref } from 'vue'
 
 import HeroSection from '@/components/landing/HeroSection.vue'
-import AboutSection from '@/components/landing/AboutSection.vue'
-import ClassTypes from '@/components/landing/ClassType.vue'
 import Testimonials from '@/components/landing/Testimonials.vue'
 import FooterSection from '@/components/landing/FooterSection.vue'
 
