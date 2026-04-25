@@ -4,7 +4,7 @@
 
     <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
       <h1 class="mb-4">
-        <img src="/images/combinelogo.png" alt="Sting Muay Thai" class="mx-auto w-64 md:w-96 drop-shadow-2xl" />
+        <img src="/images/combinelogo.png" alt="Sting Muay Thai" class="mx-auto w-80 md:w-[500px] drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:scale-105 transition-transform duration-500 ease-out" />
       </h1>
 
       <button @click="$emit('scrollToBooking')"
