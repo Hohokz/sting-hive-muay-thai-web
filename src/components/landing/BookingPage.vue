@@ -14,22 +14,12 @@
 
           <div class="flex justify-around items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="STING_CLUB"
-                v-model="selectedGym"
-                class="accent-blue-600"
-              />
+              <input type="radio" value="STING_CLUB" v-model="selectedGym" class="accent-blue-600" />
               <span>{{ t('booking.sting_club') }}</span>
             </label>
 
             <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                value="STING_HIVE"
-                v-model="selectedGym"
-                class="accent-blue-600"
-              />
+              <input type="radio" value="STING_HIVE" v-model="selectedGym" class="accent-blue-600" />
               <span>{{ t('booking.sting_hive') }}</span>
             </label>
           </div>
@@ -64,14 +54,8 @@
             <div>
               <p class="text-gray-600 text-sm mb-5">{{ t('booking.select_time') }}</p>
 
-              <BookingTimeSlots
-                :date="selectedDate"
-                :gym_enum="selectedGym"
-                :is_private_class="selectPrivate"
-                :filter-past-time="true"
-                @select="onSelectSchedule"
-                @loading="isSlotsLoading = $event"
-              />
+              <BookingTimeSlots :date="selectedDate" :gym_enum="selectedGym" :is_private_class="selectPrivate"
+                :filter-past-time="true" @select="onSelectSchedule" @loading="isSlotsLoading = $event" />
             </div>
           </div>
         </div>
@@ -87,25 +71,14 @@
                 <p class="text-gray-600 text-sm mb-1">{{ t('booking.name') }}</p>
               </div>
 
-              <input
-                v-model="clientName"
-                type="text"
-                class="w-full p-3 border rounded-md"
-                :placeholder="t('booking.enter_name')"
-              />
+              <input v-model="clientName" type="text" class="w-full p-3 border rounded-md"
+                :placeholder="t('booking.enter_name')" />
             </div>
             <!-- ✅ MOBILE -->
             <div>
               <p class="text-gray-600 text-sm mb-1">{{ t('booking.mobile') }}</p>
-              <input
-                v-model="mobile"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                class="w-full p-3 border rounded-md"
-                :placeholder="t('booking.enter_mobile')"
-                maxlength="10"
-                @input="mobile = mobile.replace(/\D/g, '')"
-              />
+              <input v-model="mobile" inputmode="numeric" pattern="[0-9]*" class="w-full p-3 border rounded-md"
+                :placeholder="t('booking.enter_mobile')" maxlength="10" @input="mobile = mobile.replace(/\D/g, '')" />
             </div>
 
             <!-- ✅ EMAIL -->
@@ -114,12 +87,8 @@
                 <span class="text-red-500">*</span>
                 <p class="text-gray-600 text-sm mb-1">{{ t('booking.email') }}</p>
               </div>
-              <input
-                v-model="email"
-                type="email"
-                class="w-full p-3 border rounded-md"
-                :placeholder="t('booking.enter_email')"
-              />
+              <input v-model="email" type="email" class="w-full p-3 border rounded-md"
+                :placeholder="t('booking.enter_email')" />
               <p v-if="email && !email.includes('@')" class="text-red-500 text-xs mt-1">
                 {{ t('booking.invalid_email') }}
               </p>
@@ -130,68 +99,40 @@
                 <span class="text-red-500">*</span>
                 <p class="text-gray-600 text-sm mb-1">{{ t('booking.participants') }}</p>
               </div>
-              <input
-                v-model.number="participants"
-                type="number"
-                class="w-full p-3 border rounded-md"
-                :placeholder="t('booking.max_people')"
-                min="1"
-                max="5"
-                @input="handleParticipantsInput"
-                @blur="handleParticipantsBlur"
-              />
+              <input v-model.number="participants" type="number" class="w-full p-3 border rounded-md"
+                :placeholder="t('booking.max_people')" min="1" max="5" @input="handleParticipantsInput"
+                @blur="handleParticipantsBlur" />
             </div>
 
             <!-- ✅ TRAINER (Optional) -->
             <div v-if="selectPrivate" class="md:col-span-1 relative trainer-select-container">
               <p class="text-gray-600 text-sm mb-1">{{ t('booking.request_trainer') }}</p>
               <div class="relative group">
-                <input
-                  v-model="trainerSearchQuery"
-                  type="text"
-                  class="w-full p-3 border rounded-md pr-10"
-                  :placeholder="t('booking.search_trainer')"
-                  @focus="showTrainerDropdown = true"
-                  @input="onTrainerInput"
-                />
-                <button
-                  @click="toggleTrainerDropdown"
-                  type="button"
+                <input v-model="trainerSearchQuery" type="text" class="w-full p-3 border rounded-md pr-10"
+                  :placeholder="t('booking.search_trainer')" @focus="showTrainerDropdown = true"
+                  @input="onTrainerInput" />
+                <button @click="toggleTrainerDropdown" type="button"
                   class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-transform"
-                  :class="{ 'rotate-180': showTrainerDropdown }"
-                >
+                  :class="{ 'rotate-180': showTrainerDropdown }">
                   ▼
                 </button>
               </div>
               <!-- Dropdown -->
-              <div
-                v-if="showTrainerDropdown"
-                class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto"
-              >
-                <div
-                  v-for="trainer in filteredTrainers"
-                  :key="trainer.id"
-                  @click="selectTrainer(trainer)"
-                  class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-none flex justify-between items-center transition-colors"
-                >
+              <div v-if="showTrainerDropdown"
+                class="absolute z-20 w-full mt-1 bg-white border rounded-md shadow-xl max-h-60 overflow-auto">
+                <div v-for="trainer in filteredTrainers" :key="trainer.id" @click="selectTrainer(trainer)"
+                  class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-none flex justify-between items-center transition-colors">
                   <span class="font-medium text-gray-700">{{ trainer.name }}</span>
-                  <span v-if="selectedTrainerName === trainer.name" class="text-blue-600 font-bold"
-                    >✓</span
-                  >
+                  <span v-if="selectedTrainerName === trainer.name" class="text-blue-600 font-bold">✓</span>
                 </div>
-                <div
-                  v-if="filteredTrainers.length === 0"
-                  class="p-4 text-center text-gray-400 italic text-sm"
-                >
+                <div v-if="filteredTrainers.length === 0" class="p-4 text-center text-gray-400 italic text-sm">
                   {{ t('booking.no_trainers') }}
                 </div>
               </div>
 
               <!-- Selected Trainer Info (Helper Text) -->
-              <p
-                v-if="selectedTrainerName && !showTrainerDropdown"
-                class="text-[10px] text-blue-600 mt-1 font-semibold"
-              >
+              <p v-if="selectedTrainerName && !showTrainerDropdown"
+                class="text-[10px] text-blue-600 mt-1 font-semibold">
                 ✓ {{ t('booking.currently_selected') }}: {{ selectedTrainerName }}
               </p>
             </div>
@@ -201,22 +142,12 @@
               <p class="text-gray-600 text-sm mb-1">{{ t('booking.multiple_students') }}</p>
               <div class="flex items-center gap-6 p-3 border rounded-md">
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    :value="true"
-                    v-model="multipleStudents"
-                    class="accent-blue-600"
-                  />
+                  <input type="radio" :value="true" v-model="multipleStudents" class="accent-blue-600" />
                   <span>2v1</span>
                 </label>
 
                 <label class="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    :value="false"
-                    v-model="multipleStudents"
-                    class="accent-blue-600"
-                  />
+                  <input type="radio" :value="false" v-model="multipleStudents" class="accent-blue-600" />
                   <span>1v1</span>
                 </label>
               </div>
@@ -269,7 +200,7 @@
                 <span class="text-gray-500">{{ t('booking.trainer') }}:</span>
                 <span class="ml-1">{{
                   selectPrivate && selectedTrainerName ? selectedTrainerName : '-'
-                }}</span>
+                  }}</span>
               </p>
               <p v-if="selectPrivate">
                 <span class="text-gray-500">{{ t('booking.multiple_students') }}:</span>
@@ -278,50 +209,37 @@
             </div>
           </div>
 
-          <button
-            class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-            :disabled="isSubmitting || isSlotsLoading"
-            @click="submitBooking"
-          >
+          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+            :disabled="isSubmitting || isSlotsLoading" @click="submitBooking">
             <span v-if="!isSubmitting">{{ t('booking.proceed') }}</span>
             <span v-else>{{ t('booking.loading') }}</span>
           </button>
         </div>
 
-        <div
-          v-if="isSubmitting"
+        <div v-if="isSubmitting"
           class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[90]"
-          style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)"
-        >
+          style="-webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px)">
           <div class="bg-white px-6 py-4 rounded-xl shadow text-lg font-semibold">
             {{ t('booking.creating') }}
           </div>
         </div>
         <div class="bg-white rounded-xl shadow p-6 h-fit mt-6">
           <h2 class="text-lg font-semibold mb-4">{{ t('booking.find_booking') }}</h2>
-          <button
-            class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
-            @click="goToFindBooking"
-          >
+          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+            @click="goToFindBooking">
             <span>{{ t('booking.find_btn') }}</span>
           </button>
         </div>
       </div>
     </div>
     <!-- WARNING MODAL -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]"
-    >
+    <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
       <div class="bg-white p-6 rounded-2xl w-[340px] text-center shadow-xl animate-fadeIn">
-        <h3
-          class="text-lg font-semibold mb-2"
-          :class="{
-            'text-yellow-500': modalType === 'warning',
-            'text-red-500': modalType === 'error',
-            'text-green-500': modalType === 'success',
-          }"
-        >
+        <h3 class="text-lg font-semibold mb-2" :class="{
+          'text-yellow-500': modalType === 'warning',
+          'text-red-500': modalType === 'error',
+          'text-green-500': modalType === 'success',
+        }">
           {{ modalTitle }}
         </h3>
 
@@ -329,15 +247,11 @@
           {{ modalMessage }}
         </p>
 
-        <button
-          class="mt-5 px-5 py-2 rounded-lg transition"
-          :class="{
-            'bg-yellow-500 text-white hover:bg-yellow-600': modalType === 'warning',
-            'bg-red-500 text-white hover:bg-red-600': modalType === 'error',
-            'bg-green-500 text-white hover:bg-green-600': modalType === 'success',
-          }"
-          @click="showModal = false"
-        >
+        <button class="mt-5 px-5 py-2 rounded-lg transition" :class="{
+          'bg-yellow-500 text-white hover:bg-yellow-600': modalType === 'warning',
+          'bg-red-500 text-white hover:bg-red-600': modalType === 'error',
+          'bg-green-500 text-white hover:bg-green-600': modalType === 'success',
+        }" @click="showModal = false">
           {{ t('booking.ok') }}
         </button>
       </div>
@@ -616,6 +530,7 @@ watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
