@@ -42,13 +42,8 @@ import ClassPricing from '@/components/landing/ClassPricing.vue'
 import ClassType from '@/components/landing/ClassType.vue'
 import Location from '@/components/landing/GymLocation.vue'
 const bookingRef = ref(null)
-const aboutRef = ref(null)
 
 const scrollToBooking = () => {
   bookingRef.value?.scrollIntoView({ behavior: 'smooth' })
-}
-
-const scrollToAbout = () => {
-  aboutRef.value?.scrollIntoView({ behavior: 'smooth' })
 }
 </script>
