@@ -209,7 +209,7 @@
             </div>
           </div>
 
-          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+          <button class="w-full bg-[#E84545] text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
             :disabled="isSubmitting || isSlotsLoading" @click="submitBooking">
             <span v-if="!isSubmitting">{{ t('booking.proceed') }}</span>
             <span v-else>{{ t('booking.loading') }}</span>
@@ -225,7 +225,7 @@
         </div>
         <div class="bg-white rounded-xl shadow p-6 h-fit mt-6">
           <h2 class="text-lg font-semibold mb-4">{{ t('booking.find_booking') }}</h2>
-          <button class="w-full bg-blue-600 text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
+          <button class="w-full bg-[#E84545] text-white py-3 rounded-lg text-lg font-semibold disabled:opacity-50"
             @click="goToFindBooking">
             <span>{{ t('booking.find_btn') }}</span>
           </button>
