@@ -90,7 +90,7 @@
           class="border-2 border-white hover:bg-white hover:text-black px-7 py-3 text-sm font-bold tracking-widest uppercase rounded transition">
           Booking Class
         </button>
-        <button
+        <button @click="$emit(scrollTo('pricing'))"
           class="bg-red-600 hover:bg-red-700 px-7 py-3 text-sm font-bold tracking-widest uppercase rounded transition">
           View Pricing
         </button>
