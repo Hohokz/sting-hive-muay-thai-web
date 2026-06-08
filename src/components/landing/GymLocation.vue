@@ -87,13 +87,10 @@
 
         <!-- Open in Maps -->
         <div class="p-4 flex justify-center">
-
-          :href="branches[active].googleUrl"
-          target="_blank"
-          class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase px-6 py-2 rounded
-          transition"
-          >
-          Open in Google Maps
+          <a :href="branches[active].googleUrl" target="_blank"
+            class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase px-6 py-2 rounded transition">
+            Open in Google Maps
+          </a>
         </div>
       </div>
 

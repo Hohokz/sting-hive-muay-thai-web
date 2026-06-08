@@ -2,10 +2,10 @@
   <div class="w-full overflow-hidden">
     <!-- ✅ HERO -->
     <HeroSection @scrollToBooking="scrollToBooking" />
-    <AboutSection @scrollToBooking="scrollToBooking" />
-    <ClassPricing @scrollToBooking="scrollToBooking" />
-    <ClassType @scrollToBooking="scrollToBooking" />
-    <Location @scrollToBooking="scrollToBooking" />
+    <AboutSection id="about" @scrollToBooking="scrollToBooking" />
+    <ClassPricing id="pricing" @scrollToBooking="scrollToBooking" />
+    <ClassType id="schedule" @scrollToBooking="scrollToBooking" />
+    <Location id="location" @scrollToBooking="scrollToBooking" />
 
     <section ref="bookingRef" class="py-20 bg-[#111]">
       <div class="max-w-7xl mx-auto px-4">
@@ -42,8 +42,13 @@ import ClassPricing from '@/components/landing/ClassPricing.vue'
 import ClassType from '@/components/landing/ClassType.vue'
 import Location from '@/components/landing/GymLocation.vue'
 const bookingRef = ref(null)
+const aboutRef = ref(null)
 
 const scrollToBooking = () => {
   bookingRef.value?.scrollIntoView({ behavior: 'smooth' })
+}
+
+const scrollToAbout = () => {
+  aboutRef.value?.scrollIntoView({ behavior: 'smooth' })
 }
 </script>
