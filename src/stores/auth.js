@@ -1,68 +1,104 @@
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 import { jwtDecode } from 'jwt-decode'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => {
-    let token = localStorage.getItem('token') || null
-    let refreshToken = localStorage.getItem('refreshToken') || null
-    let user = null
-    if (token) {
+export const useAuthStore = defineStore('auth', () => {
+  // ─── State ───────────────────────────────────────────────────────────────
+  const token = ref(null)
+  const refreshToken = ref(null)
+  const user = ref(null)
+
+  // ─── Initialise from localStorage ────────────────────────────────────────
+  const _init = () => {
+    const savedToken = localStorage.getItem('token')
+    const savedRefreshToken = localStorage.getItem('refreshToken')
+    if (savedToken) {
       try {
-        user = jwtDecode(token)
+        token.value = savedToken
+        refreshToken.value = savedRefreshToken
+        user.value = jwtDecode(savedToken)
       } catch (e) {
-        console.error('Invalid token on init', e)
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        token = null
-        refreshToken = null
+        console.error('Invalid token on init:', e)
+        _clearStorage()
       }
     }
-    return {
-      token,
-      refreshToken,
-      user,
+  }
+
+  const _clearStorage = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
+    token.value = null
+    refreshToken.value = null
+    user.value = null
+  }
+
+  // ─── Getters ──────────────────────────────────────────────────────────────
+  const isAuthenticated = computed(() => !!token.value)
+
+  const isAdmin = computed(() => {
+    const role = user.value?.role?.toUpperCase()
+    return role === 'ADMIN' || user.value?.roles?.includes('admin')
+  })
+
+  // ─── Actions ──────────────────────────────────────────────────────────────
+
+  /**
+   * Called after a successful login API response.
+   * @param {string} newToken  - JWT access token
+   * @param {string|null} newRefreshToken
+   * @returns {boolean} true if token was decoded successfully
+   */
+  const login = (newToken, newRefreshToken = null) => {
+    if (!newToken) return false
+    try {
+      token.value = newToken
+      refreshToken.value = newRefreshToken
+      user.value = jwtDecode(newToken)
+      localStorage.setItem('token', newToken)
+      if (newRefreshToken) {
+        localStorage.setItem('refreshToken', newRefreshToken)
+      }
+      return true
+    } catch (e) {
+      console.error('Login error: Invalid token', e)
+      return false
     }
-  },
-  getters: {
-    isAuthenticated: (state) => !!state.token,
-    // ✅ ปรับให้เช็กเป็นตัวใหญ่ หรือใช้ .toUpperCase() เพื่อความชัวร์
-    isAdmin: (state) => {
-      const role = state.user?.role?.toUpperCase()
-      return role === 'ADMIN' || state.user?.roles?.includes('admin')
-    },
-  },
-  actions: {
-    login(token, refreshToken) {
-      if (!token) return
-      try {
-        this.token = token
-        this.refreshToken = refreshToken
-        this.user = jwtDecode(token)
-        localStorage.setItem('token', token)
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken)
-        }
-        return true
-      } catch (e) {
-        console.error('Login error: Invalid token', e)
-        return false
-      }
-    },
-    setTokens(token, refreshToken) {
-      this.token = token
-      this.refreshToken = refreshToken
-      try {
-        this.user = jwtDecode(token)
-      } catch (e) {
-        console.error('Invalid token on setTokens', e)
-      }
-    },
-    logout() {
-      this.token = null
-      this.refreshToken = null
-      this.user = null
-      localStorage.removeItem('token')
-      localStorage.removeItem('refreshToken')
-    },
-  },
+  }
+
+  /**
+   * Update tokens (e.g., after a silent refresh).
+   */
+  const setTokens = (newToken, newRefreshToken = null) => {
+    token.value = newToken
+    refreshToken.value = newRefreshToken
+    try {
+      user.value = jwtDecode(newToken)
+    } catch (e) {
+      console.error('Invalid token on setTokens:', e)
+    }
+  }
+
+  /**
+   * Clear all auth state and remove from localStorage.
+   */
+  const logout = () => {
+    _clearStorage()
+  }
+
+  // Run initialisation immediately
+  _init()
+
+  return {
+    // State
+    token,
+    refreshToken,
+    user,
+    // Getters
+    isAuthenticated,
+    isAdmin,
+    // Actions
+    login,
+    setTokens,
+    logout,
+  }
 })

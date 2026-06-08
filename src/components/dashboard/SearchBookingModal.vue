@@ -66,7 +66,7 @@ import { ref } from 'vue'
 import { api } from '@/api/bookingApi'
 import BookingList from './BookingList.vue'
 
-const emit = defineEmits(['close'])
+defineEmits(['close'])
 const searchQuery = ref('')
 const results = ref([])
 const loading = ref(false)

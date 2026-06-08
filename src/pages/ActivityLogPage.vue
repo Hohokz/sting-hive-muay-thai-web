@@ -7,23 +7,66 @@
           <p class="text-sm text-gray-500 font-medium">Monitor system activity and changes</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <select
-            v-model="filters.service"
-            class="text-sm px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black outline-none bg-white"
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Date search input with clear button -->
+          <div
+            class="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2 h-[42px] min-w-[200px] hover:border-gray-400 transition-colors shadow-sm select-none cursor-pointer"
+            @click="openDatePicker"
           >
-            <option value="ALL">All Services</option>
-            <option value="BOOKING">Bookings</option>
-            <option value="SCHEDULE">Schedules</option>
-            <option value="USER">Authentication</option>
-          </select>
+            <span
+              class="text-sm font-medium flex-grow mr-2 select-none pointer-events-none"
+              :class="logStore.filters.date ? 'text-gray-900' : 'text-gray-400'"
+            >
+              {{ formattedDateDisplay }}
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 mr-2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <button
+              v-if="logStore.filters.date"
+              type="button"
+              @click.stop="logStore.filters.date = ''"
+              class="text-gray-400 hover:text-black font-semibold text-lg ml-1 px-1 transition-colors"
+              title="Clear date filter"
+            >
+              ×
+            </button>
+            <!-- Hidden input: sr-only keeps it in the DOM so showPicker() works -->
+            <input
+              ref="dateInputRef"
+              v-model="logStore.filters.date"
+              type="date"
+              class="sr-only"
+              tabindex="-1"
+              @click.stop
+            />
+          </div>
 
+          <!-- Service dropdown selector -->
+          <div class="relative flex items-center h-[42px] min-w-[160px]">
+            <select
+              v-model="logStore.filters.service"
+              class="w-full h-full text-sm font-medium px-4 py-2 border-2 border-black rounded-xl outline-none bg-white text-gray-900 cursor-pointer appearance-none pr-10 transition-all focus:ring-2 focus:ring-black"
+            >
+              <option value="ALL">All Services</option>
+              <option value="BOOKING">Bookings</option>
+              <option value="SCHEDULE">Schedules</option>
+              <option value="USER">Authentication</option>
+            </select>
+            <div class="absolute right-3.5 pointer-events-none text-black font-bold flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- Refresh Button -->
           <button
-            @click="fetchLogs"
-            :disabled="loading"
-            class="text-sm px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
+            @click="logStore.fetchLogs"
+            :disabled="logStore.loading"
+            class="text-sm px-5 h-[42px] bg-black text-white rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 font-semibold flex items-center justify-center"
           >
-            <span v-if="loading" class="inline-block animate-spin mr-1">⟳</span>
+            <span v-if="logStore.loading" class="inline-block animate-spin mr-1.5">⟳</span>
             Refresh
           </button>
         </div>
@@ -43,12 +86,12 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
-              <tr v-if="logs.length === 0 && !loading">
+              <tr v-if="logStore.logs.length === 0 && !logStore.loading">
                 <td colspan="6" class="px-6 py-10 text-center text-gray-400 italic">
                   No activity logs found.
                 </td>
               </tr>
-              <tr v-for="log in logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+              <tr v-for="log in logStore.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-mono text-xs">
                   {{ formatDateTime(log.created_at) }}
                 </td>
@@ -91,20 +134,20 @@
         <!-- Pagination -->
         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
           <div class="text-xs text-gray-500 font-medium">
-            Showing {{ (pagination.page - 1) * pagination.limit + 1 }} to {{ Math.min(pagination.page * pagination.limit, pagination.total) }} of {{ pagination.total }} entries
+            Showing {{ (logStore.pagination.page - 1) * logStore.pagination.limit + 1 }} to {{ Math.min(logStore.pagination.page * logStore.pagination.limit, logStore.pagination.total) }} of {{ logStore.pagination.total }} entries
           </div>
           <div class="flex items-center gap-2">
             <button
-              @click="changePage(pagination.page - 1)"
-              :disabled="pagination.page === 1"
+              @click="logStore.changePage(logStore.pagination.page - 1)"
+              :disabled="logStore.pagination.page === 1"
               class="px-3 py-1 border border-gray-300 rounded hover:bg-white disabled:opacity-50 text-xs font-bold"
             >
               Previous
             </button>
-            <span class="text-xs font-bold px-2">Page {{ pagination.page }} of {{ pagination.totalPages }}</span>
+            <span class="text-xs font-bold px-2">Page {{ logStore.pagination.page }} of {{ logStore.pagination.totalPages }}</span>
             <button
-              @click="changePage(pagination.page + 1)"
-              :disabled="pagination.page === pagination.totalPages"
+              @click="logStore.changePage(logStore.pagination.page + 1)"
+              :disabled="logStore.pagination.page === logStore.pagination.totalPages"
               class="px-3 py-1 border border-gray-300 rounded hover:bg-white disabled:opacity-50 text-xs font-bold"
             >
               Next
@@ -148,69 +191,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
-import { api } from '@/api/bookingApi'
+import { useActivityLogStore } from '@/stores/activityLog'
 
-const logs = ref([])
-const loading = ref(false)
+const logStore = useActivityLogStore()
 const showDetailModal = ref(false)
 const selectedLogDetails = ref(null)
 
-const filters = ref({
-  service: 'ALL'
-})
+/** Ref to the hidden date input — used to programmatically open the picker */
+const dateInputRef = ref(null)
 
-const pagination = ref({
-  page: 1,
-  limit: 20,
-  total: 0,
-  totalPages: 0,
-})
-
-const fetchLogs = async () => {
-  try {
-    loading.value = true
-    const params = {
-      page: pagination.value.page,
-      limit: pagination.value.limit,
-      offset: (pagination.value.page - 1) * pagination.value.limit,
-      service: filters.value.service !== 'ALL' ? filters.value.service : undefined,
-    }
-
-    console.log('🔍 Fetching logs with params:', params)
-    const response = await api.logs.get(params)
-    console.log('✅ Logs Response:', response.data)
-
-    // Handle many possible structures: response.data.data, response.data.rows, response.data.items, or just response.data
-    const data = response.data.data || response.data
-
-    // If data is an array directly
-    if (Array.isArray(data)) {
-      logs.value = data
-      pagination.value.total = response.data.total || response.data.count || data.length || 0
-    } else {
-      // If data is an object containing the array
-      // Added data.logs based on console observation
-      logs.value = data.logs || data.rows || data.items || data.data || []
-      pagination.value.total = data.total || data.count || response.data.total || logs.value.length || 0
-    }
-
-    pagination.value.totalPages = Math.ceil(pagination.value.total / pagination.value.limit) || 1
-    console.log('📊 Processed logs:', logs.value.length, 'Total:', pagination.value.total)
-  } catch (err) {
-    console.error('❌ Fetch Logs Error:', err)
-  } finally {
-    loading.value = false
-  }
+/** Open the native date picker via showPicker() for cross-browser reliability */
+const openDatePicker = () => {
+  dateInputRef.value?.showPicker?.()
 }
 
-const changePage = (newPage) => {
-  if (newPage >= 1 && newPage <= pagination.value.totalPages) {
-    pagination.value.page = newPage
-    fetchLogs()
-  }
-}
+/**
+ * Format the stored YYYY-MM-DD value for display as MM / DD / YYYY,
+ * matching the mockup. Shows a placeholder when no date is selected.
+ */
+const formattedDateDisplay = computed(() => {
+  const d = logStore.filters.date
+  if (!d) return 'DD / MM / YYYY'
+  const [yyyy, mm, dd] = d.split('-')
+  return `${mm} / ${dd} / ${yyyy}`
+})
 
 const viewDetails = (log) => {
   selectedLogDetails.value = log.details || log.metadata || log
@@ -340,13 +346,8 @@ const actionClass = (action, log) => {
   }
 }
 
-watch(() => filters.value.service, () => {
-  pagination.value.page = 1
-  fetchLogs()
-})
-
 onMounted(() => {
-  fetchLogs()
+  logStore.fetchLogs()
 })
 </script>
 

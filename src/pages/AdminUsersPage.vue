@@ -40,7 +40,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            <tr v-if="isLoading">
+            <tr v-if="usersStore.isLoading">
               <td colspan="5" class="py-20 text-center">
                 <div
                   class="inline-block w-8 h-8 border-4 border-gray-200 border-t-black rounded-full animate-spin"
@@ -79,7 +79,7 @@
               <td class="px-6 py-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <button
-                    @click="toggleStatus(user)"
+                    @click="handleToggleStatus(user)"
                     class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all hover:ring-2 hover:ring-offset-1"
                     :class="
                       user.is_active
@@ -123,6 +123,7 @@
       </div>
     </div>
 
+    <!-- Form Modal -->
     <Teleport to="body">
       <div v-if="showFormModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
         <div
@@ -209,10 +210,10 @@
               </button>
               <button
                 type="submit"
-                :disabled="isSubmitting"
+                :disabled="usersStore.isSubmitting"
                 class="flex-1 py-3 bg-black text-white rounded-xl font-bold hover:bg-gray-800 disabled:opacity-50 transition-all shadow-lg shadow-black/20"
               >
-                {{ isSubmitting ? 'Processing...' : isEditMode ? 'Save Changes' : 'Create User' }}
+                {{ usersStore.isSubmitting ? 'Processing...' : isEditMode ? 'Save Changes' : 'Create User' }}
               </button>
             </div>
           </form>
@@ -220,6 +221,7 @@
       </div>
     </Teleport>
 
+    <!-- Confirm Delete Modal -->
     <Teleport to="body">
       <div
         v-if="showConfirmModal"
@@ -250,17 +252,17 @@
             </button>
             <button
               @click="handleDelete"
-              :disabled="isDeleting"
+              :disabled="usersStore.isDeleting"
               class="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50"
             >
-              {{ isDeleting ? 'Deleting...' : 'Delete' }}
+              {{ usersStore.isDeleting ? 'Deleting...' : 'Delete' }}
             </button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <!-- ✅ STATUS MODAL -->
+    <!-- STATUS MODAL -->
     <Teleport to="body">
       <div
         v-if="showStatusModal"
@@ -290,15 +292,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { api } from '@/api/bookingApi'
+import { useUsersStore } from '@/stores/users'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 
-// ✅ STATE
-const users = ref([])
-const isLoading = ref(false)
-const isSubmitting = ref(false)
-const searchQuery = ref('')
+const usersStore = useUsersStore()
 
+// ✅ LOCAL UI STATE
+const searchQuery = ref('')
 const showFormModal = ref(false)
 const isEditMode = ref(false)
 const selectedUserId = ref(null)
@@ -306,7 +306,6 @@ const form = ref({ username: '', password: '', name: '', email: '', phone: '', r
 
 const showConfirmModal = ref(false)
 const userToDelete = ref(null)
-const isDeleting = ref(false)
 
 // ✅ STATUS MODAL STATE
 const showStatusModal = ref(false)
@@ -321,31 +320,10 @@ const openStatusModal = (title, message, type = 'success') => {
   showStatusModal.value = true
 }
 
+// ✅ COMPUTED
+const filteredUsers = computed(() => usersStore.getFilteredUsers(searchQuery.value))
+
 // ✅ ACTIONS
-const fetchUsers = async () => {
-  isLoading.value = true
-  try {
-    const res = await api.auth.getUser()
-    users.value = res.data.data
-  } catch (err) {
-    console.error('Fetch error:', err)
-    openStatusModal('Error', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้', 'error')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
-  const q = searchQuery.value.toLowerCase()
-  return users.value.filter(
-    (u) =>
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      u.username.toLowerCase().includes(q),
-  )
-})
-
 const openAddModal = () => {
   isEditMode.value = false
   form.value = { username: '', password: '', name: '', email: '', phone: '', role: 'USER' }
@@ -360,32 +338,30 @@ const openEditModal = (user) => {
 }
 
 const handleSubmit = async () => {
-  isSubmitting.value = true
-  try {
-    if (isEditMode.value) {
-      // ✅ Updated Payload to include more fields
-      const payload = {
-        name: form.value.name,
-        email: form.value.email,
-        phone: form.value.phone,
-        role: form.value.role,
-      }
-      if (form.value.password) payload.password = form.value.password
-      await api.auth.updateUser(selectedUserId.value, payload)
-    } else {
-      await api.auth.createUser(form.value)
+  if (isEditMode.value) {
+    const payload = {
+      name: form.value.name,
+      email: form.value.email,
+      phone: form.value.phone,
+      role: form.value.role,
     }
-    await fetchUsers()
-    showFormModal.value = false
-    openStatusModal(
-      'Success',
-      isEditMode.value ? 'User updated successfully' : 'User created successfully',
-      'success',
-    )
-  } catch (err) {
-    openStatusModal('Error', err.response?.data?.message || 'Error processing request', 'error')
-  } finally {
-    isSubmitting.value = false
+    if (form.value.password) payload.password = form.value.password
+
+    const result = await usersStore.updateUser(selectedUserId.value, payload)
+    if (result.ok) {
+      showFormModal.value = false
+      openStatusModal('Success', 'User updated successfully', 'success')
+    } else {
+      openStatusModal('Error', result.message, 'error')
+    }
+  } else {
+    const result = await usersStore.createUser(form.value)
+    if (result.ok) {
+      showFormModal.value = false
+      openStatusModal('Success', 'User created successfully', 'success')
+    } else {
+      openStatusModal('Error', result.message, 'error')
+    }
   }
 }
 
@@ -395,55 +371,42 @@ const confirmDelete = (user) => {
 }
 
 const handleDelete = async () => {
-  try {
-    isDeleting.value = true
-    await api.auth.deleteUser(userToDelete.value.id)
-    users.value = users.value.filter((u) => u.id !== userToDelete.value.id)
+  if (!userToDelete.value) return
+  const result = await usersStore.deleteUser(userToDelete.value.id)
+  
+  if (result.ok) {
     showConfirmModal.value = false
     openStatusModal('Success', 'User deleted successfully', 'success')
-  } catch (err) {
-    console.error('Delete error:', err)
-    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Delete failed'
-    openStatusModal('Error', errorMessage, 'error')
-  } finally {
-    isDeleting.value = false
+  } else {
+    showConfirmModal.value = false
+    openStatusModal('Error', result.message, 'error')
   }
 }
 
-// ✅ TOGGLE STATUS
-const toggleStatus = async (user) => {
-  try {
-    const newStatus = !user.is_active
-    // Optimistic update
-    user.is_active = newStatus
-
-    // Prepare payload (assuming we need to send full object or just the field, depends on API)
-    // Safe bet is usually to just send the changes if it's PATCH, but since it's PUT we often need full data
-    // However, looking at handleSubmit, it sends specific fields. Let's try sending just the updated field if API supports it,
-    // or include main fields. From looking at bookingApi.js: updateUser: (id, data) => axios.put(...)
-    // Let's try to send a comprehensive payload similar to edit
-    const payload = {
-      ...user,
-      is_active: newStatus,
-      // Ensure password is not sent as empty string if not intended to change
-      password: undefined,
-    }
-
-    await api.auth.updateUser(user.id, payload)
+const handleToggleStatus = async (user) => {
+  const isActivating = !user.is_active
+  const result = await usersStore.toggleStatus(user)
+  
+  if (result.ok) {
     openStatusModal(
       'Success',
-      `User ${newStatus ? 'activated' : 'deactivated'} successfully`,
-      'success',
+      `User ${isActivating ? 'activated' : 'deactivated'} successfully`,
+      'success'
     )
-  } catch (err) {
-    console.error('Toggle status error:', err)
-    // Revert on failure
-    user.is_active = !user.is_active
-    const errorMessage =
-      err.response?.data?.message || err.response?.data?.error || 'Failed to update status'
-    openStatusModal('Error', errorMessage, 'error')
+  } else {
+    openStatusModal('Error', result.message, 'error')
   }
 }
 
-onMounted(fetchUsers)
+onMounted(() => usersStore.fetchUsers())
 </script>
+
+<style scoped>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+</style>

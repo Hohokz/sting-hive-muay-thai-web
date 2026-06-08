@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <section class="py-20 bg-white">
     <div class="max-w-6xl mx-auto text-center px-6">

@@ -11,12 +11,12 @@
       <!-- Gym Selection Tabs -->
       <div class="flex bg-white p-1 rounded-2xl shadow-sm border border-gray-100 w-fit">
         <button
-          v-for="gym in gyms"
+          v-for="gym in trainerStore.gyms"
           :key="gym.id"
-          @click="selectGym(gym.id)"
+          @click="trainerStore.selectGym(gym.id)"
           class="px-6 py-2.5 rounded-xl font-bold transition-all text-sm"
           :class="
-            selectedGymId === gym.id
+            trainerStore.selectedGymId === gym.id
               ? 'bg-black text-white shadow-md'
               : 'text-gray-500 hover:text-black hover:bg-gray-50'
           "
@@ -32,10 +32,10 @@
             <div class="p-6 border-b border-gray-50 flex justify-between items-center">
               <h3 class="font-bold text-gray-800 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                Current Trainers at {{ currentGymName }}
+                Current Trainers at {{ trainerStore.currentGymName }}
               </h3>
               <span class="text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
-                {{ trainers.length }} Trainers
+                {{ trainerStore.trainers.length }} Trainers
               </span>
             </div>
 
@@ -49,18 +49,18 @@
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                  <tr v-if="isLoading" class="animate-pulse">
+                  <tr v-if="trainerStore.isLoading" class="animate-pulse">
                     <td colspan="3" class="py-20 text-center">
                       <div class="inline-block w-8 h-8 border-4 border-gray-100 border-t-black rounded-full animate-spin"></div>
                       <p class="mt-4 text-gray-400 font-bold uppercase tracking-widest text-[10px]">Loading Trainers...</p>
                     </td>
                   </tr>
-                  <tr v-else-if="trainers.length === 0">
+                  <tr v-else-if="trainerStore.trainers.length === 0">
                     <td colspan="3" class="py-20 text-center">
                       <p class="text-gray-400 font-medium">No trainers assigned to this gym yet.</p>
                     </td>
                   </tr>
-                  <tr v-for="trainer in trainers" :key="trainer.id" class="hover:bg-gray-50/50 transition-colors">
+                  <tr v-for="trainer in trainerStore.trainers" :key="trainer.id" class="hover:bg-gray-50/50 transition-colors">
                     <td class="px-6 py-4">
                       <div class="font-bold text-gray-900">{{ trainer.name }}</div>
                       <div class="text-[10px] text-gray-400">{{ trainer.email || 'No email' }}</div>
@@ -87,7 +87,7 @@
         <div class="space-y-4">
           <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-6">
             <h3 class="font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <span class="text-lg">➕</span> Add to {{ currentGymName }}
+              <span class="text-lg">➕</span> Add to {{ trainerStore.currentGymName }}
             </h3>
 
             <div class="space-y-6">
@@ -99,10 +99,10 @@
                   <select
                     v-model="selectedUserId"
                     class="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-black transition-all appearance-none text-sm font-medium"
-                    :disabled="filteredAvailableUsers.length === 0"
+                    :disabled="trainerStore.filteredAvailableUsers.length === 0"
                   >
                     <option value="" disabled>Choose a user...</option>
-                    <option v-for="user in filteredAvailableUsers" :key="user.id" :value="user.id">
+                    <option v-for="user in trainerStore.filteredAvailableUsers" :key="user.id" :value="user.id">
                       {{ user.name }} (@{{ user.username }})
                     </option>
                   </select>
@@ -110,17 +110,17 @@
                     ▼
                   </div>
                 </div>
-                <p v-if="filteredAvailableUsers.length === 0 && !isLoadingUsers" class="text-[10px] text-amber-600 mt-1 ml-1 font-bold">
+                <p v-if="trainerStore.filteredAvailableUsers.length === 0 && !trainerStore.isLoadingUsers" class="text-[10px] text-amber-600 mt-1 ml-1 font-bold">
                   All users already have a gym assigned.
                 </p>
               </div>
 
               <button
-                @click="assignTrainer"
-                :disabled="!selectedUserId || isAssigning"
+                @click="handleAssignTrainer"
+                :disabled="!selectedUserId || trainerStore.isAssigning"
                 class="w-full bg-black text-white py-4 rounded-2xl font-bold hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-black/10 flex items-center justify-center gap-2"
               >
-                <span v-if="!isAssigning">Add to Gym</span>
+                <span v-if="!trainerStore.isAssigning">Add to Gym</span>
                 <div v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               </button>
             </div>
@@ -147,15 +147,15 @@
           </div>
           <h3 class="text-2xl font-black text-gray-900 mb-2">Remove Trainer?</h3>
           <p class="text-gray-500 mb-8 leading-relaxed font-medium">
-            Are you sure you want to remove <span class="font-bold text-gray-900">{{ trainerToRemove?.name }}</span> from {{ currentGymName }}?
+            Are you sure you want to remove <span class="font-bold text-gray-900">{{ trainerToRemove?.name }}</span> from {{ trainerStore.currentGymName }}?
           </p>
           <div class="flex flex-col gap-3">
             <button
-              @click="removeTrainer"
-              :disabled="isRemoving"
+              @click="handleRemoveTrainer"
+              :disabled="trainerStore.isRemoving"
               class="w-full py-4 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
             >
-              <span v-if="!isRemoving">Yes, Remove</span>
+              <span v-if="!trainerStore.isRemoving">Yes, Remove</span>
               <div v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             </button>
             <button
@@ -170,118 +170,44 @@
 
       <!-- Toast Notification -->
       <div
-        v-if="toast.show"
+        v-if="uiStore.toast.show"
         class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[11000] px-6 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 flex items-center gap-3 border"
         :class="[
-          toast.type === 'success' ? 'bg-white border-green-100 text-green-700' : 'bg-white border-red-100 text-red-700',
-          toast.show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+          uiStore.toast.type === 'success' ? 'bg-white border-green-100 text-green-700' : 'bg-white border-red-100 text-red-700',
+          uiStore.toast.show ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
         ]"
       >
-        <span class="text-lg">{{ toast.type === 'success' ? '✅' : '❌' }}</span>
-        <span class="font-bold text-sm tracking-tight">{{ toast.message }}</span>
+        <span class="text-lg">{{ uiStore.toast.type === 'success' ? '✅' : '❌' }}</span>
+        <span class="font-bold text-sm tracking-tight">{{ uiStore.toast.message }}</span>
       </div>
     </Teleport>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useTrainerGymStore } from '@/stores/trainerGym'
+import { useUiStore } from '@/stores/ui'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
-import trainerGymApi from '@/api/trainerGymApi'
 
-// ✅ CONFIG
-const gyms = [
-  { id: 1, name: 'STING CLUB' },
-  { id: 2, name: 'STING HIVE' },
-]
+const trainerStore = useTrainerGymStore()
+const uiStore = useUiStore()
 
-// ✅ STATE
-const selectedGymId = ref(1)
-const trainers = ref([])
-const availableUsers = ref([])
+// ✅ LOCAL STATE
 const selectedUserId = ref('')
-const isLoading = ref(false)
-const isLoadingUsers = ref(false)
-const isAssigning = ref(false)
-const isRemoving = ref(false)
-
-// Confirmation Modal State
 const showConfirmModal = ref(false)
 const trainerToRemove = ref(null)
 
-// Toast State
-const toast = ref({ show: false, message: '', type: 'success' })
-
-const showToast = (message, type = 'success') => {
-  toast.value = { show: true, message, type }
-  setTimeout(() => {
-    toast.value.show = false
-  }, 3000)
-}
-
-// ✅ COMPUTED
-const currentGymName = computed(() => {
-  const gym = gyms.find((g) => g.id === selectedGymId.value)
-  return gym ? gym.name : ''
-})
-
-// Filter out users who already have a gym assigned
-const filteredAvailableUsers = computed(() => {
-  return availableUsers.value.filter(user => {
-    // Exclude users who have gym_id or gym_enum set
-    return !user.gym_id && !user.gym_enum
-  })
-})
-
 // ✅ ACTIONS
-const fetchGymTrainers = async () => {
-  isLoading.value = true
-  try {
-    const res = await trainerGymApi.getGymTrainers(selectedGymId.value)
-    // Response is expected to be an array of developers per user instructions
-    trainers.value = Array.isArray(res.data) ? res.data : (res.data.data || [])
-  } catch (err) {
-    console.error('Fetch trainers error:', err)
-    showToast('Failed to load trainers', 'error')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const fetchAvailableUsers = async () => {
-  isLoadingUsers.value = true
-  try {
-    const res = await trainerGymApi.getAvailableUsers()
-    // data: Array ของ User { id, name, username, ... }
-    availableUsers.value = res.data.data || res.data || []
-  } catch (err) {
-    console.error('Fetch available users error:', err)
-  } finally {
-    isLoadingUsers.value = false
-  }
-}
-
-const selectGym = (id) => {
-  selectedGymId.value = id
-  fetchGymTrainers()
-}
-
-const assignTrainer = async () => {
+const handleAssignTrainer = async () => {
   if (!selectedUserId.value) return
-  isAssigning.value = true
-  try {
-    await trainerGymApi.assignTrainer(selectedUserId.value, selectedGymId.value)
-    showToast('Trainer added successfully')
+  
+  const result = await trainerStore.assignTrainer(selectedUserId.value)
+  if (result.ok) {
+    uiStore.showToast('Trainer added successfully', 'success')
     selectedUserId.value = ''
-    // Refresh both lists
-    fetchGymTrainers()
-    fetchAvailableUsers()
-  } catch (err) {
-    console.error('Assign error:', err)
-    const msg = err.response?.data?.message || 'Failed to add trainer'
-    showToast(msg, 'error')
-  } finally {
-    isAssigning.value = false
+  } else {
+    uiStore.showToast(result.message, 'error')
   }
 }
 
@@ -290,28 +216,22 @@ const confirmRemove = (trainer) => {
   showConfirmModal.value = true
 }
 
-const removeTrainer = async () => {
+const handleRemoveTrainer = async () => {
   if (!trainerToRemove.value) return
-  isRemoving.value = true
-  try {
-    await trainerGymApi.removeTrainer(trainerToRemove.value.id, selectedGymId.value)
-    showToast('Trainer removed from gym')
+  
+  const result = await trainerStore.removeTrainer(trainerToRemove.value)
+  if (result.ok) {
+    uiStore.showToast('Trainer removed from gym', 'success')
     showConfirmModal.value = false
     trainerToRemove.value = null
-    // Refresh both lists
-    fetchGymTrainers()
-    fetchAvailableUsers()
-  } catch (err) {
-    console.error('Remove error:', err)
-    showToast('Failed to remove trainer', 'error')
-  } finally {
-    isRemoving.value = false
+  } else {
+    uiStore.showToast(result.message, 'error')
   }
 }
 
 onMounted(() => {
-  fetchGymTrainers()
-  fetchAvailableUsers()
+  trainerStore.fetchGymTrainers()
+  trainerStore.fetchAvailableUsers()
 })
 </script>
 

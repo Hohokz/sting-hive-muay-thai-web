@@ -1,19 +1,20 @@
 <template>
   <DashboardLayout>
     <div class="space-y-10">
-      <DashboardStats :filters="filters" />
+      <DashboardStats :filters="bookingStore.filters" />
 
       <BookingTable
-        :bookings="bookings"
-        :loading="isLoading"
-        v-model:filters="filters"
-        @refresh="fetchBookings"
-        @cancel="cancelBooking"
+        :bookings="bookingStore.bookings"
+        :loading="bookingStore.isLoading"
+        v-model:filters="bookingStore.filters"
+        @refresh="bookingStore.refresh"
+        @cancel="confirmCancel"
       />
 
       <ScheduleTable />
     </div>
 
+    <!-- Confirm / Status Modal -->
     <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="showModal = false"></div>
       <div class="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
@@ -43,24 +44,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { api } from '@/api/bookingApi'
+import { ref, watch, onMounted } from 'vue'
+import { useBookingStore } from '@/stores/booking'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 import DashboardStats from '@/components/dashboard/DashboardStats.vue'
 import BookingTable from '@/components/dashboard/BookingTable.vue'
 import ScheduleTable from '@/components/dashboard/ScheduleTable.vue'
 
-const bookings = ref([])
-const isLoading = ref(false)
-
-// ✅ แก้ไข: รวม selectedDate เข้ามาใน filters ตัวเดียวเลย
-const filters = ref({
-  date: new Date().toISOString().split('T')[0],
-  startTime: '',
-  endTime: '',
-  classType: 'ALL',
-  gym: 'ALL', // หน้า Dashboard หลักให้โชว์ ALL เป็นค่าเริ่มต้น
-})
+const bookingStore = useBookingStore()
 
 /* ================= MODAL SYSTEM ================= */
 const showModal = ref(false)
@@ -69,11 +60,11 @@ const modalMessage = ref('')
 const modalType = ref('warning')
 const modalAction = ref(null)
 
-const openModal = (t, m, ty, a) => {
-  modalTitle.value = t
-  modalMessage.value = m
-  modalType.value = ty
-  modalAction.value = a
+const openModal = (title, message, type, action = null) => {
+  modalTitle.value = title
+  modalMessage.value = message
+  modalType.value = type
+  modalAction.value = action
   showModal.value = true
 }
 
@@ -85,49 +76,31 @@ const handleConfirm = async () => {
   }
 }
 
-/* ================= API LOGIC ================= */
-const fetchBookings = async () => {
-  isLoading.value = true
-  try {
-    // ✅ ดึงวันที่จาก filters.value.date
-    const res = await api.dashboard.getDailyBookings(filters.value.date)
-    bookings.value = res.data.data
-  } catch (err) {
-    console.error('Fetch error:', err)
-    openModal('Error', 'ไม่สามารถโหลดข้อมูลการจองได้', 'error', null)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// ✅ Watcher: ถ้าวันที่เปลี่ยน ให้โหลดข้อมูลใหม่
-watch(
-  () => filters.value.date,
-  (newDate) => {
-    if (newDate) fetchBookings()
-  },
-)
-
 /* ================= CANCEL LOGIC ================= */
-const cancelBooking = (id) => {
+const confirmCancel = (id) => {
   openModal(
     'Confirm Cancel',
     'Are you sure you want to cancel this booking?',
     'warning',
     async () => {
-      try {
-        isLoading.value = true
-        await api.bookings.cancel(id)
-        bookings.value = bookings.value.filter((b) => b.id !== id)
-        openModal('Success', '✅ Booking has been canceled.', 'success', null)
-      } catch {
-        openModal('Error', '❌ Failed to cancel booking.', 'error', null)
-      } finally {
-        isLoading.value = false
+      const result = await bookingStore.cancelBooking(id)
+      if (result.ok) {
+        openModal('Success', '✅ Booking has been canceled.', 'success')
+      } else {
+        openModal('Error', result.message ?? '❌ Failed to cancel booking.', 'error')
       }
     },
   )
 }
 
-onMounted(fetchBookings)
+/* ================= WATCHERS ================= */
+// Re-fetch when date filter changes
+watch(
+  () => bookingStore.filters.date,
+  (newDate) => {
+    if (newDate) bookingStore.fetchBookings(newDate)
+  },
+)
+
+onMounted(() => bookingStore.fetchBookings())
 </script>

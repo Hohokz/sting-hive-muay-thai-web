@@ -32,6 +32,14 @@
           />
           Add Schedule
         </button>
+
+        <button
+          v-if="auth.isAdmin"
+          @click="openActiveScheduleModal"
+          class="w-full sm:w-auto justify-center text-sm px-4 py-2 bg-white border border-gray-500 text-black rounded-lg hover:bg-gray-600 hover:text-white transition-colors flex items-center"
+        >
+          Active Schedule
+        </button>
       </div>
     </div>
 
@@ -104,7 +112,7 @@
             </td>
           </tr>
 
-          <tr v-if="loading">
+          <tr v-if="scheduleStore.isLoading">
             <td :colspan="auth.isAdmin ? 6 : 5" class="py-12 text-center text-gray-400">
               Loading...
             </td>
@@ -122,53 +130,35 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
 import { useModalStore } from '@/stores/modal'
+import { useScheduleStore } from '@/stores/schedule'
 import EditScheduleModal from './EditScheduleModal.vue'
 import AddAdvanceScheduleModal from './AddAdvanceScheduleModal.vue'
+import ActiveScheduleModel from './ActiveScheduleModel.vue'
 import ViewAdvanceScheduleModal from './ViewAdvanceScheduleModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import StatusModal from '@/components/common/StatusModal.vue'
 
 const auth = useAuthStore()
 const modalStore = useModalStore()
+const scheduleStore = useScheduleStore()
 
 // State
-const schedules = ref([])
-const loading = ref(false)
 const sortKey = ref('start_time')
 const sortOrder = ref('asc')
 
-const openStatusModal = (title, message, type = 'success') => {
-  modalStore.open(StatusModal, { title, message, type })
-}
-
 /* ================= ACTIONS ================= */
 
-const fetchSchedules = async () => {
-  try {
-    loading.value = true
-    const res = await api.schedules.get()
-    schedules.value = res.data.data
-  } catch (err) {
-    console.error('Fetch error:', err)
-    try {
-      const res2 = await api.schedules.getAvailable()
-      schedules.value = res2.data.data
-    } catch (err2) {
-      console.error('Fetch fallback error:', err2)
-    }
-  } finally {
-    loading.value = false
-  }
+const openStatusModal = (title, message, type = 'success') => {
+  modalStore.open(StatusModal, { title, message, type })
 }
 
 const openAddModal = () => {
   if (!auth.isAdmin) return
   modalStore.open(EditScheduleModal, {
     schedule: null,
-    onSuccess: fetchSchedules,
+    onSuccess: scheduleStore.fetchSchedules,
     onClose: () => modalStore.close(),
   })
 }
@@ -177,8 +167,15 @@ const openEditModal = (item) => {
   if (!auth.isAdmin) return
   modalStore.open(EditScheduleModal, {
     schedule: item,
-    onSuccess: fetchSchedules,
+    onSuccess: scheduleStore.fetchSchedules,
     onClose: () => modalStore.close(),
+  })
+}
+
+const openActiveScheduleModal = () => {
+  if (!auth.isAdmin) return
+  modalStore.open(ActiveScheduleModel, {
+    'onClose': () => { modalStore.close(); scheduleStore.fetchSchedules() }
   })
 }
 
@@ -192,7 +189,7 @@ const openViewAdvanceModal = () => {
 const openAddAvanceModel = () => {
   if (!auth.isAdmin) return
   modalStore.open(AddAdvanceScheduleModal, {
-    onSuccess: fetchSchedules,
+    onSuccess: scheduleStore.fetchSchedules,
     onClose: () => modalStore.close(),
   })
 }
@@ -209,20 +206,18 @@ const handleDeleteClick = (id) => {
 }
 
 const confirmDelete = async (id) => {
-  try {
-    await api.schedules.delete(id)
+  const result = await scheduleStore.deleteSchedule(id)
+  if (result.ok) {
     openStatusModal('Success', 'Schedule deleted successfully!')
-    fetchSchedules()
-  } catch (err) {
-    console.error('Delete error:', err)
-    openStatusModal('Error', 'Failed to delete schedule', 'error')
+  } else {
+    openStatusModal('Error', result.message, 'error')
   }
 }
 
 /* ================= SORT & UTILS ================= */
 
 const sortedSchedules = computed(() => {
-  const data = [...schedules.value]
+  const data = [...scheduleStore.schedules]
   if (!sortKey.value) return data
   return data.sort((a, b) => {
     let valA = a[sortKey.value],
@@ -249,7 +244,7 @@ const sortIcon = (k) => (sortKey.value !== k ? '↕' : sortOrder.value === 'asc'
 const formatTime = (t) => t?.slice(0, 5) || '--:--'
 const formatGym = (g) => (g === 'STING_HIVE' ? 'Sting Hive' : g === 'STING_CLUB' ? 'Sting Club' : g)
 
-onMounted(fetchSchedules)
+onMounted(scheduleStore.fetchSchedules)
 </script>
 
 <style scoped>
