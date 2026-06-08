@@ -84,7 +84,12 @@ import { ref, onMounted, onUnmounted } from 'vue';
 const navLinks = ['About', 'Pricing', 'Schedule', 'Location'];
 
 const slides = [
-  '/images/PPAI1718.jpg'
+  '/images/PPAI1718.jpg',
+  '/images/PPAI1983.jpg',
+  '/images/PPAI1673.jpg',
+  '/images/PPAI2376.jpg',
+  '/images/PPAI2017.jpg',
+  '/images/PPAI1721.jpg',
 ];
 
 const current = ref(0);
