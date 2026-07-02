@@ -343,8 +343,8 @@ import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
 import { useModalStore } from '@/stores/modal'
 import StatusModal from '@/components/common/StatusModal.vue'
-import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
-import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
+import BookingCalender from '@/components/booking/BookingCalender.vue'
+import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
 
 const props = defineProps({

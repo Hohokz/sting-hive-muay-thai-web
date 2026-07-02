@@ -264,8 +264,8 @@ import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
-import BookingCalender from '@/components/ฺbooking/BookingCalender.vue'
-import BookingTimeSlots from '@/components/ฺbooking/BookingTimeSlots.vue'
+import BookingCalender from '@/components/booking/BookingCalender.vue'
+import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import { api } from '@/api/bookingApi'
 import trainerGymApi from '@/api/trainerGymApi'
 import { safeNewDate } from '@/utils/dateUtils'
@@ -481,6 +481,21 @@ const submitBooking = async () => {
 
   if (!participants.value || participants.value < 1 || participants.value > 5) {
     openModal(t('booking.incomplete_info'), t('booking.please_enter_participants'), 'warning')
+    return
+  }
+
+  if (!clientName.value || !clientName.value.trim()) {
+    openModal(t('booking.incomplete_info'), t('booking.please_enter_name'), 'warning')
+    return
+  }
+
+  if (!email.value || !email.value.trim()) {
+    openModal(t('booking.incomplete_info'), t('booking.please_enter_email'), 'warning')
+    return
+  }
+
+  if (!email.value.includes('@')) {
+    openModal(t('booking.incomplete_info'), t('booking.invalid_email'), 'warning')
     return
   }
 

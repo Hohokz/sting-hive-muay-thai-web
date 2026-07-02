@@ -35,6 +35,8 @@
     "incomplete_info": "信息不完整",
     "please_select": "请在继续之前选择地点/日期/时间。",
     "please_enter_participants": "请输入 1 - 5 位参与者。",
+    "please_enter_name": "请输入您的姓名。",
+    "please_enter_email": "请输入您的电子邮件。",
     "completed": "预订完成！",
     "success_msg": "您的预订已成功创建。",
     "failed": "预订失败",

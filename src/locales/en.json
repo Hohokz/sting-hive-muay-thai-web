@@ -35,6 +35,8 @@
     "incomplete_info": "Incomplete Information",
     "please_select": "Please select Place / Date / Time before continuing.",
     "please_enter_participants": "Please enter 1 - 5 participants.",
+    "please_enter_name": "Please enter your name.",
+    "please_enter_email": "Please enter your email.",
     "completed": "Booking completed!",
     "success_msg": "Your booking has been successfully created.",
     "failed": "Booking Failed",
