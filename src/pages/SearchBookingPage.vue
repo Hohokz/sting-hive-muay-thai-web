@@ -52,6 +52,7 @@
               <b class="text-gray-700">{{ t('search.time') }}:</b> {{ b.schedule.start_time }} -
               {{ b.schedule.end_time }}
             </p>
+            <p><b class="text-gray-700">{{ t('search.client_name') }}:</b> {{ b.client_name }}</p>
             <p><b class="text-gray-700">{{ t('search.place') }}:</b> {{ b.schedule.gym_enum }}</p>
           </div>
 
@@ -237,7 +238,7 @@ const cancelBooking = (bookingId) => {
     'warning',
     async () => {
       try {
-        isLoading.value = true 
+        isLoading.value = true
         if (document.activeElement instanceof HTMLElement) {
           document.activeElement.blur()
         }
