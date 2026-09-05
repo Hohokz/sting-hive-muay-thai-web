@@ -130,8 +130,8 @@
 </template>
 <script setup>
 import { ref, watch } from 'vue'
-import bookingApi from '@/api/bookingApi'
-const schedules = bookingApi.schedules
+import { api } from '@/api/bookingApi'
+const schedules = api.schedules
 
 const filters = defineModel({
   default: () => ({

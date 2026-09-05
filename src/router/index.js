@@ -48,6 +48,12 @@ const routes = [
     meta: { requiresAuth: true, adminOnly: true },
   },
   {
+    path: '/admin/export',
+    name: 'ExportData',
+    component: () => import('@/pages/ExportPage.vue'),
+    meta: { requiresAuth: true, adminOnly: true },
+  },
+  {
     path: '/admin',
     name: 'login',
     component: () => import('@/pages/AdminPage.vue'),

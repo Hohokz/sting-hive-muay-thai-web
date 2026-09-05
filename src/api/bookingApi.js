@@ -2,8 +2,6 @@ import axios from '@/utils/axios'
 
 // AUTH
 const auth = {
-  // Login expects { username, password } per user instructions, but frontend might currently send email.
-  // I will leave the argument as 'credentials' so it's flexible, but I'll update the endpoint if it was wrong (it was correct).
   login: (credentials) => axios.post('/api/v1/auth/login', credentials),
   refreshToken: (refreshToken) => axios.post('/api/v1/auth/refresh-token', { refreshToken }),
   getUser: () => axios.get('/api/v1/users'),
@@ -18,6 +16,7 @@ const auth = {
 const dashboard = {
   getDailyBookings: (date) => axios.get('/api/v1/dashboard/daily', { params: { date } }),
   getSummary: (date) => axios.get('/api/v1/dashboard/summary', { params: { date } }),
+  getDbSize: () => axios.get('/api/v1/dashboard/db-size'),
 }
 
 // BOOKINGS
@@ -32,6 +31,12 @@ const bookings = {
   updatePayment: (id, data) => axios.put(`/api/v1/bookings/${id}/payment`, data),
   getTrainers: () => axios.get('/api/v1/bookings/trainers'),
   getByName: (name) => axios.get(`/api/v1/bookings/${name}`),
+  getExportMonths: () => axios.get('/api/v1/bookings/export/months'),
+  exportCsv: (params) =>
+    axios.get('/api/v1/bookings/export', { params, responseType: 'blob' }),
+  getExportedMonths: () => axios.get('/api/v1/bookings/purge/exported-months'),
+  getPurgePreview: (month) => axios.get('/api/v1/bookings/purge/preview', { params: { month } }),
+  purge: (month) => axios.delete('/api/v1/bookings/purge', { params: { month } }),
 }
 
 // SCHEDULES
@@ -51,20 +56,15 @@ const schedules = {
 // LOGS
 const logs = {
   get: (params) => axios.get('/api/v1/activity-logs', { params }),
+  getExportMonths: () => axios.get('/api/v1/activity-logs/export/months'),
+  exportCsv: (params) =>
+    axios.get('/api/v1/activity-logs/export', { params, responseType: 'blob' }),
+  getExportedMonths: () => axios.get('/api/v1/activity-logs/purge/exported-months'),
+  getPurgePreview: (month) =>
+    axios.get('/api/v1/activity-logs/purge/preview', { params: { month } }),
+  purge: (month) => axios.delete('/api/v1/activity-logs/purge', { params: { month } }),
 }
 
-export default {
-  auth,
-  dashboard,
-  bookings,
-  schedules,
-  logs,
-}
-
-/**
- * Export named exports for convenience if needed,
- * but default export is preferred for grouping.
- */
 export const api = {
   auth,
   dashboard,

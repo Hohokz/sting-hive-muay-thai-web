@@ -157,25 +157,87 @@
       </div>
     </div>
 
-    <!-- JSON Details Modal -->
+    <!-- Details Modal -->
     <Teleport to="body">
       <div v-if="showDetailModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showDetailModal = false"></div>
         <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-fadeIn">
-          <div class="p-6 bg-white border-b border-gray-100 flex items-center justify-between">
+          <div class="p-6 bg-white border-b border-gray-100 flex items-start justify-between">
             <div>
-              <h3 class="text-xl font-bold text-gray-900">Log Details</h3>
-              <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Full response payload</p>
+              <h3 class="text-xl font-bold text-gray-900">{{ getModalTitle(selectedLog) }}</h3>
+              <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
+                {{ selectedLog?.service }}
+                <span v-if="selectedLogRecordId"> · #{{ String(selectedLogRecordId).slice(0, 8) }}</span>
+              </p>
             </div>
             <button @click="showDetailModal = false" class="text-gray-400 hover:text-black p-2">
               <span class="text-2xl">×</span>
             </button>
           </div>
-          <div class="flex-1 overflow-y-auto p-6 bg-gray-50">
-            <pre class="bg-gray-900 text-green-400 p-6 rounded-2xl text-xs overflow-x-auto font-mono shadow-inner border-2 border-gray-800">
-{{ JSON.stringify(selectedLogDetails, null, 2) }}
-            </pre>
+
+          <div class="flex-1 overflow-y-auto p-6 bg-gray-50 space-y-4">
+            <!-- Who / when -->
+            <div class="bg-white rounded-xl border border-gray-100 p-4 text-sm">
+              <div class="flex justify-between text-gray-500">
+                <span>{{ formatDateTime(selectedLog?.created_at) }}</span>
+                <span class="font-bold text-gray-900">{{ selectedLog?.user_name || 'System' }}</span>
+              </div>
+            </div>
+
+            <!-- Changes table, for update-style actions -->
+            <div v-if="selectedLogChanges.length" class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold tracking-wider">
+                  <tr>
+                    <th class="px-4 py-2 text-left">Field</th>
+                    <th class="px-4 py-2 text-left">Before</th>
+                    <th class="px-4 py-2 text-left">After</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  <tr v-for="change in selectedLogChanges" :key="change.key">
+                    <td class="px-4 py-2 font-semibold text-gray-700">{{ change.label }}</td>
+                    <td class="px-4 py-2 text-gray-500">{{ change.from }}</td>
+                    <td class="px-4 py-2 text-gray-900 font-medium">{{ change.to }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Plain fields, for create/single-value actions -->
+            <div
+              v-else-if="plainDetailFields.length"
+              class="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100"
+            >
+              <div
+                v-for="field in plainDetailFields"
+                :key="field.key"
+                class="px-4 py-2 flex justify-between text-sm"
+              >
+                <span class="text-gray-500">{{ field.label }}</span>
+                <span class="font-medium text-gray-900">{{ field.value }}</span>
+              </div>
+            </div>
+
+            <div v-else class="text-center text-gray-400 italic text-sm py-6">
+              No further details available.
+            </div>
+
+            <!-- Raw JSON, collapsed by default -->
+            <div>
+              <button
+                @click="showRawJson = !showRawJson"
+                class="text-xs font-bold text-gray-400 hover:text-gray-700 flex items-center gap-1"
+              >
+                {{ showRawJson ? '▾' : '▸' }} Raw JSON
+              </button>
+              <pre
+                v-if="showRawJson"
+                class="mt-2 bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-x-auto font-mono shadow-inner"
+              >{{ JSON.stringify(selectedLog?.details, null, 2) }}</pre>
+            </div>
           </div>
+
           <div class="p-4 bg-white border-t border-gray-100 flex justify-end">
             <button
               @click="showDetailModal = false"
@@ -194,10 +256,24 @@
 import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 import { useActivityLogStore } from '@/stores/activityLog'
+import {
+  formatDateTime,
+  getLogDescription,
+  getModalTitle,
+  getPlainDetailFields,
+  getSelectedLogChanges,
+  getSelectedLogRecordId,
+  serviceClass,
+  getDisplayAction,
+  getDisplayRole,
+  roleClass,
+  actionClass,
+} from '@/utils/activityLogDisplay'
 
 const logStore = useActivityLogStore()
 const showDetailModal = ref(false)
-const selectedLogDetails = ref(null)
+const selectedLog = ref(null)
+const showRawJson = ref(false)
 
 /** Ref to the hidden date input — used to programmatically open the picker */
 const dateInputRef = ref(null)
@@ -219,132 +295,14 @@ const formattedDateDisplay = computed(() => {
 })
 
 const viewDetails = (log) => {
-  selectedLogDetails.value = log.details || log.metadata || log
+  selectedLog.value = log
+  showRawJson.value = false
   showDetailModal.value = true
 }
 
-const getLogDescription = (log) => {
-  if (log.description) return log.description
-  if (log.details?.description) return log.details.description
-
-  // Custom mapping based on common actions
-  const action = String(log.action).toUpperCase()
-  if (action === 'LOGIN') return 'User logged into the system'
-  if (action === 'LOGOUT') return 'User logged out'
-  if (log.details?.booking_id) return `${action} Booking #${log.details.booking_id.slice(0, 8)}`
-  if (log.details?.schedule_id) return `${action} Schedule #${log.details.schedule_id}`
-
-  return '-'
-}
-
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
-
-const serviceClass = (service) => {
-  switch (String(service).toUpperCase()) {
-    case 'BOOKING':
-      return 'bg-blue-100 text-blue-700'
-    case 'SCHEDULE':
-      return 'bg-purple-100 text-purple-700'
-    case 'AUTH':
-    case 'USER':
-      return 'bg-orange-100 text-orange-700'
-    default:
-      return 'bg-gray-100 text-gray-700'
-  }
-}
-
-const getDisplayAction = (log) => {
-  const action = String(log.action).toUpperCase()
-  const details = log.details || {}
-
-  // Extract all possible status fields
-  const status = String(details.status || details.new_status || details.booking_status || '').toUpperCase()
-  const paymentStatus = String(details.payment_status || details.new_payment_status || '').toUpperCase()
-
-  // 1. PAYMENT detection
-  if (
-    action.includes('PAYMENT') ||
-    action.includes('PAID') ||
-    paymentStatus.includes('PAID') ||
-    paymentStatus.includes('SUCCESS') ||
-    status.includes('PAID')
-  ) {
-    return 'PAYMENT'
-  }
-
-  // 2. DELETE/CANCEL detection
-  if (
-    action === 'DELETE' ||
-    action.includes('CANCEL') ||
-    status.includes('CANCEL') ||
-    status.includes('DELETE') ||
-    status === 'VOID'
-  ) {
-    return 'DELETE'
-  }
-
-  // 3. General UPDATE
-  if (action === 'UPDATE_STATUS' || action.includes('UPDATE')) return 'UPDATE'
-
-  return log.action
-}
-
-const getDisplayRole = (log) => {
-  if (log.user_role) return log.user_role
-  if (log.role) return log.role
-  if (log.user?.role) return log.user.role
-
-  // Inference
-  if (log.admin_name) return 'ADMIN'
-
-  // Check if the name itself implies ADMIN
-  const nameToCheck = (log.user_name || log.user?.name || log.details?.userName || '').toUpperCase()
-  if (nameToCheck.includes('ADMIN')) return 'ADMIN'
-
-  // If we have a user name but came here (no explicit role), it is likely a regular user
-  if (log.user_name) return 'USER'
-
-  // Default fallback
-  return 'ADMIN'
-}
-
-const roleClass = (role) => {
-  if (role === 'ADMIN') return 'text-red-600'
-  return 'text-gray-400'
-}
-
-const actionClass = (action, log) => {
-  const displayAction = getDisplayAction(log || { action }).toUpperCase()
-
-  switch (displayAction) {
-    case 'LOGIN':
-      return 'bg-green-100 text-green-700'
-    case 'LOGOUT':
-      return 'bg-gray-100 text-gray-700'
-    case 'CREATE':
-      return 'bg-blue-100 text-blue-700'
-    case 'UPDATE':
-    case 'UPDATE_STATUS':
-      return 'bg-yellow-100 text-yellow-700'
-    case 'PAYMENT':
-      return 'bg-indigo-100 text-indigo-700'
-    case 'CANCEL':
-    case 'DELETE':
-      return 'bg-red-100 text-red-700'
-    default:
-      return 'bg-gray-100 text-gray-700'
-  }
-}
+const plainDetailFields = computed(() => getPlainDetailFields(selectedLog.value?.details))
+const selectedLogChanges = computed(() => getSelectedLogChanges(selectedLog.value?.details))
+const selectedLogRecordId = computed(() => getSelectedLogRecordId(selectedLog.value?.details))
 
 onMounted(() => {
   logStore.fetchLogs()

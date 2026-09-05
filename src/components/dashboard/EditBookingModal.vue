@@ -104,6 +104,7 @@
                       :allow-full-selection="true"
                       :is-admin-mode="true"
                       @select="onSelectSchedule"
+                      @loading="isSlotsLoading = $event"
                     />
                   </div>
                 </div>
@@ -307,7 +308,7 @@
                       ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
                       : 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
                   "
-                  :disabled="isSubmitting || !selectedSchedule"
+                  :disabled="isSubmitting || isSlotsLoading || !selectedSchedule"
                   @click="handleSubmit"
                 >
                   <span
@@ -439,6 +440,7 @@ const selectTrainer = (trainer) => {
 
 const isInitialLoading = ref(false)
 const isSubmitting = ref(false)
+const isSlotsLoading = ref(false)
 
 // Mode Indicator
 const isEditMode = computed(() => !!props.bookingId)
@@ -592,6 +594,28 @@ watch(
   },
 )
 
+// selectedSchedule must be cleared whenever the slot list reloads because the
+// admin actually changed gym/date/type — otherwise switching those after
+// already picking a slot leaves the OLD (now mismatched) schedule silently
+// attached to the submission, even though no slot appears selected on screen.
+// The very first reload after opening the modal is skipped: in edit mode
+// that reload is triggered by BookingTimeSlots mounting for the booking's
+// own gym/date, and selectedSchedule is already correctly pre-filled by
+// fetchBookingDetail by that point — clearing it there would wipe it out
+// before the admin has touched anything.
+let skipNextSlotsClear = false
+
+watch(isSlotsLoading, (loading) => {
+  if (!loading) return
+  if (skipNextSlotsClear) {
+    skipNextSlotsClear = false
+    return
+  }
+  selectedSchedule.value = null
+  selectedTrainerName.value = ''
+  trainerSearchQuery.value = ''
+})
+
 watch([selectedDate, selectPrivate, selectedGym], () => {
   if (selectedDate.value && selectedGym.value) {
     fetchSchedules({
@@ -609,6 +633,7 @@ watch([selectedGym, selectedDate, selectedSchedule, selectPrivate], () => {
 
 const init = () => {
   // fetchTrainers() // Wait for details
+  skipNextSlotsClear = true
   if (isEditMode.value) fetchBookingDetail(props.bookingId)
   else resetForm()
 }

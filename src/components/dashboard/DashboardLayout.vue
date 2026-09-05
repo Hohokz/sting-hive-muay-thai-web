@@ -201,6 +201,38 @@
               Activity Logs
             </span>
           </RouterLink>
+
+          <RouterLink
+            v-if="auth.isAdmin"
+            to="/admin/export"
+            class="flex items-center gap-4 hover:text-red-400 h-6"
+            @click="closeMobileSidebar"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
+              />
+            </svg>
+            <span
+              class="transition-all duration-300 whitespace-nowrap"
+              :class="[
+                open || hover
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 -translate-x-4 pointer-events-none',
+              ]"
+            >
+              Data Management
+            </span>
+          </RouterLink>
         </nav>
       </div>
 
