@@ -32,7 +32,8 @@ const bookings = {
   getTrainers: () => axios.get('/api/v1/bookings/trainers'),
   getByName: (name) => axios.get(`/api/v1/bookings/${name}`),
   getExportMonths: () => axios.get('/api/v1/bookings/export/months'),
-  exportCsv: (params) =>
+  // Defaults to Excel (.xlsx) server-side; pass { ...params, format: 'csv' } for CSV instead.
+  exportFile: (params) =>
     axios.get('/api/v1/bookings/export', { params, responseType: 'blob' }),
   getExportedMonths: () => axios.get('/api/v1/bookings/purge/exported-months'),
   getPurgePreview: (month) => axios.get('/api/v1/bookings/purge/preview', { params: { month } }),
@@ -57,7 +58,8 @@ const schedules = {
 const logs = {
   get: (params) => axios.get('/api/v1/activity-logs', { params }),
   getExportMonths: () => axios.get('/api/v1/activity-logs/export/months'),
-  exportCsv: (params) =>
+  // Defaults to Excel (.xlsx) server-side; pass { ...params, format: 'csv' } for CSV instead.
+  exportFile: (params) =>
     axios.get('/api/v1/activity-logs/export', { params, responseType: 'blob' }),
   getExportedMonths: () => axios.get('/api/v1/activity-logs/purge/exported-months'),
   getPurgePreview: (month) =>

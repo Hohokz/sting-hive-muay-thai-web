@@ -16,19 +16,20 @@ const monthToRange = (month) => {
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1)
 
 /**
- * Wires up the "load available months / export CSV / preview+confirm+purge"
- * flow used by each card on the Data Management page. Bookings and activity
- * logs expose the identical getExportMonths/getExportedMonths/exportCsv/
+ * Wires up the "load available months / export / preview+confirm+purge" flow
+ * used by each card on the Data Management page. Bookings and activity logs
+ * expose the identical getExportMonths/getExportedMonths/exportFile/
  * getPurgePreview/purge shape, so this is parametrized by resource instead
- * of duplicated per resource. A month is only deletable once it has been
- * exported at least once (enforced by the backend; exportedMonths mirrors
- * that here just to grey out ineligible months in the picker).
+ * of duplicated per resource. Exports default to Excel (.xlsx) server-side.
+ * A month is only deletable once it has been exported at least once
+ * (enforced by the backend; exportedMonths mirrors that here just to grey
+ * out ineligible months in the picker).
  *
  * @param {object} options
  * @param {object} options.resourceApi - api.bookings or api.logs
  * @param {string} options.pluralLabel - e.g. "bookings" / "activity logs", used in titles and error copy
  * @param {string} options.recordNoun - e.g. "booking" / "log", used in the purge-preview count message
- * @param {string} options.filenamePrefix - e.g. "bookings" / "activity_logs", used in the exported CSV filename
+ * @param {string} options.filenamePrefix - e.g. "bookings" / "activity_logs", used in the exported file's filename
  * @param {object} options.modalStore
  * @param {() => void} [options.onPurged] - called after a successful purge (e.g. to refresh the DB size banner)
  */
@@ -62,8 +63,8 @@ export function useMonthlyDataResource({ resourceApi, pluralLabel, recordNoun, f
     if (!month || exporting.value) return
     exporting.value = true
     try {
-      const response = await resourceApi.exportCsv(monthToRange(month))
-      downloadBlobResponse(response, `${filenamePrefix}_${month}.csv`)
+      const response = await resourceApi.exportFile(monthToRange(month))
+      downloadBlobResponse(response, `${filenamePrefix}_${month}.xlsx`)
       // This month is now eligible for deletion — refresh without waiting on it.
       resourceApi
         .getExportedMonths()

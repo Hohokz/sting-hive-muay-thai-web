@@ -4,7 +4,7 @@
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Data Management</h1>
         <p class="text-sm text-gray-500 font-medium">
-          Export bookings or activity logs as CSV, or permanently delete old data by month
+          Export bookings or activity logs as Excel, or permanently delete old data by month
         </p>
       </div>
 
@@ -35,7 +35,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MonthExportPicker
           title="Export Bookings"
-          description="Download all bookings for the selected month as CSV"
+          description="Download all bookings for the selected month as Excel"
           :available-months="bookings.months"
           :loading-months="bookings.loadingMonths"
           :busy="bookings.exporting"
@@ -44,7 +44,7 @@
 
         <MonthExportPicker
           title="Export Activity Logs"
-          description="Download all activity logs for the selected month as CSV"
+          description="Download all activity logs for the selected month as Excel"
           :available-months="logs.months"
           :loading-months="logs.loadingMonths"
           :busy="logs.exporting"
