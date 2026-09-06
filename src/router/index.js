@@ -54,6 +54,12 @@ const routes = [
     meta: { requiresAuth: true, adminOnly: true },
   },
   {
+    path: '/admin/payments',
+    name: 'PaymentSummary',
+    component: () => import('@/pages/PaymentSummaryPage.vue'),
+    meta: { requiresAuth: true, adminOnly: true },
+  },
+  {
     path: '/admin',
     name: 'login',
     component: () => import('@/pages/AdminPage.vue'),
