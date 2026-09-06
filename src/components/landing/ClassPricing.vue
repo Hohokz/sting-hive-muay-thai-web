@@ -3,10 +3,10 @@
     <!-- Title -->
     <div class="text-center mb-14">
       <h2 class="font-bebas text-5xl md:text-6xl tracking-wide text-white">
-        Class <span class="text-red-600">Pricing</span>
+        {{ t('landing.pricing.title_pre') }} <span class="text-red-600">{{ t('landing.pricing.title_highlight') }}</span>
       </h2>
       <p class="text-white/60 text-sm mt-2 mb-4">
-        Flexible plans for everyone. Find the perfect package to start your Muay Thai journey.
+        {{ t('landing.pricing.subtitle') }}
       </p>
       <div class="w-20 h-[3px] bg-red-600 mx-auto" />
     </div>
@@ -19,7 +19,7 @@
         <!-- Best Price badge -->
         <div v-if="plan.featured"
           class="absolute -top-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-[10px] font-black tracking-widest px-3 py-1 rounded-full uppercase">
-          Best Price
+          {{ t('landing.pricing.best_price_badge') }}
         </div>
 
         <!-- Price -->
@@ -57,57 +57,61 @@
     </div>
 
     <p class="text-center text-white/40 text-xs italic mt-10">
-      * Gloves and hand wrap rental is not included.
+      {{ t('landing.pricing.footnote') }}
     </p>
   </section>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Dumbbell, Users, CalendarDays, Ticket, PersonStanding } from 'lucide-vue-next';
 
-const plans = [
+const { t } = useI18n()
+
+const plans = computed(() => [
   {
     price: '300฿',
     icon: Dumbbell,
-    type: 'Group Training',
-    name: '1 Class',
-    note: 'Reservation Required',
+    type: t('landing.pricing.group_training'),
+    name: t('landing.pricing.plan_1_name'),
+    note: t('landing.pricing.plan_1_note'),
     featured: false,
   },
   {
     price: '1,900฿',
     icon: Users,
-    type: 'Group Training',
-    name: '7 Class Pack',
-    expiry: 'Expires in 15 days',
-    note: 'Coupon cannot be shared',
+    type: t('landing.pricing.group_training'),
+    name: t('landing.pricing.plan_7_name'),
+    expiry: t('landing.pricing.plan_7_expiry'),
+    note: t('landing.pricing.note_not_shared'),
     featured: false,
   },
   {
     price: '2,900฿',
     icon: CalendarDays,
-    type: 'Group Training',
-    name: '15 Class Pack',
-    expiry: 'Expires in 1 month',
-    note: 'Coupon cannot be shared',
+    type: t('landing.pricing.group_training'),
+    name: t('landing.pricing.plan_15_name'),
+    expiry: t('landing.pricing.plan_15_expiry'),
+    note: t('landing.pricing.note_not_shared'),
     featured: false,
   },
   {
     price: '4,900฿',
     icon: Ticket,
-    type: 'Group Training',
-    name: '30 Class Pack',
-    expiry: 'Expires in 2 months',
-    note: 'Coupon Can Be Shared',
+    type: t('landing.pricing.group_training'),
+    name: t('landing.pricing.plan_30_name'),
+    expiry: t('landing.pricing.plan_30_expiry'),
+    note: t('landing.pricing.note_shared'),
     featured: true,
   },
   {
     prices: ['800฿ / 1 hr', '1,000฿ / 1.5 hrs'],
     icon: PersonStanding,
     type: '',
-    name: 'Private Training',
-    expiry: 'One-on-One training with a dedicated Coach',
+    name: t('landing.pricing.private_training'),
+    expiry: t('landing.pricing.private_expiry'),
     featured: false,
   },
-];
+]);
 </script>

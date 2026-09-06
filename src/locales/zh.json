@@ -112,5 +112,84 @@
     "cancel_failed_msg": "❌ 无法取消预订。",
     "search_failed": "搜索失败",
     "search_failed_msg": "❌ 无法搜索预订。请重试。"
+  },
+  "landing": {
+    "nav": {
+      "about": "关于我们",
+      "pricing": "价格",
+      "schedule": "课程时间表",
+      "location": "位置",
+      "login": "登录"
+    },
+    "hero": {
+      "title_line1": "训练",
+      "title_line2": "泰拳",
+      "subtitle": "就在清迈市中心！",
+      "intro1": "<strong>Sting Club &amp; Sting Hive Muay Thai Gym</strong> 欢迎各个级别的学员，无论是新手还是资深选手。跟随我们专业友善的教练一起训练，成为这个互相支持的大家庭中的一员！",
+      "intro2": "无论您的目标是减重、增肌、学习自卫术，还是迈向职业擂台，Sting Club &amp; Sting Hive Muay Thai Gym 都将在轻松愉快的氛围中助您实现目标！",
+      "cta_booking": "预约课程",
+      "cta_pricing": "查看价格"
+    },
+    "about": {
+      "title_pre": "为什么选择",
+      "title_highlight": "在这里训练？",
+      "card1_title": "欢迎各级学员",
+      "card1_body": "<p><strong class=\"text-white font-semibold\">新手学员：</strong>从未接触过拳击也没关系！我们会帮您打好基础，教授正确的防守与出拳出腿技巧，并始终以安全为第一优先。</p><p class=\"mt-3\"><strong class=\"text-white font-semibold\">进阶学员：</strong>高强度训练课程、实战对练，以及进阶技巧，帮助您精益求精。</p>",
+      "card2_title": "专业友善的教练团队",
+      "card2_body": "<p>跟随拥有真实实战经验的专业教练学习。我们的教练亲切友善，会密切指导并根据您的体型与个人极限调整训练内容。</p>",
+      "card3_title": "互相支持的大家庭",
+      "card3_body": "<p>在 \"Sting Hive\"，我们不仅仅是一家健身房，更是一个大家庭。您将结识许多注重健康的新朋友，大家彼此鼓励、互相加油，一起突破自己的极限。</p>"
+    },
+    "pricing": {
+      "title_pre": "课程",
+      "title_highlight": "价格",
+      "subtitle": "灵活多样的套餐，总有一款适合您，助您开启泰拳之旅。",
+      "best_price_badge": "超值推荐",
+      "group_training": "团体训练",
+      "plan_1_name": "单次课程",
+      "plan_1_note": "需提前预约",
+      "plan_7_name": "7 堂课套餐",
+      "plan_7_expiry": "15 天内有效",
+      "plan_15_name": "15 堂课套餐",
+      "plan_15_expiry": "1 个月内有效",
+      "plan_30_name": "30 堂课套餐",
+      "plan_30_expiry": "2 个月内有效",
+      "note_shared": "可与他人共享",
+      "note_not_shared": "不可与他人共享",
+      "private_training": "私人训练",
+      "private_expiry": "与专属教练一对一训练",
+      "footnote": "* 不含拳套及手绑带租借费用"
+    },
+    "schedule": {
+      "title_pre": "课程",
+      "title_highlight": "时间表",
+      "group_class": "团体课程",
+      "private_training": "私人训练"
+    },
+    "location": {
+      "title_pre": "加入",
+      "title_highlight": "Sting 大家庭",
+      "intro": "准备好走上擂台了吗？欢迎立即联系我们预约课程、咨询问题，或直接前来打个招呼。我们就位于清迈古城的中心地带。",
+      "location_label": "位置",
+      "city": "清迈古城",
+      "branches_note": "欢迎光临我们的 <strong class=\"text-white\">Sting Club</strong> 或 <strong class=\"text-white\">Sting Hive</strong> 分馆。",
+      "line_official": "LINE 官方账号",
+      "call_us": "联系电话",
+      "follow_us": "关注我们",
+      "open_in_maps": "在 Google 地图中打开"
+    },
+    "team": {
+      "title_pre": "我们的",
+      "title_highlight": "团队"
+    },
+    "booking_section": {
+      "title_pre": "预约您的",
+      "title_highlight": "训练课程"
+    },
+    "footer": {
+      "rights": "始于 2020 年及 2024 年，版权所有。",
+      "privacy": "隐私政策",
+      "terms": "服务条款"
+    }
   }
 }

@@ -8,7 +8,7 @@
     <section ref="ourTeam" class="py-20 bg-[#111]">
       <div class="text-center mb-14">
         <h2 class="font-bebas text-5xl md:text-6xl tracking-wide text-white">
-          OUR <span class="text-red-600">TEAM</span>
+          {{ t('landing.team.title_pre').toUpperCase() }} <span class="text-red-600">{{ t('landing.team.title_highlight').toUpperCase() }}</span>
         </h2>
         <div class="w-20 h-[3px] bg-red-600 mx-auto mt-3" />
       </div>
@@ -24,7 +24,7 @@
     <section ref="bookingRef" class="py-20 bg-[#111]">
       <div class="max-w-7xl mx-auto px-4">
         <h2 class="font-bebas text-5xl text-center text-white mb-4">
-          Book Your <span class="text-red-600">Training Session</span>
+          {{ t('landing.booking_section.title_pre') }} <span class="text-red-600">{{ t('landing.booking_section.title_highlight') }}</span>
         </h2>
         <div class="w-20 h-[3px] bg-red-600 mx-auto mb-10" />
         <BookingPage />
@@ -37,11 +37,11 @@
           class="font-bold text-base text-white tracking-widest uppercase whitespace-nowrap flex items-center gap-2"
         >
           Sting <span class="text-red-600">Club</span> &amp; Sting Hive
-          <p class="text-white/40 text-xs mt-1">Since 2020 &amp; 2024. All Rights Reserved.</p>
+          <p class="text-white/40 text-xs mt-1">{{ t('landing.footer.rights') }}</p>
         </div>
         <div class="flex gap-8">
-          <a href="#" class="text-white/50 hover:text-white text-sm transition">Privacy Policy</a>
-          <a href="#" class="text-white/50 hover:text-white text-sm transition">Terms of Service</a>
+          <a href="#" class="text-white/50 hover:text-white text-sm transition">{{ t('landing.footer.privacy') }}</a>
+          <a href="#" class="text-white/50 hover:text-white text-sm transition">{{ t('landing.footer.terms') }}</a>
         </div>
       </div>
     </footer>
@@ -50,6 +50,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import HeroSection from '@/components/landing/HeroSection.vue'
 import AboutSection from '@/components/landing/AboutSection.vue'
@@ -57,6 +58,8 @@ import BookingPage from '@/components/landing/BookingPage.vue'
 import ClassPricing from '@/components/landing/ClassPricing.vue'
 import ClassType from '@/components/landing/ClassType.vue'
 import Location from '@/components/landing/GymLocation.vue'
+
+const { t } = useI18n()
 const bookingRef = ref(null)
 
 const scrollToBooking = () => {

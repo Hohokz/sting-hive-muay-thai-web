@@ -3,7 +3,7 @@
     <!-- Title -->
     <div class="text-center mb-14">
       <h2 class="font-bebas text-5xl md:text-6xl tracking-wide text-white">
-        Class <span class="text-red-600">Schedule</span>
+        {{ t('landing.schedule.title_pre') }} <span class="text-red-600">{{ t('landing.schedule.title_highlight') }}</span>
       </h2>
       <div class="w-20 h-[3px] bg-red-600 mx-auto mt-3" />
     </div>
@@ -30,11 +30,15 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Clock } from 'lucide-vue-next';
 
-const schedule = [
+const { t } = useI18n()
+
+const schedule = computed(() => [
   {
-    title: 'Group Class',
+    title: t('landing.schedule.group_class'),
     slots: [
       '09:00 AM - 10:30 AM',
       '11:00 AM - 12:30 PM',
@@ -44,7 +48,7 @@ const schedule = [
     ],
   },
   {
-    title: 'Private Training',
+    title: t('landing.schedule.private_training'),
     slots: [
       '08:00 AM - 09:30 AM',
       '10:00 AM - 11:30 AM',
@@ -53,5 +57,5 @@ const schedule = [
       '06:00 PM - 07:00 PM',
     ],
   },
-];
+]);
 </script>

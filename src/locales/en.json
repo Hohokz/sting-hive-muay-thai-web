@@ -112,5 +112,84 @@
     "cancel_failed_msg": "❌ Unable to cancel booking.",
     "search_failed": "Search Failed",
     "search_failed_msg": "❌ Unable to search booking. Please try again."
+  },
+  "landing": {
+    "nav": {
+      "about": "About",
+      "pricing": "Pricing",
+      "schedule": "Schedule",
+      "location": "Location",
+      "login": "Login"
+    },
+    "hero": {
+      "title_line1": "Train",
+      "title_line2": "Muay Thai",
+      "subtitle": "in the heart of Chiang Mai!",
+      "intro1": "<strong>Sting Club &amp; Sting Hive Muay Thai Gym</strong> welcomes all levels, from beginners to advanced. Come train with our expert and friendly trainers and be part of a truly supportive community!",
+      "intro2": "Whether your goal is weight loss, building muscle, learning self-defense, or stepping into the professional ring, Sting Club &amp; Sting Hive Muay Thai Gym is ready to push you to your goals in a fun, positive atmosphere!",
+      "cta_booking": "Booking Class",
+      "cta_pricing": "View Pricing"
+    },
+    "about": {
+      "title_pre": "Why Choose To",
+      "title_highlight": "Train With Us?",
+      "card1_title": "All Levels Welcome",
+      "card1_body": "<p><strong class=\"text-white font-semibold\">For Beginners:</strong> Never boxed before? No worries! We build your foundation, teach proper guard &amp; strikes, prioritizing safety.</p><p class=\"mt-3\"><strong class=\"text-white font-semibold\">For Advanced:</strong> Intense programs, live sparring sessions, and advanced techniques to sharpen your weapons to perfection.</p>",
+      "card2_title": "Expert & Friendly Trainers",
+      "card2_body": "<p>Learn from expert trainers with real fighting experience on the canvas. Our instructors are kind, friendly, and ready to closely supervise and adapt the training basics to fit your unique physique and personal limits.</p>",
+      "card3_title": "A Supportive Community",
+      "card3_body": "<p>Here at the \"Sting Hive,\" we aren't just a gym; we are a family. You will meet new, health-conscious friends who will constantly encourage you, cheer you up, and push you to surpass your own limits together.</p>"
+    },
+    "pricing": {
+      "title_pre": "Class",
+      "title_highlight": "Pricing",
+      "subtitle": "Flexible plans for everyone. Find the perfect package to start your Muay Thai journey.",
+      "best_price_badge": "Best Price",
+      "group_training": "Group Training",
+      "plan_1_name": "1 Class",
+      "plan_1_note": "Reservation Required",
+      "plan_7_name": "7 Class Pack",
+      "plan_7_expiry": "Expires in 15 days",
+      "plan_15_name": "15 Class Pack",
+      "plan_15_expiry": "Expires in 1 month",
+      "plan_30_name": "30 Class Pack",
+      "plan_30_expiry": "Expires in 2 months",
+      "note_shared": "Coupon Can Be Shared",
+      "note_not_shared": "Coupon cannot be shared",
+      "private_training": "Private Training",
+      "private_expiry": "One-on-One training with a dedicated Coach",
+      "footnote": "* Gloves and hand wrap rental is not included."
+    },
+    "schedule": {
+      "title_pre": "Class",
+      "title_highlight": "Schedule",
+      "group_class": "Group Class",
+      "private_training": "Private Training"
+    },
+    "location": {
+      "title_pre": "Join The",
+      "title_highlight": "Sting Family",
+      "intro": "Ready to step into the ring? Contact us today to book your class, ask questions, or just drop by to say hello. We are located right in the heart of Chiang Mai Old Town.",
+      "location_label": "Location",
+      "city": "Chiang Mai Old Town",
+      "branches_note": "Visit our <strong class=\"text-white\">Sting Club</strong> or <strong class=\"text-white\">Sting Hive</strong> branches.",
+      "line_official": "LINE Official",
+      "call_us": "Call Us",
+      "follow_us": "Follow Us",
+      "open_in_maps": "Open in Google Maps"
+    },
+    "team": {
+      "title_pre": "Our",
+      "title_highlight": "Team"
+    },
+    "booking_section": {
+      "title_pre": "Book Your",
+      "title_highlight": "Training Session"
+    },
+    "footer": {
+      "rights": "Since 2020 & 2024. All Rights Reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
   }
 }

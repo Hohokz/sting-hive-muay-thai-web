@@ -3,7 +3,7 @@
     <!-- Title -->
     <div class="text-center mb-14">
       <h2 class="font-bebas text-5xl md:text-6xl tracking-wide text-white">
-        Why Choose To <span class="text-red-600">Train With Us?</span>
+        {{ t('landing.about.title_pre') }} <span class="text-red-600">{{ t('landing.about.title_highlight') }}</span>
       </h2>
       <div class="w-32 h-[3px] bg-red-600 mx-auto m mt-1" />
     </div>
@@ -29,33 +29,30 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ShieldCheck, UserCheck, Users } from 'lucide-vue-next';
 
-const cards = [
+const { t } = useI18n()
+
+const cards = computed(() => [
   {
     icon: ShieldCheck,
-    title: 'All Levels Welcome',
+    title: t('landing.about.card1_title'),
     featured: false,
-    body: `
-      <p><strong class="text-white font-semibold">For Beginners:</strong> Never boxed before? No worries! We build your foundation, teach proper guard & strikes, prioritizing safety.</p>
-      <p class="mt-3"><strong class="text-white font-semibold">For Advanced:</strong> Intense programs, live sparring sessions, and advanced techniques to sharpen your weapons to perfection.</p>
-    `,
+    body: t('landing.about.card1_body'),
   },
   {
     icon: UserCheck,
-    title: 'Expert & Friendly Trainers',
+    title: t('landing.about.card2_title'),
     featured: false,
-    body: `
-      <p>Learn from expert trainers with real fighting experience on the canvas. Our instructors are kind, friendly, and ready to closely supervise and adapt the training basics to fit your unique physique and personal limits.</p>
-    `,
+    body: t('landing.about.card2_body'),
   },
   {
     icon: Users,
-    title: 'A Supportive Community',
+    title: t('landing.about.card3_title'),
     featured: false,
-    body: `
-      <p>Here at the "Sting Hive," we aren't just a gym; we are a family. You will meet new, health-conscious friends who will constantly encourage you, cheer you up, and push you to surpass your own limits together.</p>
-    `,
+    body: t('landing.about.card3_body'),
   },
-];
+]);
 </script>

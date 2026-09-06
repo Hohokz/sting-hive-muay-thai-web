@@ -29,9 +29,10 @@
 
       <!-- Right -->
       <div class="flex items-center gap-3">
+        <LanguageSwitcher class="hidden md:flex" />
         <RouterLink to="/admin"
           class="hidden md:block bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-bold tracking-widest uppercase rounded transition">
-          Login
+          {{ t('landing.nav.login') }}
         </RouterLink>
         <button @click="menuOpen = !menuOpen" class="md:hidden text-white p-1">
           <Menu v-if="!menuOpen" class="w-6 h-6" />
@@ -51,11 +52,12 @@
           @click.prevent="scrollTo(link.target)">
           {{ link.label }}
         </a>
-        <div class="px-8 py-4">
+        <div class="px-8 py-4 flex items-center justify-between gap-4">
+          <LanguageSwitcher />
           <RouterLink to="/admin"
-            class="block bg-red-600 hover:bg-red-700 px-5 py-3 text-xs font-bold tracking-widest uppercase rounded transition text-center"
+            class="flex-1 bg-red-600 hover:bg-red-700 px-5 py-3 text-xs font-bold tracking-widest uppercase rounded transition text-center"
             @click="menuOpen = false">
-            Login
+            {{ t('landing.nav.login') }}
           </RouterLink>
         </div>
       </div>
@@ -65,34 +67,26 @@
     <div class="relative z-10 flex flex-col items-center justify-center flex-1 text-center px-6 pt-32 pb-12 md:pt-28">
       <img src="/images/combinelogo.png" alt="logo" class="h-64 w-auto" />
       <h1 class="font-bebas text-[90px] leading-none tracking-wide">
-        Train
-        <span class="block text-red-600">Muay Thai</span>
+        {{ t('landing.hero.title_line1') }}
+        <span class="block text-red-600">{{ t('landing.hero.title_line2') }}</span>
       </h1>
 
       <p class="font-dancing text-4xl font-bold mt-3 mb-5">
-        in the heart of Chiang Mai!
+        {{ t('landing.hero.subtitle') }}
       </p>
 
-      <p class="max-w-lg text-sm leading-relaxed text-white/85 mb-3">
-        <strong>Sting Club &amp; Sting Hive Muay Thai Gym</strong> welcomes all levels, from
-        beginners to advanced. Come train with our expert and friendly trainers and be part of
-        a truly supportive community!
-      </p>
+      <p class="max-w-lg text-sm leading-relaxed text-white/85 mb-3" v-html="t('landing.hero.intro1')" />
 
-      <p class="max-w-lg text-sm leading-relaxed text-white/75 mb-7">
-        Whether your goal is weight loss, building muscle, learning self-defense, or stepping
-        into the professional ring, Sting Club &amp; Sting Hive Muay Thai Gym is ready to push
-        you to your goals in a fun, positive atmosphere!
-      </p>
+      <p class="max-w-lg text-sm leading-relaxed text-white/75 mb-7" v-html="t('landing.hero.intro2')" />
 
       <div class="flex gap-3">
         <button @click="$emit('scrollToBooking')"
           class="border-2 border-white hover:bg-white hover:text-black px-7 py-3 text-sm font-bold tracking-widest uppercase rounded transition">
-          Booking Class
+          {{ t('landing.hero.cta_booking') }}
         </button>
         <button @click="$emit(scrollTo('pricing'))"
           class="bg-red-600 hover:bg-red-700 px-7 py-3 text-sm font-bold tracking-widest uppercase rounded transition">
-          View Pricing
+          {{ t('landing.hero.cta_pricing') }}
         </button>
       </div>
 
@@ -106,16 +100,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Menu, X } from 'lucide-vue-next'
+import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
+
+const { t } = useI18n()
 
 const menuOpen = ref(false)
-const navLinks = [
-  { label: 'About', target: 'about' },
-  { label: 'Pricing', target: 'pricing' },
-  { label: 'Schedule', target: 'schedule' },
-  { label: 'Location', target: 'location' },
-]
+const navLinks = computed(() => [
+  { label: t('landing.nav.about'), target: 'about' },
+  { label: t('landing.nav.pricing'), target: 'pricing' },
+  { label: t('landing.nav.schedule'), target: 'schedule' },
+  { label: t('landing.nav.location'), target: 'location' },
+])
 
 const scrollTo = (target) => {
   const el = document.getElementById(target)

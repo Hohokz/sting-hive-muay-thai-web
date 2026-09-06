@@ -86,6 +86,9 @@ const payments = {
   // params: { period, value } — same shape as getSummary, exported as .xlsx
   exportSummary: (params) =>
     axios.get('/api/v1/payments/summary/export', { params, responseType: 'blob' }),
+  // params: { period, value, gym? } — every payment entry for one class (schedule)
+  getClassDetails: (scheduleId, params) =>
+    axios.get(`/api/v1/payments/summary/class/${scheduleId}`, { params }),
 }
 
 export const api = {

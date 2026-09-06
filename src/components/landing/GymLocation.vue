@@ -5,11 +5,10 @@
       <!-- Left: Info -->
       <div>
         <h2 class="font-bebas text-4xl md:text-5xl text-white mb-4">
-          Join The <span class="text-red-600">Sting Family</span>
+          {{ t('landing.location.title_pre') }} <span class="text-red-600">{{ t('landing.location.title_highlight') }}</span>
         </h2>
         <p class="text-white/60 text-sm leading-relaxed mb-8">
-          Ready to step into the ring? Contact us today to book your class, ask questions, or just drop by to say hello.
-          We are located right in the heart of Chiang Mai Old Town.
+          {{ t('landing.location.intro') }}
         </p>
 
         <!-- Location -->
@@ -18,10 +17,9 @@
             <MapPin class="w-5 h-5 text-white" />
           </div>
           <div>
-            <p class="text-white font-bold text-sm mb-1">Location</p>
-            <p class="text-white/60 text-sm">Chiang Mai Old Town</p>
-            <p class="text-white/60 text-sm">Visit our <strong class="text-white">Sting Club</strong> or <strong
-                class="text-white">Sting Hive</strong> branches.</p>
+            <p class="text-white font-bold text-sm mb-1">{{ t('landing.location.location_label') }}</p>
+            <p class="text-white/60 text-sm">{{ t('landing.location.city') }}</p>
+            <p class="text-white/60 text-sm" v-html="t('landing.location.branches_note')" />
           </div>
         </div>
 
@@ -31,7 +29,7 @@
             <MessageCircle class="w-5 h-5 text-white" />
           </div>
           <div>
-            <p class="text-white font-bold text-sm mb-1">LINE Official</p>
+            <p class="text-white font-bold text-sm mb-1">{{ t('landing.location.line_official') }}</p>
             <p class="text-white/60 text-sm">@stingclub</p>
           </div>
         </div>
@@ -42,7 +40,7 @@
             <Phone class="w-5 h-5 text-white" />
           </div>
           <div>
-            <p class="text-white font-bold text-sm mb-1">Call Us</p>
+            <p class="text-white font-bold text-sm mb-1">{{ t('landing.location.call_us') }}</p>
             <p class="text-white/60 text-sm">062-949 5951</p>
             <p class="text-white/60 text-sm">083-262 7195</p>
           </div>
@@ -50,7 +48,7 @@
 
         <!-- Follow Us -->
         <div>
-          <p class="font-bebas text-lg tracking-widest text-white mb-3">Follow Us</p>
+          <p class="font-bebas text-lg tracking-widest text-white mb-3">{{ t('landing.location.follow_us') }}</p>
           <div class="flex gap-3 mb-2">
             <a href="https://facebook.com/stingclubcm" target="_blank"
               class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition">
@@ -89,7 +87,7 @@
         <div class="p-4 flex justify-center">
           <a :href="branches[active].googleUrl" target="_blank"
             class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold tracking-widest uppercase px-6 py-2 rounded transition">
-            Open in Google Maps
+            {{ t('landing.location.open_in_maps') }}
           </a>
         </div>
       </div>
@@ -100,7 +98,10 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { MapPin, MessageCircle, Phone, Facebook, Instagram } from 'lucide-vue-next';
+
+const { t } = useI18n()
 
 const active = ref(0);
 

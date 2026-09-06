@@ -65,6 +65,22 @@
         </button>
       </div>
 
+      <div class="flex gap-2">
+        <button
+          v-for="branch in BRANCH_TABS"
+          :key="branch.value"
+          @click="selectedGym = branch.value"
+          class="px-4 py-2 rounded-xl text-xs font-bold transition-colors"
+          :class="
+            selectedGym === branch.value
+              ? 'bg-gray-900 text-white'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          "
+        >
+          {{ branch.label }}
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">ค่าเช่ารวม</p>
@@ -155,7 +171,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="row in summary.by_class" :key="row.schedule_id" class="border-t border-gray-50">
+              <tr
+                v-for="row in summary.by_class"
+                :key="row.schedule_id"
+                @click="openClassDetail(row)"
+                class="border-t border-gray-50 cursor-pointer hover:bg-gray-50"
+              >
                 <td class="px-5 py-3">
                   <div class="flex items-center gap-2">
                     <span class="font-semibold text-gray-800">
@@ -276,6 +297,83 @@
         </div>
       </div>
     </div>
+
+    <!-- CLASS DETAIL MODAL -->
+    <Teleport to="body">
+      <div
+        v-if="showClassDetailModal"
+        class="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+      >
+        <div
+          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          @click="showClassDetailModal = false"
+        ></div>
+        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-black"></div>
+          <div class="p-8 pb-4">
+            <h3 class="text-xl font-black text-gray-900 mb-1">รายละเอียดคลาส</h3>
+            <p v-if="classDetailContext" class="text-sm text-gray-500 font-medium">
+              {{ formatTime(classDetailContext.start_time) }} -
+              {{ formatTime(classDetailContext.end_time) }}
+              ({{ formatGym(classDetailContext.gym_enum) }},
+              {{ classDetailContext.is_private_class ? 'ส่วนตัว' : 'กลุ่ม' }})
+            </p>
+          </div>
+
+          <div class="flex-1 overflow-y-auto px-8">
+            <div v-if="loadingClassDetail" class="p-10 text-center text-gray-400">
+              กำลังโหลด...
+            </div>
+            <div v-else-if="classDetailEntries.length === 0" class="p-10 text-center text-gray-400">
+              ไม่มีข้อมูลการชำระเงินในช่วงนี้
+            </div>
+            <div v-else class="overflow-x-auto pb-4">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-left text-gray-500 sticky top-0">
+                  <tr>
+                    <th class="px-3 py-2">วันที่จอง</th>
+                    <th class="px-3 py-2">ลูกค้า</th>
+                    <th class="px-3 py-2">วิธีชำระเงิน</th>
+                    <th class="px-3 py-2 text-right">ค่าเช่า</th>
+                    <th class="px-3 py-2 text-right">ค่าคอร์ส</th>
+                    <th class="px-3 py-2 text-right">รวม</th>
+                    <th class="px-3 py-2">บันทึกเมื่อ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(entry, idx) in classDetailEntries"
+                    :key="idx"
+                    class="border-t border-gray-50"
+                  >
+                    <td class="px-3 py-2 whitespace-nowrap">{{ entry.date_booking }}</td>
+                    <td class="px-3 py-2">{{ entry.client_name }}</td>
+                    <td class="px-3 py-2">{{ entry.payment_method }}</td>
+                    <td class="px-3 py-2 text-right">{{ formatCurrency(entry.rent_amount) }}</td>
+                    <td class="px-3 py-2 text-right">{{ formatCurrency(entry.course_amount) }}</td>
+                    <td class="px-3 py-2 text-right font-bold">
+                      {{ formatCurrency(entry.total_amount) }}
+                    </td>
+                    <td class="px-3 py-2 whitespace-nowrap text-gray-400 text-xs">
+                      {{ entry.created_date }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-8 pt-4">
+            <button
+              @click="showClassDetailModal = false"
+              class="w-full py-3 bg-gray-100 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-200"
+            >
+              ปิด
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </DashboardLayout>
 </template>
 
@@ -328,6 +426,14 @@ const periodValue = ref({
 })
 const currentValue = computed(() => periodValue.value[selectedPeriod.value])
 
+// '' means every branch combined.
+const BRANCH_TABS = [
+  { value: '', label: 'ทั้งหมด' },
+  { value: 'STING_HIVE', label: 'Sting Hive' },
+  { value: 'STING_CLUB', label: 'Sting Club' },
+]
+const selectedGym = ref('')
+
 const loadingSummary = ref(true)
 const summary = ref({
   totals: { payment_count: 0, total_rent: 0, total_course: 0, total_amount: 0 },
@@ -358,12 +464,37 @@ const loadSummary = async () => {
     const res = await api.payments.getSummary({
       period: selectedPeriod.value,
       value: currentValue.value,
+      gym: selectedGym.value || undefined,
     })
     summary.value = res.data.data
   } catch (err) {
     console.error('Failed to load payment summary:', err)
   } finally {
     loadingSummary.value = false
+  }
+}
+
+const showClassDetailModal = ref(false)
+const loadingClassDetail = ref(false)
+const classDetailContext = ref(null)
+const classDetailEntries = ref([])
+
+const openClassDetail = async (row) => {
+  classDetailContext.value = row
+  classDetailEntries.value = []
+  showClassDetailModal.value = true
+  loadingClassDetail.value = true
+  try {
+    const res = await api.payments.getClassDetails(row.schedule_id, {
+      period: selectedPeriod.value,
+      value: currentValue.value,
+      gym: selectedGym.value || undefined,
+    })
+    classDetailEntries.value = res.data.data || []
+  } catch (err) {
+    console.error('Failed to load class payment details:', err)
+  } finally {
+    loadingClassDetail.value = false
   }
 }
 
@@ -376,8 +507,13 @@ const handleExport = async () => {
     const response = await api.payments.exportSummary({
       period: selectedPeriod.value,
       value: currentValue.value,
+      gym: selectedGym.value || undefined,
     })
-    downloadBlobResponse(response, `payment_summary_${selectedPeriod.value}_${currentValue.value}.xlsx`)
+    const gymSuffix = selectedGym.value ? `_${selectedGym.value}` : ''
+    downloadBlobResponse(
+      response,
+      `payment_summary_${selectedPeriod.value}_${currentValue.value}${gymSuffix}.xlsx`,
+    )
   } catch (err) {
     console.error('Failed to export payment summary:', err)
   } finally {
@@ -445,7 +581,7 @@ const toggleMethodActive = async (m) => {
   }
 }
 
-watch([selectedPeriod, currentValue], loadSummary)
+watch([selectedPeriod, currentValue, selectedGym], loadSummary)
 
 onMounted(() => {
   loadSummary()
