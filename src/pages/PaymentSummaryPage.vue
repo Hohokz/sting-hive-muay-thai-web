@@ -81,7 +81,7 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">ค่าเช่ารวม</p>
           <p class="text-2xl font-black text-gray-900">
@@ -92,6 +92,12 @@
           <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">ค่าคอร์สรวม</p>
           <p class="text-2xl font-black text-gray-900">
             {{ formatCurrency(summary.totals.total_course) }}
+          </p>
+        </div>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <p class="text-[10px] uppercase font-bold text-gray-400 mb-1">ค่าอื่นๆรวม</p>
+          <p class="text-2xl font-black text-gray-900">
+            {{ formatCurrency(summary.totals.total_other) }}
           </p>
         </div>
         <div class="bg-black rounded-2xl p-5">
@@ -118,6 +124,7 @@
                 <th class="px-5 py-3 text-right">จำนวนครั้ง</th>
                 <th class="px-5 py-3 text-right">ค่าเช่า</th>
                 <th class="px-5 py-3 text-right">ค่าคอร์ส</th>
+                <th class="px-5 py-3 text-right">ค่าอื่นๆ</th>
                 <th class="px-5 py-3 text-right">รวม</th>
               </tr>
             </thead>
@@ -133,6 +140,7 @@
                 <td class="px-5 py-3 text-right">{{ row.payment_count }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_rent) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_course) }}</td>
+                <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_other) }}</td>
                 <td class="px-5 py-3 text-right font-bold">
                   {{ formatCurrency(row.total_amount) }}
                 </td>
@@ -144,6 +152,7 @@
                 <td class="px-5 py-3 text-right">{{ summary.totals.payment_count }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_rent) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_course) }}</td>
+                <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_other) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_amount) }}</td>
               </tr>
             </tfoot>
@@ -167,6 +176,7 @@
                 <th class="px-5 py-3 text-right">จำนวนครั้ง</th>
                 <th class="px-5 py-3 text-right">ค่าเช่า</th>
                 <th class="px-5 py-3 text-right">ค่าคอร์ส</th>
+                <th class="px-5 py-3 text-right">ค่าอื่นๆ</th>
                 <th class="px-5 py-3 text-right">รวม</th>
               </tr>
             </thead>
@@ -198,6 +208,7 @@
                 <td class="px-5 py-3 text-right">{{ row.payment_count }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_rent) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_course) }}</td>
+                <td class="px-5 py-3 text-right">{{ formatCurrency(row.total_other) }}</td>
                 <td class="px-5 py-3 text-right font-bold">
                   {{ formatCurrency(row.total_amount) }}
                 </td>
@@ -209,6 +220,7 @@
                 <td class="px-5 py-3 text-right">{{ summary.totals.payment_count }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_rent) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_course) }}</td>
+                <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_other) }}</td>
                 <td class="px-5 py-3 text-right">{{ formatCurrency(summary.totals.total_amount) }}</td>
               </tr>
             </tfoot>
@@ -336,6 +348,7 @@
                     <th class="px-3 py-2">วิธีชำระเงิน</th>
                     <th class="px-3 py-2 text-right">ค่าเช่า</th>
                     <th class="px-3 py-2 text-right">ค่าคอร์ส</th>
+                    <th class="px-3 py-2 text-right">ค่าอื่นๆ</th>
                     <th class="px-3 py-2 text-right">รวม</th>
                     <th class="px-3 py-2">บันทึกเมื่อ</th>
                   </tr>
@@ -351,6 +364,7 @@
                     <td class="px-3 py-2">{{ entry.payment_method }}</td>
                     <td class="px-3 py-2 text-right">{{ formatCurrency(entry.rent_amount) }}</td>
                     <td class="px-3 py-2 text-right">{{ formatCurrency(entry.course_amount) }}</td>
+                    <td class="px-3 py-2 text-right">{{ formatCurrency(entry.other_amount) }}</td>
                     <td class="px-3 py-2 text-right font-bold">
                       {{ formatCurrency(entry.total_amount) }}
                     </td>
@@ -436,7 +450,7 @@ const selectedGym = ref('')
 
 const loadingSummary = ref(true)
 const summary = ref({
-  totals: { payment_count: 0, total_rent: 0, total_course: 0, total_amount: 0 },
+  totals: { payment_count: 0, total_rent: 0, total_course: 0, total_other: 0, total_amount: 0 },
   by_method: [],
   by_class: [],
 })

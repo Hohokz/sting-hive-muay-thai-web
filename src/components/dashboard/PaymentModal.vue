@@ -28,7 +28,8 @@
           <span class="text-gray-500 truncate">{{ entry.payment_method_name || 'ไม่ระบุ' }}</span>
           <span class="font-bold text-gray-700 whitespace-nowrap">
             ค่าเช่า {{ formatBaht(entry.rent_amount) }} / ค่าคอร์ส
-            {{ formatBaht(entry.course_amount) }}
+            {{ formatBaht(entry.course_amount) }} / ค่าอื่นๆ
+            {{ formatBaht(entry.other_amount) }}
           </span>
           <button
             v-if="editingEntryId !== entry.id"
@@ -50,7 +51,8 @@
           <span class="font-bold text-gray-800">ยอดรวมถึงตอนนี้</span>
           <span class="font-black text-green-700">
             ค่าเช่า {{ formatBaht(paymentTotals.total_rent) }} / ค่าคอร์ส
-            {{ formatBaht(paymentTotals.total_course) }}
+            {{ formatBaht(paymentTotals.total_course) }} / ค่าอื่นๆ
+            {{ formatBaht(paymentTotals.total_other) }}
           </span>
         </div>
       </div>
@@ -117,6 +119,18 @@
           <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">ค่าคอร์ส (บาท)</label>
           <input
             v-model="paymentForm.course_amount"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-green-600 outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">ค่าอื่นๆ (บาท)</label>
+          <input
+            v-model="paymentForm.other_amount"
             type="number"
             min="0"
             step="0.01"
@@ -197,6 +211,7 @@ const blankPaymentForm = () => ({
   payment_method_id: '',
   rent_amount: '',
   course_amount: '',
+  other_amount: '',
   quantity: 1,
 })
 const paymentForm = ref(blankPaymentForm())
@@ -212,7 +227,7 @@ const deletingEntryId = ref('')
 // course fee later), so this is the read-only history shown in the popup —
 // the form itself always starts blank, since Save always adds a new entry.
 const paymentHistory = ref([])
-const paymentTotals = ref({ total_rent: 0, total_course: 0 })
+const paymentTotals = ref({ total_rent: 0, total_course: 0, total_other: 0 })
 // Whether at least one add/edit succeeded — if the popup closes without
 // ever saving, the checkbox that opened it should revert to unchecked.
 const hasSaved = ref(false)
@@ -222,7 +237,7 @@ const formatBaht = (n) => `฿${Number(n || 0).toLocaleString('th-TH')}`
 const refreshPaymentHistory = async () => {
   const res = await api.bookings.getPaymentDetail(props.bookingId)
   paymentHistory.value = res.data.data?.entries || []
-  paymentTotals.value = res.data.data?.totals || { total_rent: 0, total_course: 0 }
+  paymentTotals.value = res.data.data?.totals || { total_rent: 0, total_course: 0, total_other: 0 }
 }
 
 const handleClose = () => {
@@ -265,6 +280,7 @@ const handleSavePayment = async () => {
       payment_method_id: paymentForm.value.payment_method_id || null,
       rent_amount: Number(paymentForm.value.rent_amount) || 0,
       course_amount: Number(paymentForm.value.course_amount) || 0,
+      other_amount: Number(paymentForm.value.other_amount) || 0,
       quantity: Number(paymentForm.value.quantity) || 1,
     })
     hasSaved.value = true
@@ -290,6 +306,7 @@ const startEditEntry = (entry) => {
     payment_method_id: entry.payment_method_id || '',
     rent_amount: entry.rent_amount || '',
     course_amount: entry.course_amount || '',
+    other_amount: entry.other_amount || '',
   }
 }
 
@@ -306,6 +323,7 @@ const handleUpdatePaymentEntry = async () => {
       payment_method_id: paymentForm.value.payment_method_id || null,
       rent_amount: Number(paymentForm.value.rent_amount) || 0,
       course_amount: Number(paymentForm.value.course_amount) || 0,
+      other_amount: Number(paymentForm.value.other_amount) || 0,
     })
     hasSaved.value = true
     props.onRefresh?.()
@@ -339,7 +357,7 @@ const runDeletePaymentEntry = async (entryId) => {
 const handleDeleteEntry = (entry) => {
   modalStore.open(ConfirmModal, {
     title: 'ลบรายการชำระเงินนี้?',
-    message: `การดำเนินการนี้จะลบ ค่าเช่า ${formatBaht(entry.rent_amount)} / ค่าคอร์ส ${formatBaht(entry.course_amount)} อย่างถาวร ไม่สามารถย้อนกลับได้`,
+    message: `การดำเนินการนี้จะลบ ค่าเช่า ${formatBaht(entry.rent_amount)} / ค่าคอร์ส ${formatBaht(entry.course_amount)} / ค่าอื่นๆ ${formatBaht(entry.other_amount)} อย่างถาวร ไม่สามารถย้อนกลับได้`,
     confirmText: 'ลบ',
     type: 'danger',
     onConfirm: () => runDeletePaymentEntry(entry.id),
