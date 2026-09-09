@@ -1,5 +1,8 @@
 <template>
-  <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden" @click.stop>
+  <div
+    class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm md:max-w-lg max-h-[85vh] overflow-y-auto p-8"
+    @click.stop
+  >
     <div class="absolute top-0 left-0 w-full h-2 bg-green-600"></div>
     <h3 class="text-xl font-black text-gray-900 mb-1">เพิ่มการชำระเงิน</h3>
     <p class="text-xs text-gray-400 mb-6 font-medium uppercase tracking-widest">

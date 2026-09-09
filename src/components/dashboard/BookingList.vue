@@ -324,159 +324,19 @@
       </div>
     </div>
 
-    <Teleport to="body">
-      <!-- NOTE MODAL -->
-      <div v-if="showNoteModal" class="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-        <div
-          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          @click="showNoteModal = false"
-        ></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden">
-          <div class="absolute top-0 left-0 w-full h-2 bg-black"></div>
-          <h3 class="text-xl font-black text-gray-900 mb-1">Quick Note</h3>
-          <p class="text-xs text-gray-400 mb-4 font-medium uppercase tracking-widest">
-            Add or Edit Record Note
-          </p>
-
-          <textarea
-            v-model="noteForm.note"
-            rows="5"
-            class="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm focus:ring-2 focus:ring-black outline-none resize-none mb-6"
-            placeholder="Type your notes here..."
-          ></textarea>
-
-          <div class="flex gap-3">
-            <button
-              @click="showNoteModal = false"
-              class="flex-1 py-3 bg-gray-100 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              @click="handleSaveNote"
-              :disabled="isSavingNote"
-              class="flex-1 py-3 bg-black text-white rounded-2xl text-sm font-bold shadow-lg shadow-black/20 disabled:opacity-50"
-            >
-              {{ isSavingNote ? 'Saving...' : 'Save Note' }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- TRAINER MODAL -->
-      <div
-        v-if="showTrainerModal"
-        class="fixed inset-0 z-[2000] flex items-center justify-center p-4"
-      >
-        <div
-          class="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          @click="showTrainerModal = false"
-        ></div>
-        <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 overflow-hidden">
-          <div class="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
-          <h3 class="text-xl font-black text-gray-900 mb-1">Assign Trainer</h3>
-          <p class="text-xs text-gray-400 mb-6 font-medium uppercase tracking-widest">
-            Select trainer from system
-          </p>
-
-          <div class="mb-6 relative" ref="trainerLookupRef">
-            <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2"
-              >Trainer Lookup</label
-            >
-
-            <div class="relative group">
-              <input
-                v-model="userSearchQuery"
-                type="text"
-                class="w-full bg-gray-50 border border-gray-100 rounded-2xl p-4 pr-12 text-sm focus:ring-2 focus:ring-blue-600 outline-none transition-all"
-                placeholder="Search name or phone..."
-                @focus="isDropdownOpen = true"
-              />
-              <button
-                @click="isDropdownOpen = !isDropdownOpen"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-transform"
-                :class="{ 'rotate-180': isDropdownOpen }"
-              >
-                ▼
-              </button>
-            </div>
-
-            <div
-              v-if="isDropdownOpen"
-              class="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-48 overflow-y-auto overflow-x-hidden"
-            >
-              <div
-                v-for="user in searchedUsers"
-                :key="user.id"
-                @click="selectTrainer(user)"
-                class="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center transition-colors"
-              >
-                <div>
-                  <div class="font-bold text-sm text-gray-800">{{ user.name }}</div>
-                  <div class="text-[10px] text-gray-500 font-mono">{{ user.phone }}</div>
-                </div>
-                <span class="text-blue-500 text-xs font-bold">Select</span>
-              </div>
-
-              <div
-                v-if="searchedUsers.length === 0"
-                class="p-4 text-center text-xs text-gray-400 italic"
-              >
-                No matches found.
-              </div>
-            </div>
-          </div>
-
-          <div
-            class="mb-8 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center justify-between"
-          >
-            <div>
-              <span class="text-[9px] font-black text-blue-400 uppercase block"
-                >Selected Trainer</span
-              >
-              <div class="font-bold text-blue-800">
-                {{ trainerForm.trainer_name || 'None Selected' }}
-              </div>
-            </div>
-            <button
-              v-if="trainerForm.trainer_name"
-              @click="trainerForm.trainer_name = ''"
-              class="text-blue-400 hover:text-red-500 text-xs"
-            >
-              Clear
-            </button>
-          </div>
-
-          <div class="flex gap-3">
-            <button
-              @click="showTrainerModal = false"
-              class="flex-1 py-3 bg-gray-100 rounded-2xl text-sm font-bold text-gray-500 hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-            <button
-              @click="handleSaveTrainer"
-              :disabled="isSavingTrainer || !trainerForm.trainer_name"
-              class="flex-1 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-600/20 disabled:opacity-50"
-            >
-              {{ isSavingTrainer ? 'Saving...' : 'Save' }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useAuthStore } from '@/stores/auth'
 import { useModalStore } from '@/stores/modal'
 import StatusModal from '@/components/common/StatusModal.vue'
 import EditBookingModal from './EditBookingModal.vue'
 import PaymentModal from './PaymentModal.vue'
+import NoteModal from './NoteModal.vue'
+import TrainerModal from './TrainerModal.vue'
 
 const auth = useAuthStore()
 const modalStore = useModalStore()
@@ -500,16 +360,6 @@ const handleEditSuccess = () => {
   emit('refresh') // รีเฟรชรายการ
 }
 
-/* ================= QUICK NOTE LOGIC ================= */
-const showNoteModal = ref(false)
-const isSavingNote = ref(false)
-const noteForm = ref({ id: '', note: '' })
-
-const openNoteModal = (item) => {
-  noteForm.value = { id: item.id, note: item.admin_note || item.note || '' }
-  showNoteModal.value = true
-}
-
 const showError = (message, title = 'Error') => {
   modalStore.open(StatusModal, {
     title,
@@ -518,110 +368,42 @@ const showError = (message, title = 'Error') => {
   })
 }
 
-const handleSaveNote = async () => {
-  if (!noteForm.value.id) return
-  try {
-    isSavingNote.value = true
-    await api.bookings.updateNote(noteForm.value.id, { note: noteForm.value.note })
-
-    // Update locally to override stale API cache in search modal
-    const target = props.bookings.find((b) => b.id === noteForm.value.id)
-    if (target) {
-      target.admin_note = noteForm.value.note
-      target.note = noteForm.value.note
-      target.updated_at = new Date().toISOString()
-      target.updated_date = new Date().toISOString()
-      target.updated_by = auth.user?.name || auth.user?.username || 'Me'
-    }
-
-    emit('refresh')
-    showNoteModal.value = false
-  } catch (err) {
-    console.error('❌ Save Note Error:', err)
-    showError(
-      'Failed to save note. Please check your connection or if the API route exists.',
-      'Save Failed',
-    )
-  } finally {
-    isSavingNote.value = false
-  }
+/* ================= QUICK NOTE LOGIC ================= */
+// Opened via modalStore (not a local Teleport) so it always stacks
+// correctly via GlobalModalLoader's z-index, including when BookingList is
+// itself nested inside another modalStore modal (e.g. SearchBookingModal's
+// "search by name" view) — a fixed z-index here would render behind that
+// outer modal instead.
+const openNoteModal = (item) => {
+  modalStore.open(NoteModal, {
+    bookingId: item.id,
+    initialNote: item.admin_note || item.note || '',
+    onSaved: (note) => {
+      // Update locally to override stale API cache in search modal
+      const target = props.bookings.find((b) => b.id === item.id)
+      if (target) {
+        target.admin_note = note
+        target.note = note
+        target.updated_at = new Date().toISOString()
+        target.updated_date = new Date().toISOString()
+        target.updated_by = auth.user?.name || auth.user?.username || 'Me'
+      }
+      emit('refresh')
+    },
+  })
 }
 
 /* ================= TRAINER LOOKUP LOGIC ================= */
-const showTrainerModal = ref(false)
-const isSavingTrainer = ref(false)
-const isDropdownOpen = ref(false)
-const userSearchQuery = ref('')
-const trainerForm = ref({ id: '', trainer_name: '' })
-const trainerLookupRef = ref(null)
-
-const userList = ref([])
-
-const searchedUsers = computed(() => {
-  const list = Array.isArray(userList.value) ? userList.value : []
-  const q = (userSearchQuery.value || '').toLowerCase().trim()
-  if (!q) return list
-  return list.filter(
-    (user) =>
-      user.name?.toLowerCase().includes(q) ||
-      user.phone?.includes(q) ||
-      user.username?.toLowerCase().includes(q),
-  )
-})
-
-const fetchUsers = async () => {
-  try {
-    const response = await api.bookings.getTrainers()
-    const actualData = response.data.data || response.data
-    if (Array.isArray(actualData)) {
-      userList.value = actualData.map((item) => {
-        const raw = item.dataValues || item
-        return {
-          id: raw.id,
-          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-          phone: raw.phone || '-',
-          username: raw.username,
-        }
-      })
-    }
-  } catch (err) {
-    console.error('❌ Fetch Trainers Error:', err)
-  }
-}
-
-const selectTrainer = (user) => {
-  trainerForm.value.trainer_name = user.name || user.username
-  userSearchQuery.value = user.name || user.username
-  isDropdownOpen.value = false
-}
-
-const openTrainerModal = async (item) => {
+const openTrainerModal = (item) => {
   const tName =
     item.trainer_name ||
     (typeof item.trainer === 'string' ? item.trainer : item.trainer?.name) ||
     ''
-  trainerForm.value = { id: item.id, trainer_name: tName }
-  userSearchQuery.value = ''
-  isDropdownOpen.value = false
-  await fetchUsers()
-  showTrainerModal.value = true
-}
-
-const handleSaveTrainer = async () => {
-  if (!trainerForm.value.id) return
-  try {
-    isSavingTrainer.value = true
-    await api.bookings.updateTrainer(trainerForm.value.id, {
-      trainer_name: trainerForm.value.trainer_name,
-    })
-    emit('refresh')
-    showTrainerModal.value = false
-  } catch (err) {
-    console.error('❌ Save Trainer Error:', err)
-    showError('Could not update trainer.', 'Update Failed')
-  } finally {
-    isSavingTrainer.value = false
-  }
+  modalStore.open(TrainerModal, {
+    bookingId: item.id,
+    initialTrainerName: tName,
+    onSaved: () => emit('refresh'),
+  })
 }
 
 /* ================= PAYMENT LOGIC ================= */
@@ -717,20 +499,4 @@ const statusClass = (s) => {
 }
 
 const confirmCancel = (i) => emit('cancel', i.id)
-
-const handleClickOutside = (e) => {
-  if (trainerLookupRef.value && !trainerLookupRef.value.contains(e.target)) {
-    isDropdownOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('mousedown', handleClickOutside)
-  document.addEventListener('touchstart', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('mousedown', handleClickOutside)
-  document.removeEventListener('touchstart', handleClickOutside)
-})
 </script>
