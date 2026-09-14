@@ -38,7 +38,7 @@ export const useBookingStore = defineStore('booking', () => {
       bookings.value = res.data.data ?? []
     } catch (err) {
       console.error('[bookingStore] fetchBookings error:', err)
-      error.value = err?.response?.data?.message ?? 'Failed to load bookings'
+      error.value = err.friendlyMessage ?? 'Failed to load bookings'
     } finally {
       isLoading.value = false
     }
@@ -56,7 +56,7 @@ export const useBookingStore = defineStore('booking', () => {
       return { ok: true }
     } catch (err) {
       console.error('[bookingStore] cancelBooking error:', err)
-      return { ok: false, message: err?.response?.data?.message ?? 'Failed to cancel booking' }
+      return { ok: false, message: err.friendlyMessage ?? 'Failed to cancel booking' }
     }
   }
 

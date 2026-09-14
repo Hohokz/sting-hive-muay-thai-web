@@ -94,7 +94,7 @@ const fetchBookings = async () => {
     bookings.value = res.data.data
   } catch (err) {
     console.error(err)
-    openModal('Error', 'ไม่สามารถโหลดข้อมูลการจองได้', 'error', null)
+    openModal('Error', err.friendlyMessage || 'ไม่สามารถโหลดข้อมูลการจองได้', 'error', null)
   } finally {
     isLoading.value = false
   }

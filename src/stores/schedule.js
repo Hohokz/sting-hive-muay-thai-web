@@ -32,7 +32,7 @@ export const useScheduleStore = defineStore('schedule', () => {
         schedules.value = res2.data?.data || res2.data || []
       } catch (err2) {
         console.error('[scheduleStore] Fetch fallback error:', err2)
-        error.value = 'Failed to load schedules'
+        error.value = err2.friendlyMessage || 'Failed to load schedules'
       }
     } finally {
       isLoading.value = false
@@ -49,7 +49,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       return { ok: true }
     } catch (err) {
       console.error('[scheduleStore] Delete error:', err)
-      return { ok: false, message: 'Failed to delete schedule' }
+      return { ok: false, message: err.friendlyMessage || 'Failed to delete schedule' }
     }
   }
 
@@ -74,7 +74,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       console.error('[scheduleStore] Failed to update status:', err)
       // Revert on failure
       item.is_active = !newStatus
-      return { ok: false, message: 'Failed to update schedule status' }
+      return { ok: false, message: err.friendlyMessage || 'Failed to update schedule status' }
     } finally {
       delete updatingItems.value[item.id]
     }
@@ -110,7 +110,7 @@ export const useScheduleStore = defineStore('schedule', () => {
       return { ok: true, count: schedulesToUpdate.length }
     } catch (err) {
       console.error('[scheduleStore] Failed to update all schedules:', err)
-      return { ok: false, message: 'Failed to update some schedules' }
+      return { ok: false, message: err.friendlyMessage || 'Failed to update some schedules' }
     } finally {
       isUpdatingAll.value = false
       await fetchSchedules() // Sync with server to be absolutely sure

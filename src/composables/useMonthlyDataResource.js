@@ -54,6 +54,7 @@ export function useMonthlyDataResource({ resourceApi, pluralLabel, recordNoun, f
       exportedMonths.value = exportedRes.data.data || []
     } catch (err) {
       console.error(`Failed to load ${pluralLabel} export months:`, err)
+      openStatus('Error', err.friendlyMessage || `Failed to load ${pluralLabel} months.`, 'error')
     } finally {
       loadingMonths.value = false
     }
@@ -72,7 +73,7 @@ export function useMonthlyDataResource({ resourceApi, pluralLabel, recordNoun, f
         .catch((err) => console.error(`Failed to refresh exported ${pluralLabel} months:`, err))
     } catch (err) {
       console.error(`Failed to export ${pluralLabel}:`, err)
-      openStatus('Error', `Failed to export ${pluralLabel}. Please try again.`, 'error')
+      openStatus('Error', err.friendlyMessage || `Failed to export ${pluralLabel}. Please try again.`, 'error')
     } finally {
       exporting.value = false
     }
@@ -87,7 +88,7 @@ export function useMonthlyDataResource({ resourceApi, pluralLabel, recordNoun, f
       onPurged?.()
     } catch (err) {
       console.error(`Failed to purge ${pluralLabel}:`, err)
-      openStatus('Error', err.response?.data?.message || `Failed to delete ${pluralLabel}.`, 'error')
+      openStatus('Error', err.friendlyMessage || `Failed to delete ${pluralLabel}.`, 'error')
     } finally {
       purging.value = false
     }
@@ -107,7 +108,7 @@ export function useMonthlyDataResource({ resourceApi, pluralLabel, recordNoun, f
       })
     } catch (err) {
       console.error('Failed to preview purge:', err)
-      openStatus('Error', err.response?.data?.message || 'Failed to check how many records would be deleted.', 'error')
+      openStatus('Error', err.friendlyMessage || 'Failed to check how many records would be deleted.', 'error')
     }
   }
 

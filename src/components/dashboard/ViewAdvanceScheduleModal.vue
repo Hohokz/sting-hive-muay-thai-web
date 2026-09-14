@@ -181,6 +181,11 @@ const fetchItems = async () => {
     })
   } catch (err) {
     console.error('Failed to load data', err)
+    modalStore.open(StatusModal, {
+      title: 'Error',
+      message: err.friendlyMessage || 'Failed to load data',
+      type: 'error',
+    })
   } finally {
     loading.value = false
   }
@@ -232,7 +237,7 @@ const handleDelete = (id) => {
         console.error('Delete failed', err)
         modalStore.open(StatusModal, {
           title: 'Error',
-          message: 'Failed to delete rule',
+          message: err.friendlyMessage || 'Failed to delete rule',
           type: 'error',
         })
       }

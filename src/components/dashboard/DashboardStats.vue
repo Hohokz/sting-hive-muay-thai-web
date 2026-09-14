@@ -90,7 +90,7 @@ const fetchSummary = async (dateValue) => {
     summary.value = res.data.data
   } catch (err) {
     console.error('❌ โหลด dashboard summary ไม่สำเร็จ:', err)
-    openModal('Error', 'โหลดข้อมูลสรุปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
+    openModal('Error', err.friendlyMessage || 'โหลดข้อมูลสรุปไม่สำเร็จ กรุณาลองใหม่อีกครั้ง')
   } finally {
     isLoading.value = false
   }

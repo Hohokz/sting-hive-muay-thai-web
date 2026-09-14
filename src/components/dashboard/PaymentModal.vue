@@ -269,7 +269,7 @@ const handleAddMethod = async () => {
     newMethodName.value = ''
   } catch (err) {
     console.error('❌ Add Payment Method Error:', err)
-    showError('ไม่สามารถเพิ่มวิธีชำระเงินได้', 'เพิ่มไม่สำเร็จ')
+    showError(err.friendlyMessage || 'ไม่สามารถเพิ่มวิธีชำระเงินได้', 'เพิ่มไม่สำเร็จ')
   } finally {
     isAddingMethod.value = false
   }
@@ -296,7 +296,7 @@ const handleSavePayment = async () => {
     await refreshPaymentHistory()
   } catch (err) {
     console.error('❌ Save Payment Error:', err)
-    showError('ไม่สามารถบันทึกข้อมูลการชำระเงินได้', 'บันทึกไม่สำเร็จ')
+    showError(err.friendlyMessage || 'ไม่สามารถบันทึกข้อมูลการชำระเงินได้', 'บันทึกไม่สำเร็จ')
   } finally {
     isSaving.value = false
   }
@@ -336,7 +336,7 @@ const handleUpdatePaymentEntry = async () => {
     await refreshPaymentHistory()
   } catch (err) {
     console.error('❌ Update Payment Entry Error:', err)
-    showError('ไม่สามารถแก้ไขรายการชำระเงินได้', 'แก้ไขไม่สำเร็จ')
+    showError(err.friendlyMessage || 'ไม่สามารถแก้ไขรายการชำระเงินได้', 'แก้ไขไม่สำเร็จ')
   } finally {
     isSaving.value = false
   }
@@ -351,7 +351,7 @@ const runDeletePaymentEntry = async (entryId) => {
     await refreshPaymentHistory()
   } catch (err) {
     console.error('❌ Delete Payment Entry Error:', err)
-    showError('ไม่สามารถลบรายการชำระเงินได้', 'ลบไม่สำเร็จ')
+    showError(err.friendlyMessage || 'ไม่สามารถลบรายการชำระเงินได้', 'ลบไม่สำเร็จ')
   } finally {
     deletingEntryId.value = ''
   }
@@ -374,6 +374,7 @@ onMounted(async () => {
     paymentMethodsList.value = methodsRes.data.data || []
   } catch (err) {
     console.error('❌ Load Payment Modal Error:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถโหลดข้อมูลการชำระเงินได้', 'โหลดไม่สำเร็จ')
   } finally {
     isLoading.value = false
   }

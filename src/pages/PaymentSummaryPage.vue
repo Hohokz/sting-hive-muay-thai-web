@@ -113,6 +113,15 @@
           <h2 class="font-bold text-gray-900">แยกตามวิธีชำระเงิน</h2>
         </div>
         <div v-if="loadingSummary" class="p-10 text-center text-gray-400">กำลังโหลด...</div>
+        <div v-else-if="summaryError" class="p-10 text-center">
+          <p class="text-red-500 font-medium mb-3">{{ summaryError }}</p>
+          <button
+            @click="loadSummary"
+            class="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold"
+          >
+            ลองใหม่
+          </button>
+        </div>
         <div v-else-if="summary.by_method.length === 0" class="p-10 text-center text-gray-400">
           ไม่มีข้อมูลการชำระเงินในช่วงนี้
         </div>
@@ -165,6 +174,15 @@
           <h2 class="font-bold text-gray-900">แยกตามคลาส</h2>
         </div>
         <div v-if="loadingSummary" class="p-10 text-center text-gray-400">กำลังโหลด...</div>
+        <div v-else-if="summaryError" class="p-10 text-center">
+          <p class="text-red-500 font-medium mb-3">{{ summaryError }}</p>
+          <button
+            @click="loadSummary"
+            class="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold"
+          >
+            ลองใหม่
+          </button>
+        </div>
         <div v-else-if="summary.by_class.length === 0" class="p-10 text-center text-gray-400">
           ไม่มีข้อมูลการชำระเงินในช่วงนี้
         </div>
@@ -336,6 +354,15 @@
             <div v-if="loadingClassDetail" class="p-10 text-center text-gray-400">
               กำลังโหลด...
             </div>
+            <div v-else-if="classDetailError" class="p-10 text-center">
+              <p class="text-red-500 font-medium mb-3">{{ classDetailError }}</p>
+              <button
+                @click="openClassDetail(classDetailContext)"
+                class="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold"
+              >
+                ลองใหม่
+              </button>
+            </div>
             <div v-else-if="classDetailEntries.length === 0" class="p-10 text-center text-gray-400">
               ไม่มีข้อมูลการชำระเงินในช่วงนี้
             </div>
@@ -396,6 +423,13 @@ import { ref, computed, watch, onMounted } from 'vue'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 import { api } from '@/api/bookingApi'
 import { downloadBlobResponse } from '@/utils/downloadBlob'
+import { useModalStore } from '@/stores/modal'
+import StatusModal from '@/components/common/StatusModal.vue'
+
+const modalStore = useModalStore()
+const showError = (message, title = 'Error') => {
+  modalStore.open(StatusModal, { title, message, type: 'error' })
+}
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -449,6 +483,10 @@ const BRANCH_TABS = [
 const selectedGym = ref('')
 
 const loadingSummary = ref(true)
+// Distinct from "no rows for this period" — lets the empty-state message
+// tell the two apart instead of silently showing "no data" when a slow/
+// dropped connection is actually what happened.
+const summaryError = ref('')
 const summary = ref({
   totals: { payment_count: 0, total_rent: 0, total_course: 0, total_other: 0, total_amount: 0 },
   by_method: [],
@@ -474,6 +512,7 @@ const formatGym = (g) =>
 const loadSummary = async () => {
   if (!currentValue.value) return
   loadingSummary.value = true
+  summaryError.value = ''
   try {
     const res = await api.payments.getSummary({
       period: selectedPeriod.value,
@@ -483,6 +522,7 @@ const loadSummary = async () => {
     summary.value = res.data.data
   } catch (err) {
     console.error('Failed to load payment summary:', err)
+    summaryError.value = err.friendlyMessage || 'ไม่สามารถโหลดข้อมูลสรุปยอดได้'
   } finally {
     loadingSummary.value = false
   }
@@ -490,12 +530,14 @@ const loadSummary = async () => {
 
 const showClassDetailModal = ref(false)
 const loadingClassDetail = ref(false)
+const classDetailError = ref('')
 const classDetailContext = ref(null)
 const classDetailEntries = ref([])
 
 const openClassDetail = async (row) => {
   classDetailContext.value = row
   classDetailEntries.value = []
+  classDetailError.value = ''
   showClassDetailModal.value = true
   loadingClassDetail.value = true
   try {
@@ -507,6 +549,7 @@ const openClassDetail = async (row) => {
     classDetailEntries.value = res.data.data || []
   } catch (err) {
     console.error('Failed to load class payment details:', err)
+    classDetailError.value = err.friendlyMessage || 'ไม่สามารถโหลดรายละเอียดคลาสได้'
   } finally {
     loadingClassDetail.value = false
   }
@@ -530,6 +573,7 @@ const handleExport = async () => {
     )
   } catch (err) {
     console.error('Failed to export payment summary:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถส่งออกข้อมูลได้', 'ส่งออกไม่สำเร็จ')
   } finally {
     isExporting.value = false
   }
@@ -542,6 +586,7 @@ const loadMethods = async () => {
     allMethods.value = res.data.data || []
   } catch (err) {
     console.error('Failed to load payment methods:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถโหลดวิธีชำระเงินได้', 'โหลดไม่สำเร็จ')
   } finally {
     loadingMethods.value = false
   }
@@ -557,6 +602,7 @@ const handleAddMethod = async () => {
     await loadMethods()
   } catch (err) {
     console.error('Failed to add payment method:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถเพิ่มวิธีชำระเงินได้', 'เพิ่มไม่สำเร็จ')
   } finally {
     isAddingMethod.value = false
   }
@@ -577,6 +623,7 @@ const saveEditMethod = async (m) => {
     await loadMethods()
   } catch (err) {
     console.error('Failed to rename payment method:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถแก้ไขชื่อวิธีชำระเงินได้', 'แก้ไขไม่สำเร็จ')
   } finally {
     busyMethodId.value = ''
   }
@@ -590,6 +637,7 @@ const toggleMethodActive = async (m) => {
     await loadMethods()
   } catch (err) {
     console.error('Failed to toggle payment method:', err)
+    showError(err.friendlyMessage || 'ไม่สามารถเปลี่ยนสถานะวิธีชำระเงินได้', 'แก้ไขไม่สำเร็จ')
   } finally {
     busyMethodId.value = ''
   }

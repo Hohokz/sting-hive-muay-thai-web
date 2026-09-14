@@ -64,7 +64,7 @@ const handleSave = async () => {
     console.error('❌ Save Note Error:', err)
     modalStore.open(StatusModal, {
       title: 'Save Failed',
-      message: 'Failed to save note. Please check your connection or if the API route exists.',
+      message: err.friendlyMessage || 'Failed to save note.',
       type: 'error',
     })
   } finally {

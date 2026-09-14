@@ -429,7 +429,7 @@ const handlePaymentChange = async (item, event) => {
     } catch (err) {
       console.error('❌ Update Payment Error:', err)
       event.target.checked = true
-      showError('ไม่สามารถอัปเดตสถานะการชำระเงินได้', 'แก้ไขไม่สำเร็จ')
+      showError(err.friendlyMessage || 'ไม่สามารถอัปเดตสถานะการชำระเงินได้', 'แก้ไขไม่สำเร็จ')
     }
     return
   }

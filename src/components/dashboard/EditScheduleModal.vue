@@ -313,7 +313,7 @@ const submitSchedule = async () => {
   } catch (err) {
     console.error('Submit error:', err)
     const resp = err.response?.data
-    let errorMsg = 'Action failed'
+    let errorMsg = err.friendlyMessage || 'Action failed'
     if (resp) {
       errorMsg = resp.message || resp.error || JSON.stringify(resp, null, 2)
     }

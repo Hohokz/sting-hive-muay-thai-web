@@ -4,6 +4,7 @@ import { api } from '@/api/bookingApi'
 export function useSchedules() {
   const schedules = ref([])
   const loading = ref(false)
+  const error = ref('')
 
   const fetchSchedules = async ({ date, gym_enum, is_private_class }) => {
     try {
@@ -11,6 +12,7 @@ export function useSchedules() {
         return
       }
       loading.value = true
+      error.value = ''
 
       // Ensure date is YYYY-MM-DD string in Local Time to avoid UTC shift
       // If date is a Date object or ISO string, convert to YYYY-MM-DD
@@ -33,6 +35,7 @@ export function useSchedules() {
       schedules.value = res.data.data || []
     } catch (err) {
       console.error('Failed to load schedules:', err)
+      error.value = err.friendlyMessage || 'Failed to load schedules.'
     } finally {
       loading.value = false
     }
@@ -41,6 +44,7 @@ export function useSchedules() {
   return {
     schedules,
     loading,
+    error,
     fetchSchedules,
   }
 }

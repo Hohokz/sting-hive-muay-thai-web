@@ -59,7 +59,7 @@ export const useActivityLogStore = defineStore('activityLog', () => {
         Math.ceil(pagination.value.total / pagination.value.limit) || 1
     } catch (err) {
       console.error('[activityLogStore] fetchLogs error:', err)
-      error.value = err?.response?.data?.message ?? 'Failed to load logs'
+      error.value = err.friendlyMessage ?? 'Failed to load logs'
     } finally {
       loading.value = false
     }

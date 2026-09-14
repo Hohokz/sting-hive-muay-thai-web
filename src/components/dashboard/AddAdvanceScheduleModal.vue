@@ -318,6 +318,11 @@ onMounted(async () => {
     allSchedules.value = res.data.data || []
   } catch (err) {
     console.error('Failed to load schedules', err)
+    modalStore.open(StatusModal, {
+      title: 'Error',
+      message: err.friendlyMessage || 'Failed to load schedules',
+      type: 'error',
+    })
   }
 
   // If Edit Mode, populate form
@@ -380,7 +385,7 @@ const submitAdvanceSchedule = async () => {
   } catch (err) {
     console.error('Submit error:', err)
     const resp = err.response?.data
-    let errorMsg = 'Action failed'
+    let errorMsg = err.friendlyMessage || 'Action failed'
     if (resp) {
       errorMsg = resp.message || resp.error || JSON.stringify(resp, null, 2)
     }

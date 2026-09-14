@@ -505,7 +505,7 @@ const fetchBookingDetail = async (id) => {
     }
   } catch (err) {
     console.error(err)
-    openStatus('Error', 'Failed to load booking details', 'error')
+    openStatus('Error', err.friendlyMessage || 'Failed to load booking details', 'error')
   } finally {
     isInitialLoading.value = false
   }
@@ -554,7 +554,7 @@ const handleSubmit = async () => {
     }
   } catch (err) {
     isSubmitting.value = false
-    openStatus('Error', err.response?.data?.message || 'Operation failed', 'error')
+    openStatus('Error', err.friendlyMessage || 'Operation failed', 'error')
   } finally {
     isSubmitting.value = false
   }

@@ -50,6 +50,19 @@
         <p class="font-bold">Enter a name to search</p>
       </div>
 
+      <div
+        v-else-if="searchError && !loading"
+        class="h-full flex flex-col items-center justify-center py-12 gap-3"
+      >
+        <p class="text-red-500 font-medium">{{ searchError }}</p>
+        <button
+          @click="handleSearch"
+          class="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-bold"
+        >
+          Try Again
+        </button>
+      </div>
+
       <BookingList
         v-else
         :bookings="results"
@@ -65,17 +78,26 @@
 import { ref } from 'vue'
 import { api } from '@/api/bookingApi'
 import BookingList from './BookingList.vue'
+import { useModalStore } from '@/stores/modal'
+import StatusModal from '@/components/common/StatusModal.vue'
 
 defineEmits(['close'])
+const modalStore = useModalStore()
 const searchQuery = ref('')
 const results = ref([])
 const loading = ref(false)
 const hasSearched = ref(false)
+const searchError = ref('')
+
+const showError = (message, title = 'Error') => {
+  modalStore.open(StatusModal, { title, message, type: 'error' })
+}
 
 const handleSearch = async () => {
   if (!searchQuery.value.trim()) return
   loading.value = true
   hasSearched.value = true
+  searchError.value = ''
   try {
     const res = await api.bookings.getByName(searchQuery.value)
     // Support multiple response structures
@@ -83,9 +105,7 @@ const handleSearch = async () => {
     results.value = Array.isArray(data) ? data : [data]
   } catch (err) {
     console.error('Search Error', err)
-    // Don't clear results immediately so user can retry, but maybe show error toast?
-    // For now logging is enough, BookingList has empty state handling if results became empty
-    if (results.value.length === 0) results.value = [] // reset if failed and empty?
+    searchError.value = err.friendlyMessage || 'Could not search bookings.'
   } finally {
     loading.value = false
   }
@@ -96,9 +116,9 @@ const handleCancel = async (id) => {
   try {
     await api.bookings.cancel(id)
     handleSearch() // Refresh list
-  } catch (e) {
-    console.error(e)
-    alert('Failed to cancel')
+  } catch (err) {
+    console.error(err)
+    showError(err.friendlyMessage || 'Failed to cancel booking.', 'Cancel Failed')
   }
 }
 </script>

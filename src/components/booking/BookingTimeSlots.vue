@@ -60,6 +60,13 @@
         <p class="text-error">{{ selectDateText }}</p>
       </div>
 
+      <div v-else-if="error">
+        <h3 class="text-error">{{ error }}</h3>
+        <button type="button" @click="retryFetch" class="slot" style="margin-top: 0.75rem">
+          {{ t('booking.retry') }}
+        </button>
+      </div>
+
       <div v-else>
         <h3>{{ t('booking.no_classes') }}</h3>
         <p>{{ t('booking.try_different') }}</p>
@@ -105,7 +112,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['select', 'loading'])
-const { schedules, loading, fetchSchedules } = useSchedules()
+const { schedules, loading, error, fetchSchedules } = useSchedules()
+
+const retryFetch = () => {
+  if (!props.date || !props.gym_enum) return
+  fetchSchedules({
+    date: props.date,
+    gym_enum: props.gym_enum,
+    is_private_class: props.is_private_class,
+  })
+}
 
 watch(loading, (val) => {
   emit('loading', val)

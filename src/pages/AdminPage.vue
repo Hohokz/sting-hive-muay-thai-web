@@ -132,7 +132,7 @@ const login = async () => {
     }
   } catch (error) {
     console.error('Login Error:', error)
-    const errMsg = error.response?.data?.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'
+    const errMsg = error.friendlyMessage || 'เกิดข้อผิดพลาดในการเชื่อมต่อ'
     openModal('เข้าสู่ระบบไม่สำเร็จ', errMsg, 'error')
   } finally {
     isLoading.value = false

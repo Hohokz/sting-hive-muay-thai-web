@@ -46,7 +46,7 @@ export const useTrainerGymStore = defineStore('trainerGym', () => {
       trainers.value = Array.isArray(res.data) ? res.data : (res.data.data ?? [])
     } catch (err) {
       console.error('[trainerGymStore] fetchGymTrainers error:', err)
-      error.value = 'Failed to load trainers'
+      error.value = err.friendlyMessage ?? 'Failed to load trainers'
     } finally {
       isLoading.value = false
     }
@@ -87,7 +87,7 @@ export const useTrainerGymStore = defineStore('trainerGym', () => {
       await Promise.all([fetchGymTrainers(), fetchAvailableUsers()])
       return { ok: true }
     } catch (err) {
-      const message = err?.response?.data?.message ?? 'Failed to add trainer'
+      const message = err.friendlyMessage ?? 'Failed to add trainer'
       console.error('[trainerGymStore] assignTrainer error:', err)
       return { ok: false, message }
     } finally {
@@ -109,7 +109,7 @@ export const useTrainerGymStore = defineStore('trainerGym', () => {
       return { ok: true }
     } catch (err) {
       console.error('[trainerGymStore] removeTrainer error:', err)
-      return { ok: false, message: 'Failed to remove trainer' }
+      return { ok: false, message: err.friendlyMessage ?? 'Failed to remove trainer' }
     } finally {
       isRemoving.value = false
     }

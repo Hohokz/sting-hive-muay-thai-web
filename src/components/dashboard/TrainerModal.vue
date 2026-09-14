@@ -161,7 +161,7 @@ const handleSave = async () => {
     console.error('❌ Save Trainer Error:', err)
     modalStore.open(StatusModal, {
       title: 'Update Failed',
-      message: 'Could not update trainer.',
+      message: err.friendlyMessage || 'Could not update trainer.',
       type: 'error',
     })
   } finally {

@@ -42,7 +42,7 @@ export const useUsersStore = defineStore('users', () => {
       users.value = res.data.data ?? []
     } catch (err) {
       console.error('[usersStore] fetchUsers error:', err)
-      error.value = err?.response?.data?.message ?? 'Failed to load users'
+      error.value = err.friendlyMessage ?? 'Failed to load users'
     } finally {
       isLoading.value = false
     }
@@ -60,7 +60,7 @@ export const useUsersStore = defineStore('users', () => {
       await fetchUsers()
       return { ok: true }
     } catch (err) {
-      const message = err?.response?.data?.message ?? 'Failed to create user'
+      const message = err.friendlyMessage ?? 'Failed to create user'
       console.error('[usersStore] createUser error:', err)
       return { ok: false, message }
     } finally {
@@ -81,7 +81,7 @@ export const useUsersStore = defineStore('users', () => {
       await fetchUsers()
       return { ok: true }
     } catch (err) {
-      const message = err?.response?.data?.message ?? 'Failed to update user'
+      const message = err.friendlyMessage ?? 'Failed to update user'
       console.error('[usersStore] updateUser error:', err)
       return { ok: false, message }
     } finally {
@@ -102,7 +102,7 @@ export const useUsersStore = defineStore('users', () => {
       return { ok: true }
     } catch (err) {
       const message =
-        err?.response?.data?.message ?? err?.response?.data?.error ?? 'Failed to delete user'
+        err?.response?.data?.message ?? err?.response?.data?.error ?? err.friendlyMessage ?? 'Failed to delete user'
       console.error('[usersStore] deleteUser error:', err)
       return { ok: false, message }
     } finally {
@@ -127,7 +127,7 @@ export const useUsersStore = defineStore('users', () => {
       // Revert on failure
       user.is_active = previous
       const message =
-        err?.response?.data?.message ?? err?.response?.data?.error ?? 'Failed to update status'
+        err?.response?.data?.message ?? err?.response?.data?.error ?? err.friendlyMessage ?? 'Failed to update status'
       console.error('[usersStore] toggleStatus error:', err)
       return { ok: false, message }
     }
