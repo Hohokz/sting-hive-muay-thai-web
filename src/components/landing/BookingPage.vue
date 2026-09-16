@@ -379,7 +379,7 @@ const fetchTrainers = async () => {
       classes_schedule_id: selectedSchedule.value.id,
     }
 
-    const response = await trainerGymApi.getGymTrainers(gymId, params)
+    const response = await trainerGymApi.getPublicGymTrainers(gymId, params)
     const responseData = response.data
     const actualData = Array.isArray(responseData) ? responseData : responseData.data || []
 
