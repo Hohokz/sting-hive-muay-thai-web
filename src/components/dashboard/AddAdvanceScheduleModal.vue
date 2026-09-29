@@ -96,42 +96,33 @@
               <div class="pt-6 border-t border-gray-50">
                 <h2 class="text-xl font-semibold mb-6">Availability</h2>
                 <div class="space-y-6">
-                  <!-- Close Gym Checkbox -->
-                  <div
-                    class="flex items-center gap-4 p-4 border-2 border-dashed rounded-2xl transition-colors"
-                    :class="
-                      form.is_close_gym
-                        ? 'bg-red-50 border-red-200'
-                        : 'bg-white border-gray-200 hover:border-purple-200'
-                    "
-                  >
-                    <input
-                      type="checkbox"
-                      v-model="form.is_close_gym"
-                      id="close_gym_check"
-                      class="w-6 h-6 accent-red-500 rounded"
-                    />
-                    <label for="close_gym_check" class="flex-1 cursor-pointer select-none">
-                      <span
-                        class="block text-lg font-bold"
-                        :class="form.is_close_gym ? 'text-red-700' : 'text-gray-700'"
-                      >
-                        Close Gym
-                      </span>
-                      <span
-                        class="text-sm"
-                        :class="form.is_close_gym ? 'text-red-500' : 'text-gray-400'"
-                      >
-                        Suspend all bookings for selected dates
+                  <!-- Rule type -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <label
+                      v-for="opt in RULE_OPTIONS"
+                      :key="opt.value"
+                      class="flex items-start gap-3 p-4 border-2 rounded-2xl cursor-pointer select-none transition-colors"
+                      :class="
+                        form.rule_type === opt.value
+                          ? opt.activeClass
+                          : 'bg-white border-gray-200 hover:border-purple-200'
+                      "
+                    >
+                      <input
+                        type="radio"
+                        :value="opt.value"
+                        v-model="form.rule_type"
+                        class="mt-1 w-5 h-5 accent-purple-600"
+                      />
+                      <span>
+                        <span class="block font-bold text-gray-900">{{ opt.label }}</span>
+                        <span class="block text-xs text-gray-500">{{ opt.hint }}</span>
                       </span>
                     </label>
                   </div>
 
-                  <!-- Schedule Slot Selection (Only if not closing gym) -->
-                  <div
-                    class="space-y-2"
-                    :class="{ 'opacity-50 pointer-events-none': form.is_close_gym }"
-                  >
+                  <!-- Schedule Slot Selection (not needed when closing the whole gym) -->
+                  <div v-if="needsSlot" class="space-y-2">
                     <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
                       Select Time Slot
                     </p>
@@ -146,30 +137,27 @@
                         }})
                       </option>
                     </select>
-                    <p
-                      class="text-xs text-red-400 ml-1"
-                      v-if="!form.is_close_gym && !form.classes_schedule_id"
-                    >
-                      * Required for capacity updates
+                    <p class="text-xs text-red-400 ml-1" v-if="!form.classes_schedule_id">
+                      * Required
                     </p>
                   </div>
 
-                  <!-- Capacity Information -->
-                  <div
-                    class="space-y-2"
-                    :class="{ 'opacity-50 pointer-events-none': form.is_close_gym }"
-                  >
+                  <!-- Capacity (only for a capacity change) -->
+                  <div v-if="form.rule_type === 'CAPACITY'" class="space-y-2">
                     <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                      Capacity Override
+                      Capacity On These Dates
                     </p>
                     <input
                       v-model.number="form.capacity"
                       type="number"
                       min="1"
-                      placeholder="Leave empty to use default"
+                      step="1"
                       class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
                     />
-                    <p class="text-xs text-gray-400 ml-1">* Only applicable if not closing gym</p>
+                    <p class="text-xs text-gray-400 ml-1">
+                      * The normal schedule keeps its own capacity; this only applies on the
+                      selected dates
+                    </p>
                   </div>
                 </div>
               </div>
@@ -198,11 +186,9 @@
                   </p>
                   <span
                     class="px-2 py-0.5 rounded-full text-[10px] font-black"
-                    :class="
-                      form.is_close_gym ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                    "
+                    :class="selectedRule.badgeClass"
                   >
-                    {{ form.is_close_gym ? 'GYM CLOSED' : 'OPEN / CAPACITY UPDATE' }}
+                    {{ selectedRule.badge }}
                   </span>
                 </div>
 
@@ -215,13 +201,12 @@
                     {{ formatDate(form.start_date) }} <br />
                     ↓ <br />
                     {{ formatDate(form.end_date) }}
-                    {{ formatDate(form.end_date) }}
                   </p>
                 </div>
 
                 <div
                   class="border-b border-gray-50 pb-4"
-                  v-if="!form.is_close_gym && form.classes_schedule_id"
+                  v-if="needsSlot && form.classes_schedule_id"
                 >
                   <p class="text-gray-400 text-[10px] font-black uppercase tracking-[0.15em] mb-1">
                     Selected Slot
@@ -243,14 +228,12 @@
 
                 <div
                   class="flex justify-between items-center text-sm pb-4"
-                  v-if="!form.is_close_gym"
+                  v-if="form.rule_type === 'CAPACITY'"
                 >
                   <span class="text-gray-400 text-[10px] font-black uppercase tracking-[0.15em]"
                     >New Capacity</span
                   >
-                  <span class="text-gray-900 font-black"
-                    >{{ form.capacity || 'Default' }} Slots</span
-                  >
+                  <span class="text-gray-900 font-black">{{ form.capacity ?? '-' }} Slots</span>
                 </div>
 
                 <div class="flex flex-col gap-3 pt-4 border-t border-gray-50">
@@ -302,14 +285,51 @@ const isSubmitting = ref(false)
 // Store all schedules to filter locally
 const allSchedules = ref([])
 
+// Matches the API's rule_type (derived there from is_close_gym + schedule)
+const RULE_OPTIONS = [
+  {
+    value: 'CAPACITY',
+    label: 'Change Capacity',
+    hint: 'Set how many people one class takes',
+    activeClass: 'bg-green-50 border-green-300',
+    badge: 'CAPACITY UPDATE',
+    badgeClass: 'bg-green-100 text-green-700',
+  },
+  {
+    value: 'CLASS_CLOSED',
+    label: 'Close Class',
+    hint: 'Close one class, the rest stay open',
+    activeClass: 'bg-orange-50 border-orange-300',
+    badge: 'CLASS CLOSED',
+    badgeClass: 'bg-orange-100 text-orange-700',
+  },
+  {
+    value: 'GYM_CLOSED',
+    label: 'Close Gym',
+    hint: 'Suspend all bookings',
+    activeClass: 'bg-red-50 border-red-300',
+    badge: 'GYM CLOSED',
+    badgeClass: 'bg-red-100 text-red-700',
+  },
+]
+
+const ruleTypeOf = (item) => {
+  if (item.rule_type) return item.rule_type
+  if (!item.is_close_gym) return 'CAPACITY'
+  return item.classes_schedule_id || item.schedule_id ? 'CLASS_CLOSED' : 'GYM_CLOSED'
+}
+
 const form = ref({
   gym_enum: 'STING_HIVE',
   start_date: '',
   end_date: '',
   capacity: 10,
-  is_close_gym: false,
-  classes_schedule_id: '', // New field for selecting time slot
+  rule_type: 'CAPACITY',
+  classes_schedule_id: '',
 })
+
+const selectedRule = computed(() => RULE_OPTIONS.find((o) => o.value === form.value.rule_type))
+const needsSlot = computed(() => form.value.rule_type !== 'GYM_CLOSED')
 
 onMounted(async () => {
   // Load Schedules
@@ -332,8 +352,8 @@ onMounted(async () => {
       gym_enum: item.gym_enum || (item.gyms_id === 1 ? 'STING_CLUB' : 'STING_HIVE'),
       start_date: item.start_date ? item.start_date.split('T')[0] : '',
       end_date: item.end_date ? item.end_date.split('T')[0] : '',
-      capacity: item.capacity,
-      is_close_gym: !!item.is_close_gym,
+      capacity: item.capacity ?? item.new_capacity ?? 10,
+      rule_type: ruleTypeOf(item),
       classes_schedule_id: item.classes_schedule_id || item.schedule_id || '',
     }
   }
@@ -342,7 +362,12 @@ onMounted(async () => {
 // Filter schedules when gym selection changes
 const filteredSchedules = computed(() => {
   return allSchedules.value
-    .filter((s) => s.gym_enum === form.value.gym_enum && s.is_active)
+    // Keep the rule's current class listed even if it was set inactive since
+    .filter(
+      (s) =>
+        s.gym_enum === form.value.gym_enum &&
+        (s.is_active || s.id === form.value.classes_schedule_id),
+    )
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
 })
 
@@ -354,8 +379,22 @@ const openStatusModal = (title, message, type = 'success') => {
 }
 
 const submitAdvanceSchedule = async () => {
-  if (!form.value.start_date || !form.value.end_date) {
+  const { rule_type, start_date, end_date, capacity, classes_schedule_id } = form.value
+
+  if (!start_date || !end_date) {
     openStatusModal('Error', 'Please select a date range', 'error')
+    return
+  }
+  if (end_date < start_date) {
+    openStatusModal('Error', 'End date must be on or after the start date', 'error')
+    return
+  }
+  if (needsSlot.value && !classes_schedule_id) {
+    openStatusModal('Error', 'Please select a time slot', 'error')
+    return
+  }
+  if (rule_type === 'CAPACITY' && !(Number.isInteger(capacity) && capacity >= 1)) {
+    openStatusModal('Error', 'Capacity must be a whole number of at least 1', 'error')
     return
   }
 
@@ -363,11 +402,11 @@ const submitAdvanceSchedule = async () => {
     isSubmitting.value = true
     const payload = {
       gym_enum: form.value.gym_enum,
-      start_date: form.value.start_date,
-      end_date: form.value.end_date,
-      capacity: form.value.is_close_gym ? null : Number(form.value.capacity),
-      is_close_gym: form.value.is_close_gym,
-      schedule_id: form.value.is_close_gym ? null : form.value.classes_schedule_id,
+      start_date,
+      end_date,
+      capacity: rule_type === 'CAPACITY' ? capacity : null,
+      is_close_gym: rule_type !== 'CAPACITY',
+      schedule_id: needsSlot.value ? classes_schedule_id : null,
       gyms_id: form.value.gym_enum === 'STING_CLUB' ? 1 : 2,
     }
 

@@ -118,6 +118,10 @@ const formatAdvanceRuleScope = (details) => {
   return parts.length ? ` · ${parts.join(' · ')}` : ''
 }
 
+/** Advance rule closing one class (older logs have no rule_type; infer it). */
+const isClassClosure = (details) =>
+  details.rule_type ? details.rule_type === 'CLASS_CLOSED' : !!(details.is_close_gym && details.schedule_id)
+
 /** Builds a one-line, human-readable summary of what a log entry actually recorded. */
 export const getLogDescription = (log) => {
   if (log.description) return log.description
@@ -145,11 +149,19 @@ export const getLogDescription = (log) => {
     case 'SCHEDULE:DELETE':
       return `${details.start_time?.slice(0, 5) || '?'}-${details.end_time?.slice(0, 5) || '?'}`
     case 'SCHEDULE:CREATE_ADVANCED': {
-      const what = details.is_close_gym ? 'Gym closure' : `Capacity override → ${details.capacity ?? '?'} seats`
+      const what = isClassClosure(details)
+        ? 'Class closure'
+        : details.is_close_gym
+          ? 'Gym closure'
+          : `Capacity override → ${details.capacity ?? '?'} seats`
       return `${what}${formatAdvanceRuleScope(details)}`
     }
     case 'SCHEDULE:DELETE_ADVANCED': {
-      const what = details.is_close_gym ? 'Gym closure removed' : 'Capacity override removed'
+      const what = isClassClosure(details)
+        ? 'Class closure removed'
+        : details.is_close_gym
+          ? 'Gym closure removed'
+          : 'Capacity override removed'
       return `${what}${formatAdvanceRuleScope(details)}`
     }
     case 'TRAINER_GYM:ASSIGN':

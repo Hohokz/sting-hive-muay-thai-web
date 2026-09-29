@@ -47,7 +47,7 @@
             <!-- DATE -->
             <div class="calendar-wrapper">
               <p class="text-gray-600 text-sm mb-2">{{ t('booking.select_date') }}</p>
-              <BookingCalender v-model="selectedDate" />
+              <BookingCalender v-model="selectedDate" :disabled-dates="closedDates" />
             </div>
 
             <!-- TIME -->
@@ -269,6 +269,7 @@ import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import { api } from '@/api/bookingApi'
 import trainerGymApi from '@/api/trainerGymApi'
 import { safeNewDate } from '@/utils/dateUtils'
+import { useGymClosedDates } from '@/composables/useGymClosedDates'
 
 const router = useRouter()
 const { t } = useI18n()
@@ -318,6 +319,12 @@ const displayTime = computed(() => {
 const selectedSchedule = ref(null)
 const selectedDate = ref(null)
 const selectedGym = ref(null)
+const { closedDates } = useGymClosedDates(selectedGym)
+
+// Switching gym (or closures loading) can land the picked date on a closed day
+watch(closedDates, (dates) => {
+  if (selectedDate.value && dates.includes(selectedDate.value)) selectedDate.value = null
+})
 const selectPrivate = ref(false)
 const mobile = ref('')
 const email = ref('')

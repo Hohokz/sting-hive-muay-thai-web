@@ -100,7 +100,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div class="calendar-wrapper">
               <p class="text-gray-600 text-sm mb-2">{{ t('booking.select_date') }}</p>
-              <BookingCalender v-model="selectedDate" :disabled="isReadOnly" />
+              <BookingCalender v-model="selectedDate" :disabled="isReadOnly" :disabled-dates="closedDates" />
             </div>
 
             <div>
@@ -421,6 +421,7 @@ import { useI18n } from 'vue-i18n'
 import { api } from '@/api/bookingApi'
 import LanguageSwitcher from '@/components/common/LanguageSwitcher.vue'
 import BookingCalender from '@/components/booking/BookingCalender.vue'
+import { useGymClosedDates } from '@/composables/useGymClosedDates'
 import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
 import { safeNewDate } from '@/utils/dateUtils'
@@ -435,6 +436,7 @@ const isInitialLoading = ref(true)
 
 // Form State
 const selectedGym = ref('')
+const { closedDates } = useGymClosedDates(selectedGym)
 const selectedDate = ref(null)
 const selectedSchedule = ref(null)
 const selectPrivate = ref(false)

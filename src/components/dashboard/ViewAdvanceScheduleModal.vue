@@ -68,9 +68,9 @@
               <!-- Icon/Status -->
               <div
                 class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shrink-0"
-                :class="item.is_close_gym ? 'bg-red-50 text-red-500' : 'bg-blue-50 text-blue-500'"
+                :class="ruleMeta(item).iconClass"
               >
-                {{ item.is_close_gym ? '🔒' : '📶' }}
+                {{ ruleMeta(item).icon }}
               </div>
 
               <!-- Main Info -->
@@ -78,11 +78,9 @@
                 <div class="flex items-center justify-center sm:justify-start gap-2 mb-1">
                   <span
                     class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider"
-                    :class="
-                      item.is_close_gym ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
-                    "
+                    :class="ruleMeta(item).badgeClass"
                   >
-                    {{ item.is_close_gym ? 'Gym Closed' : 'Capacity Update' }}
+                    {{ ruleMeta(item).label }}
                   </span>
                   <span class="text-gray-300 text-xs">•</span>
                 </div>
@@ -91,7 +89,7 @@
                   {{ formatDate(item.start_date) }} - {{ formatDate(item.end_date) }}
                 </h4>
 
-                <p class="text-sm text-gray-500" v-if="!item.is_close_gym">
+                <p class="text-sm text-gray-500" v-if="ruleTypeOf(item) === 'CAPACITY'">
                   <span class="text-xs font-bold text-gray-900">{{
                     formatGym(item.gyms_id || item.gym_id || item.gym_enum)
                   }}</span>
@@ -99,11 +97,25 @@
                     ({{ getScheduleInfo(item) }})
                   </span>
                   New Capacity: <b class="text-gray-800">{{ item.new_capacity }}</b> slots
-                  <span class="text-xs text-gray-400 ml-1">
-                    (Original: {{ item.original_capacity }} slots)
+                  <span v-if="currentCapacity(item) != null" class="text-xs text-gray-400 ml-1">
+                    (Normal: {{ currentCapacity(item) }} slots)
                   </span>
                 </p>
-                <p class="text-sm text-gray-500" v-else>Bookings suspended for entire duration</p>
+                <p class="text-sm text-gray-500" v-else-if="ruleTypeOf(item) === 'CLASS_CLOSED'">
+                  <span class="text-xs font-bold text-gray-900">{{
+                    formatGym(item.gyms_id || item.gym_id || item.gym_enum)
+                  }}</span>
+                  <span v-if="getScheduleInfo(item)" class="text-xs text-gray-800 ml-1">
+                    ({{ getScheduleInfo(item) }})
+                  </span>
+                  Class closed — other classes stay open
+                </p>
+                <p class="text-sm text-gray-500" v-else>
+                  <span class="text-xs font-bold text-gray-900">{{
+                    formatGym(item.gyms_id || item.gym_id || item.gym_enum)
+                  }}</span>
+                  Bookings suspended for entire duration
+                </p>
               </div>
 
               <!-- Metadata & Actions -->
@@ -155,9 +167,43 @@ const allSchedules = ref([])
 
 const filters = [
   { label: 'All Rules', value: 'ALL' },
-  { label: 'Gym Closures', value: 'CLOSED' },
+  { label: 'Closures', value: 'CLOSED' },
   { label: 'Capacity Changes', value: 'CAPACITY' },
 ]
+
+const RULE_META = {
+  GYM_CLOSED: {
+    label: 'Gym Closed',
+    icon: '🔒',
+    iconClass: 'bg-red-50 text-red-500',
+    badgeClass: 'bg-red-100 text-red-600',
+  },
+  CLASS_CLOSED: {
+    label: 'Class Closed',
+    icon: '⛔',
+    iconClass: 'bg-orange-50 text-orange-500',
+    badgeClass: 'bg-orange-100 text-orange-600',
+  },
+  CAPACITY: {
+    label: 'Capacity Update',
+    icon: '📶',
+    iconClass: 'bg-blue-50 text-blue-500',
+    badgeClass: 'bg-blue-100 text-blue-600',
+  },
+}
+
+const ruleTypeOf = (item) => {
+  if (item.rule_type) return item.rule_type
+  if (!item.is_close_gym) return 'CAPACITY'
+  return item.schedule_id || item.classes_schedule_id ? 'CLASS_CLOSED' : 'GYM_CLOSED'
+}
+const ruleMeta = (item) => RULE_META[ruleTypeOf(item)]
+
+/** The class's normal capacity from the schedule table (advance rules never change it). */
+const currentCapacity = (item) => {
+  const scheduleId = item.schedule_id || item.classes_schedule_id
+  return allSchedules.value.find((s) => s.id === scheduleId)?.capacity_data?.capacity ?? null
+}
 
 const fetchItems = async () => {
   try {
@@ -177,7 +223,9 @@ const fetchItems = async () => {
     const adjustments = data.capacity_adjustments || []
 
     items.value = [...closures, ...adjustments].sort((a, b) => {
-      return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0)
+      return (
+        new Date(b.created_date || b.created_at || 0) - new Date(a.created_date || a.created_at || 0)
+      )
     })
   } catch (err) {
     console.error('Failed to load data', err)

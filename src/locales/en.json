@@ -54,6 +54,8 @@
     "morning": "Morning",
     "afternoon": "Afternoon",
     "evening": "Evening",
+    "gym_closed": "Gym closed",
+    "closed": "Closed",
     "full": "Full",
     "no_slots": "No slots available for this day."
   },

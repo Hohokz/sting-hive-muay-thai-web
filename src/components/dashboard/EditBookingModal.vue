@@ -88,7 +88,7 @@
                     Select Date
                   </p>
                   <div class="border rounded-2xl p-2 bg-gray-50/50">
-                    <BookingCalender v-model="selectedDate" />
+                    <BookingCalender v-model="selectedDate" :disabled-dates="closedDates" />
                   </div>
                 </div>
                 <div>
@@ -345,6 +345,7 @@ import { useSchedules } from '@/composables/useSchedules'
 import { useModalStore } from '@/stores/modal'
 import StatusModal from '@/components/common/StatusModal.vue'
 import BookingCalender from '@/components/booking/BookingCalender.vue'
+import { useGymClosedDates } from '@/composables/useGymClosedDates'
 import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
 
@@ -359,6 +360,7 @@ const { fetchSchedules } = useSchedules()
 
 // Form State
 const selectedGym = ref('STING_HIVE')
+const { closedDates } = useGymClosedDates(selectedGym)
 const selectedDate = ref(new Date().toLocaleDateString('en-CA')) // YYYY-MM-DD in Local Time
 const selectedSchedule = ref(null)
 const selectPrivate = ref(false)

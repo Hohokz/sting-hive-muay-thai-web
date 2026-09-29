@@ -54,6 +54,8 @@
     "morning": "上午",
     "afternoon": "下午",
     "evening": "晚上",
+    "gym_closed": "场馆休息",
+    "closed": "已关闭",
     "full": "已满",
     "no_slots": "该日期暂无空位。"
   },

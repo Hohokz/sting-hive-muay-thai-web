@@ -15,12 +15,13 @@
           active: selectedId === s.id,
           full: s.available_seats <= 0,
         }"
-        :disabled="disabled || (!props.isAdminMode && s.available_seats <= 0)"
+        :disabled="disabled || s.is_closed || (!props.isAdminMode && s.available_seats <= 0)"
       >
         <span class="time-text">
           {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
         </span>
-        <span class="seat-badge"> ({{ t('booking.available') }} : {{ s.available_seats }}) </span>
+        <span v-if="s.is_closed" class="seat-badge">({{ t('booking.closed') }})</span>
+        <span v-else class="seat-badge"> ({{ t('booking.available') }} : {{ s.available_seats }}) </span>
       </button>
     </div>
 
@@ -197,7 +198,8 @@ watch(
 )
 
 const selectSchedule = (s) => {
-  if (!props.isAdminMode && s.available_seats <= 0) {
+  // A class closed by an advance rule can't be booked, even by an admin
+  if (s.is_closed || (!props.isAdminMode && s.available_seats <= 0)) {
     return
   }
   selectedId.value = s.id

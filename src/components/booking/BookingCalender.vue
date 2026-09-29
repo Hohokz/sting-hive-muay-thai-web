@@ -2,10 +2,14 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps(['modelValue'])
+const props = defineProps({
+  modelValue: { type: String, default: null },
+  // YYYY-MM-DD dates that can't be picked (e.g. the gym is closed)
+  disabledDates: { type: Array, default: () => [] },
+})
 const emit = defineEmits(['update:modelValue'])
 
-const { locale } = useI18n() // ดึง locale และฟังก์ชัน t มาใช้
+const { locale, t } = useI18n()
 const viewDate = ref(new Date())
 
 // 1. ปรับการแสดงชื่อเดือนและปี
@@ -44,17 +48,31 @@ const changeMonth = (step) => {
   viewDate.value = new Date(viewDate.value.getFullYear(), viewDate.value.getMonth() + step, 1)
 }
 
-const selectDate = (day) => {
+/** YYYY-MM-DD for a day of the month being viewed */
+const dayKey = (day) => {
   const d = new Date(viewDate.value.getFullYear(), viewDate.value.getMonth(), day)
   d.setHours(12, 0, 0, 0)
-  emit('update:modelValue', d.toISOString().split('T')[0])
+  return d.toISOString().split('T')[0]
+}
+
+const disabledSet = computed(() => new Set(props.disabledDates))
+const isClosed = (day) => disabledSet.value.has(dayKey(day))
+
+const hasClosedDayInView = computed(() => {
+  for (let day = 1; day <= daysInMonth.value; day++) {
+    if (isClosed(day) && !isPast(day)) return true
+  }
+  return false
+})
+
+const selectDate = (day) => {
+  if (isPast(day) || isClosed(day)) return
+  emit('update:modelValue', dayKey(day))
 }
 
 const isDateSelected = (day) => {
   if (!props.modelValue) return false
-  const d = new Date(viewDate.value.getFullYear(), viewDate.value.getMonth(), day)
-  d.setHours(12, 0, 0, 0)
-  return d.toISOString().split('T')[0] === props.modelValue
+  return dayKey(day) === props.modelValue
 }
 
 const isToday = (day) => {
@@ -134,10 +152,14 @@ const isPast = (day) => {
         :class="[
           isDateSelected(day)
             ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-200'
-            : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600',
+            : isClosed(day) && !isPast(day)
+              ? 'text-red-300 line-through bg-red-50/50 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600',
           isPast(day) ? 'opacity-20 pointer-events-none' : '',
-          isToday(day) && !isDateSelected(day) ? 'text-blue-600 font-black' : '',
+          isToday(day) && !isDateSelected(day) && !isClosed(day) ? 'text-blue-600 font-black' : '',
         ]"
+        :title="isClosed(day) && !isPast(day) ? t('booking.gym_closed') : undefined"
+        :aria-disabled="isPast(day) || isClosed(day)"
       >
         {{ day }}
         <div
@@ -147,5 +169,9 @@ const isPast = (day) => {
         ></div>
       </div>
     </div>
+
+    <p v-if="hasClosedDayInView" class="mt-3 text-xs text-red-400 flex items-center gap-1.5">
+      <span class="line-through">15</span> = {{ t('booking.gym_closed') }}
+    </p>
   </div>
 </template>

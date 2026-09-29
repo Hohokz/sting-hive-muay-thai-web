@@ -11,8 +11,20 @@
           <!-- Date search input with clear button -->
           <div
             class="relative flex items-center bg-white border border-gray-200 rounded-xl px-4 py-2 h-[42px] min-w-[200px] hover:border-gray-400 transition-colors shadow-sm select-none cursor-pointer"
-            @click="openDatePicker"
           >
+            <!--
+              The real date input covers the whole box (invisible), so a tap
+              opens the native picker directly. showPicker() on a hidden input
+              isn't supported everywhere (e.g. iPad Safari).
+            -->
+            <input
+              ref="dateInputRef"
+              v-model="logStore.filters.date"
+              type="date"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              aria-label="Filter by date"
+              @click="openDatePicker"
+            />
             <span
               class="text-sm font-medium flex-grow mr-2 select-none pointer-events-none"
               :class="logStore.filters.date ? 'text-gray-900' : 'text-gray-400'"
@@ -26,20 +38,11 @@
               v-if="logStore.filters.date"
               type="button"
               @click.stop="logStore.filters.date = ''"
-              class="text-gray-400 hover:text-black font-semibold text-lg ml-1 px-1 transition-colors"
+              class="relative z-10 text-gray-400 hover:text-black font-semibold text-lg ml-1 px-1 transition-colors"
               title="Clear date filter"
             >
               ×
             </button>
-            <!-- Hidden input: sr-only keeps it in the DOM so showPicker() works -->
-            <input
-              ref="dateInputRef"
-              v-model="logStore.filters.date"
-              type="date"
-              class="sr-only"
-              tabindex="-1"
-              @click.stop
-            />
           </div>
 
           <!-- Service dropdown selector -->
@@ -278,9 +281,17 @@ const showRawJson = ref(false)
 /** Ref to the hidden date input — used to programmatically open the picker */
 const dateInputRef = ref(null)
 
-/** Open the native date picker via showPicker() for cross-browser reliability */
+/**
+ * Desktop browsers only open the picker from the tiny calendar glyph, so
+ * open it explicitly on any click. Where showPicker() is missing or throws,
+ * the native tap on the input already opens it.
+ */
 const openDatePicker = () => {
-  dateInputRef.value?.showPicker?.()
+  try {
+    dateInputRef.value?.showPicker?.()
+  } catch {
+    // ignore — native behaviour takes over
+  }
 }
 
 /**

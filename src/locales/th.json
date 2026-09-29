@@ -54,6 +54,8 @@
     "morning": "เช้า",
     "afternoon": "บ่าย",
     "evening": "เย็น",
+    "gym_closed": "ยิมปิด",
+    "closed": "ปิด",
     "full": "เต็ม",
     "no_slots": "ไม่มีรอบว่างในวันนี้"
   },
