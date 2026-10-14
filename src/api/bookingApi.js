@@ -55,6 +55,7 @@ const schedules = {
   create: (data) => axios.post('/api/v1/schedules', data),
   update: (id, data) => axios.put(`/api/v1/schedules/${id}`, data),
   delete: (id) => axios.delete(`/api/v1/schedules/${id}`),
+  getHistory: (id) => axios.get(`/api/v1/schedules/${id}/history`),
   createAdvance: (data) => axios.post('/api/v1/schedules/in-advance', data),
   getAdvanced: (params) => axios.get('/api/v1/schedules/in-advance', { params }),
   updateAdvanced: (id, data) => axios.put(`/api/v1/schedules/in-advance/${id}`, data),

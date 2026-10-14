@@ -170,6 +170,27 @@
                   <img src="/dashboard/edit-3-svgrepo-com.svg" alt="Edit" class="w-5 h-5" />
                 </button>
                 <button
+                  @click="openHistoryModal(item)"
+                  class="text-gray-500 hover:text-black transition-transform hover:scale-125"
+                  title="History"
+                  aria-label="History"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.8"
+                    stroke="currentColor"
+                    class="w-5 h-5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+                <button
                   @click="handleDeleteClick(item.id)"
                   class="text-red-400 hover:text-red-600 text-lg transition-transform hover:scale-125"
                   title="Delete"
@@ -206,6 +227,7 @@ import EditScheduleModal from './EditScheduleModal.vue'
 import AddAdvanceScheduleModal from './AddAdvanceScheduleModal.vue'
 import ActiveScheduleModel from './ActiveScheduleModel.vue'
 import ViewAdvanceScheduleModal from './ViewAdvanceScheduleModal.vue'
+import ScheduleHistoryModal from './ScheduleHistoryModal.vue'
 import ConfirmModal from '@/components/common/ConfirmModal.vue'
 import StatusModal from '@/components/common/StatusModal.vue'
 
@@ -345,6 +367,14 @@ const openAddAvanceModel = () => {
   if (!auth.isAdmin) return
   modalStore.open(AddAdvanceScheduleModal, {
     onSuccess: refreshAll,
+    onClose: () => modalStore.close(),
+  })
+}
+
+const openHistoryModal = (item) => {
+  if (!auth.isAdmin) return
+  modalStore.open(ScheduleHistoryModal, {
+    scheduleId: item.id,
     onClose: () => modalStore.close(),
   })
 }
