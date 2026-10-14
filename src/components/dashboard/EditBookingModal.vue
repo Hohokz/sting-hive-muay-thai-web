@@ -164,7 +164,7 @@
                   placeholder="example@email.com"
                 />
               </div>
-              <div class="space-y-2">
+              <div v-if="!selectPrivate" class="space-y-2">
                 <div class="flex items-center gap-1">
                   <span class="text-red-500">*</span>
                   <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
@@ -175,100 +175,40 @@
                   v-model.number="participants"
                   type="number"
                   min="1"
-                  max="5"
+                  :max="maxStudents"
                   class="w-full p-4 border border-gray-200 rounded-xl font-bold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600"
+                  @input="handleParticipantsInput"
+                  @blur="handleParticipantsBlur"
                 />
               </div>
 
-              <!-- ✅ MULTIPLE STUDENTS -->
-              <div v-if="selectPrivate" class="space-y-2">
-                <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                  Multiple Students
-                </p>
-                <div class="flex items-center gap-6 p-4 border border-gray-200 rounded-xl">
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      :value="true"
-                      v-model="multipleStudents"
-                      class="w-5 h-5 accent-blue-600"
-                    />
-                    <span class="text-gray-700 font-medium">2v1</span>
-                  </label>
-
-                  <label class="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      :value="false"
-                      v-model="multipleStudents"
-                      class="w-5 h-5 accent-blue-600"
-                    />
-                    <span class="text-gray-700 font-medium">1v1</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- ✅ TRAINER SELECTION -->
-              <div
-                v-if="selectPrivate"
-                class="md:col-span-2 relative space-y-2"
-                ref="trainerContainerRef"
-              >
+              <!-- ✅ PRIVATE: TRAINERS & STUDENTS (popup) -->
+              <div v-else class="space-y-2">
                 <div class="flex items-center gap-1">
+                  <span class="text-red-500">*</span>
                   <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest ml-1">
-                    Request Trainer (Optional)
+                    Trainers & Students
                   </p>
                 </div>
-                <div class="relative group">
-                  <input
-                    v-model="trainerSearchQuery"
-                    type="text"
-                    class="w-full p-4 border rounded-xl font-medium outline-none bg-white border-gray-200 focus:ring-2 focus:ring-blue-600 pr-12"
-                    placeholder="Search and select trainer..."
-                    @focus="showTrainerDropdown = true"
-                  />
-                  <button
-                    @click="showTrainerDropdown = !showTrainerDropdown"
-                    type="button"
-                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition-transform"
-                    :class="{ 'rotate-180': showTrainerDropdown }"
-                  >
-                    ▼
-                  </button>
-                </div>
-
-                <!-- Dropdown -->
-                <div
-                  v-if="showTrainerDropdown"
-                  class="absolute z-[100] w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl max-h-48 overflow-y-auto"
+                <button
+                  type="button"
+                  class="w-full p-4 border border-gray-200 rounded-xl flex justify-between items-center text-left transition-colors enabled:hover:border-blue-600 enabled:hover:bg-blue-50 disabled:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  :disabled="!selectedSchedule"
+                  @click="openPrivateSetup"
                 >
-                  <div
-                    v-for="trainer in filteredTrainers"
-                    :key="trainer.id"
-                    @click="selectTrainer(trainer)"
-                    class="p-4 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-none flex justify-between items-center transition-colors"
+                  <span class="font-bold text-gray-900"
+                    >{{ trainerCount }} trainer(s) / {{ participants }} student(s)</span
                   >
-                    <span class="font-bold text-sm text-gray-800">{{ trainer.name }}</span>
-                    <span
-                      v-if="selectedTrainerName === trainer.name"
-                      class="text-blue-500 text-xs font-bold"
-                      >✓ Selected</span
-                    >
-                  </div>
-                  <div
-                    v-if="filteredTrainers.length === 0"
-                    class="p-4 text-center text-xs text-gray-400 italic"
-                  >
-                    No matches found.
-                  </div>
-                </div>
-
-                <!-- Helper Text -->
+                  <span class="text-blue-600 text-sm font-bold">Edit</span>
+                </button>
+                <p v-if="!selectedSchedule" class="text-red-500 text-xs mt-1">
+                  Select a class time first
+                </p>
                 <p
-                  v-if="selectedTrainerName && !showTrainerDropdown"
+                  v-else-if="selectedTrainerNames.length"
                   class="text-[10px] text-blue-600 mt-1 font-semibold flex items-center gap-1"
                 >
-                  <span>✓</span> Currently selected: {{ selectedTrainerName }}
+                  <span>✓</span> Currently selected: {{ selectedTrainerNames.join(', ') }}
                 </p>
               </div>
             </div>
@@ -335,11 +275,25 @@
         </div>
       </div>
     </div>
+
+    <PrivateClassSetupDialog
+      locale="en"
+      :open="showPrivateSetup"
+      :students="participants"
+      :trainer-count="trainerCount"
+      :selected-trainers="selectedTrainers"
+      :trainer-options="trainerOptions"
+      :max-students="maxStudents"
+      :seats-left="seatsLeft"
+      :can-pick-trainers="!!selectedSchedule"
+      @close="showPrivateSetup = false"
+      @confirm="confirmPrivateSetup"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { api } from '@/api/bookingApi'
 import { useSchedules } from '@/composables/useSchedules'
 import { useModalStore } from '@/stores/modal'
@@ -348,6 +302,19 @@ import BookingCalender from '@/components/booking/BookingCalender.vue'
 import { useGymClosedDates } from '@/composables/useGymClosedDates'
 import BookingTimeSlots from '@/components/booking/BookingTimeSlots.vue'
 import trainerGymApi from '@/api/trainerGymApi'
+import PrivateClassSetupDialog from '@/components/booking/PrivateClassSetupDialog.vue'
+import {
+  MAX_STUDENTS,
+  clampTrainers,
+  inferPrivateSetup,
+  maxStudentsForSeats,
+  normalizeStudents,
+  normalizeTrainers,
+  parseTrainerNames,
+  privateBookingFields,
+  pruneTrainerSlots,
+  resizeTrainerSlots,
+} from '@/utils/privateClassSetup'
 
 const props = defineProps({
   show: Boolean,
@@ -368,22 +335,71 @@ const clientName = ref('')
 const mobile = ref('')
 const email = ref('')
 const participants = ref(1)
-const trainerContainerRef = ref(null)
 
 // Trainer selection
 const trainers = ref([])
-const trainerSearchQuery = ref('')
-const selectedTrainerName = ref('')
-const showTrainerDropdown = ref(false)
+const trainerCount = ref(1)
+const selectedTrainers = ref([''])
+const selectedTrainerNames = computed(() => selectedTrainers.value.filter(Boolean))
+const showPrivateSetup = ref(false)
 
-// Multiple Students
-const multipleStudents = ref(false)
+// The booking as loaded in edit mode: its own seats and trainers count as free
+// again when the admin keeps it in the same class on the same day
+const originalBooking = ref(null)
+const toDateKey = (d) => (d ? new Date(d).toLocaleDateString('en-CA') : null)
+const isOriginalSlot = computed(
+  () =>
+    !!originalBooking.value &&
+    selectedSchedule.value?.id === originalBooking.value.scheduleId &&
+    toDateKey(selectedDate.value) === originalBooking.value.dateKey,
+)
 
-const filteredTrainers = computed(() => {
-  const q = trainerSearchQuery.value.toLowerCase().trim()
-  if (!q) return trainers.value
-  return trainers.value.filter((t) => t.name.toLowerCase().includes(q))
+// Seats left in the picked slot (null until a slot from the list is picked)
+const seatsLeft = computed(() => {
+  const seats = selectedSchedule.value?.available_seats
+  if (seats === undefined || seats === null) return null
+  const own = isOriginalSlot.value ? originalBooking.value.capacity : 0
+  return Math.max(0, Number(seats) + own)
 })
+const maxStudents = computed(() => maxStudentsForSeats(seatsLeft.value))
+
+// The API hides trainers already booked in this class — including the ones on
+// this very booking, so add those back while it stays in its original slot
+const trainerOptions = computed(() =>
+  normalizeTrainers([
+    ...trainers.value,
+    ...(isOriginalSlot.value
+      ? originalBooking.value.trainers.map((name) => ({ id: `saved:${name}`, name }))
+      : []),
+  ]),
+)
+
+// Seats and trainers depend on the class time, so it must be picked first
+const openPrivateSetup = () => {
+  if (!selectedSchedule.value) return
+  showPrivateSetup.value = true
+}
+
+const confirmPrivateSetup = ({ students, trainerCount: count, trainers: picked }) => {
+  participants.value = students
+  trainerCount.value = count
+  selectedTrainers.value = picked
+  showPrivateSetup.value = false
+}
+
+const resetSelectedTrainers = () => {
+  selectedTrainers.value = resizeTrainerSlots([], trainerCount.value)
+}
+
+const handleParticipantsInput = () => {
+  // Leave an emptied field alone while typing; blur fills it back in
+  if (participants.value === '') return
+  participants.value = normalizeStudents(participants.value, maxStudents.value)
+}
+
+const handleParticipantsBlur = () => {
+  participants.value = normalizeStudents(participants.value, maxStudents.value)
+}
 
 const fetchTrainers = async () => {
   // Strict check: Gym + Date + Schedule + Private
@@ -421,23 +437,19 @@ const fetchTrainers = async () => {
     const responseData = response.data
     const actualData = Array.isArray(responseData) ? responseData : responseData.data || []
 
-    trainers.value = actualData.map((item) => {
-      const raw = item.dataValues || item
-      return {
-        id: raw.id,
-        name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
-      }
-    })
+    trainers.value = normalizeTrainers(
+      actualData.map((item) => {
+        const raw = item.dataValues || item
+        return {
+          id: raw.id,
+          name: raw.name || raw.username || (typeof raw === 'string' ? raw : ''),
+        }
+      }),
+    )
   } catch (err) {
     console.error('❌ Fetch Trainers Error:', err)
     trainers.value = []
   }
-}
-
-const selectTrainer = (trainer) => {
-  selectedTrainerName.value = trainer.name
-  trainerSearchQuery.value = trainer.name
-  showTrainerDropdown.value = false
 }
 
 const isInitialLoading = ref(false)
@@ -474,9 +486,9 @@ const resetForm = () => {
   mobile.value = ''
   email.value = ''
   participants.value = 1
-  trainerSearchQuery.value = ''
-  selectedTrainerName.value = ''
-  multipleStudents.value = false
+  trainerCount.value = 1
+  resetSelectedTrainers()
+  originalBooking.value = null
 }
 
 const fetchBookingDetail = async (id) => {
@@ -492,13 +504,25 @@ const fetchBookingDetail = async (id) => {
     clientName.value = b.client_name
     mobile.value = b.client_phone
     email.value = b.client_email
+    // Kept as saved, even past today's limits, so editing other fields doesn't
+    // silently change it
     participants.value = b.capacity
-    multipleStudents.value = !!(b.multipleStudents || b.multiple_students)
 
     const tName =
       b.trainer_name || (typeof b.trainer === 'string' ? b.trainer : b.trainer?.name) || ''
-    selectedTrainerName.value = tName
-    trainerSearchQuery.value = tName
+    const setup = inferPrivateSetup({
+      capacity: b.capacity,
+      multipleStudents: !!(b.multipleStudents || b.multiple_students),
+      trainer: tName,
+    })
+    trainerCount.value = setup.trainerCount
+    selectedTrainers.value = setup.trainers
+    originalBooking.value = {
+      scheduleId: b.classes_schedule_id,
+      dateKey: toDateKey(b.date_booking),
+      capacity: Number(b.capacity) || 0,
+      trainers: parseTrainerNames(tName),
+    }
 
     selectedSchedule.value = {
       id: b.classes_schedule_id,
@@ -525,6 +549,17 @@ const formatDateToLocal = (date) => {
 const handleSubmit = async () => {
   if (!selectedSchedule.value) return
 
+  if (!Number.isInteger(participants.value) || participants.value < 1) {
+    return openStatus('Error', 'Please enter at least 1 participant', 'error')
+  }
+  if (selectPrivate.value && participants.value > MAX_STUDENTS) {
+    return openStatus(
+      'Error',
+      `A private class takes at most ${MAX_STUDENTS} students — use Edit to adjust`,
+      'error',
+    )
+  }
+
   const payload = {
     gym_enum: selectedGym.value,
     client_name: clientName.value,
@@ -534,8 +569,9 @@ const handleSubmit = async () => {
     is_private: selectPrivate.value,
     classes_schedule_id: selectedSchedule.value.id,
     date_booking: formatDateToLocal(selectedDate.value),
-    trainer: selectPrivate.value ? selectedTrainerName.value || null : null,
-    multiple_students: selectPrivate.value ? multipleStudents.value : false,
+    ...(selectPrivate.value
+      ? privateBookingFields(participants.value, trainerCount.value, selectedTrainers.value)
+      : { trainer: null, multiple_students: false }),
   }
 
   try {
@@ -614,8 +650,26 @@ watch(isSlotsLoading, (loading) => {
     return
   }
   selectedSchedule.value = null
-  selectedTrainerName.value = ''
-  trainerSearchQuery.value = ''
+  resetSelectedTrainers()
+})
+
+// Picking a slot with fewer seats pulls the student count down to fit
+watch(maxStudents, (max) => {
+  if (participants.value > max) participants.value = max
+  trainerCount.value = clampTrainers(trainerCount.value, participants.value)
+  selectedTrainers.value = resizeTrainerSlots(selectedTrainers.value, trainerCount.value)
+})
+
+// Switching to private: keep the trainer count valid for the students
+watch(selectPrivate, (isPrivate) => {
+  if (!isPrivate) return
+  trainerCount.value = clampTrainers(trainerCount.value, participants.value)
+  selectedTrainers.value = resizeTrainerSlots(selectedTrainers.value, trainerCount.value)
+})
+
+// A refetched list may no longer offer a trainer picked earlier
+watch(trainerOptions, (list) => {
+  selectedTrainers.value = pruneTrainerSlots(selectedTrainers.value, list)
 })
 
 watch([selectedDate, selectPrivate, selectedGym], () => {
@@ -640,21 +694,8 @@ const init = () => {
   else resetForm()
 }
 
-const handleClickOutside = (e) => {
-  if (trainerContainerRef.value && !trainerContainerRef.value.contains(e.target)) {
-    showTrainerDropdown.value = false
-  }
-}
-
 onMounted(() => {
   init()
-  document.addEventListener('mousedown', handleClickOutside)
-  document.addEventListener('touchstart', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('mousedown', handleClickOutside)
-  document.removeEventListener('touchstart', handleClickOutside)
 })
 </script>
 
